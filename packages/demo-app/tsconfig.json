@@ -1,0 +1,9 @@
+{
+  "extends": "@pschiffmann/std/tsconfig-base.json",
+  "references": [{ "path": "../@kragle/ide" }],
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "noEmit": true,
+    "tsBuildInfoFile": "dist/.tsbuildinfo"
+  }
+}
