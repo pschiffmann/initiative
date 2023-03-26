@@ -8,9 +8,8 @@ export type UnwrapArray<T extends KragleTypeArray> = {
   readonly [k in keyof T]: Unwrap<T[k]>;
 };
 export type KragleTypeRecord = Readonly<Record<string, KragleType>>;
-export type UnwrapRecord<T extends KragleTypeRecord> = {
-  readonly [k in keyof T]: Unwrap<T[k]>;
-};
+export type UnwrapRecord<T extends KragleTypeRecord | undefined> =
+  T extends KragleTypeRecord ? { readonly [k in keyof T]: Unwrap<T[k]> } : {};
 
 export abstract class KragleType<T = unknown> {
   readonly _output!: T;
