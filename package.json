@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/@kragle/*",
-    "packages/*"
+    "packages/@pschiffmann/*"
   ],
   "dependencies": {
     "@pschiffmann/std": "^0.3.2",

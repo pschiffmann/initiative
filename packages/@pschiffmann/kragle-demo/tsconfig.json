@@ -4,9 +4,10 @@
     { "path": "../../@kragle/ide" },
     { "path": "../../@kragle/runtime" }
   ],
-  "include": ["kragle/**/*", "src/**/*"],
+  "include": ["kragle/**/*", "src/**/*", "kragle/scenes/*.json"],
   "compilerOptions": {
     "noEmit": true,
-    "tsBuildInfoFile": "dist/.tsbuildinfo"
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "resolveJsonModule": true
   }
 }

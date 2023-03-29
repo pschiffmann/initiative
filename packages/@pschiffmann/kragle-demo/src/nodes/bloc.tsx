@@ -16,7 +16,7 @@ export const component = function Bloc({
 }: InferProps<typeof spec>) {
   const [n, setN] = useState(0);
 
-  const increaseCounter = useCallback(() => setN(n + 1), []);
+  const increaseCounter = useCallback(() => setN((n) => n + 1), []);
 
   return (
     <OutputsProvider label={`count: ${n}`} increaseCounter={increaseCounter} />

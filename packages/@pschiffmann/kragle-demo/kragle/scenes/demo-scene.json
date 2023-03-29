@@ -1,0 +1,19 @@
+{
+  "type": "@kragle/runtime/EmptyScene",
+  "rootNode": "127831a1-51e5-495a-9e8c-7d522af2ca00",
+  "nodes": {
+    "127831a1-51e5-495a-9e8c-7d522af2ca00": {
+      "type": "@pschiffmann/kragle-demo/Bloc",
+      "slots": {
+        "Children": "9a6c63b1-a514-47d4-b305-091e0b6a4495"
+      }
+    },
+    "9a6c63b1-a514-47d4-b305-091e0b6a4495": {
+      "type": "@pschiffmann/kragle-demo/Button",
+      "inputs": {
+        "label": "127831a1-51e5-495a-9e8c-7d522af2ca00::label",
+        "onPress": "127831a1-51e5-495a-9e8c-7d522af2ca00::increaseCounter"
+      }
+    }
+  }
+}
