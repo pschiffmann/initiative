@@ -33,6 +33,10 @@ function useInputs(
         ? sceneRuntime.getContextForNodeOutput(binding)
         : unboundInputContext
     );
+    if (binding?.startsWith("constant::")) {
+      const [, constantId] = binding.split("::");
+      inputs[inputName] = sceneRuntime.sceneJson.constants![constantId];
+    }
   }
   return inputs;
 }

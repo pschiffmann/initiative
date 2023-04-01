@@ -4,4 +4,5 @@
 // these two are combined as a node type.
 export * as bloc from "../src/nodes/bloc.js";
 export * as button from "../src/nodes/button.js";
+export * as dialog from "../src/nodes/dialog.js";
 // export * as mui from "@kragle/mui-material";

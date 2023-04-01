@@ -6,6 +6,7 @@ export interface SceneJson {
 
   readonly rootNode: string;
   readonly nodes: Readonly<Record<string, NodeJson>>;
+  readonly constants?: Readonly<Record<string, string | number | boolean>>;
 }
 
 export interface NodeJson {
@@ -13,7 +14,8 @@ export interface NodeJson {
 
   /**
    * Mapping from input name to property binding. Property bindings use the
-   * format `<nodeId>.<output>`.
+   * format `<nodeId>::<output>`. Constant bindings use the format
+   * `constant::<constantId>`.
    */
   readonly inputs?: Readonly<Record<string, string>>;
 
