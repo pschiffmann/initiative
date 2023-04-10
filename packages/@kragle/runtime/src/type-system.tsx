@@ -19,19 +19,7 @@ type RequiredKeys<T extends {}> = {
 type MakeUndefinedOptional<T extends {}> = Pick<T, RequiredKeys<T>> &
   Partial<T>;
 
-export type KragleType =
-  | KragleArray
-  | KragleBoolean
-  | KragleFunction
-  | KragleNull
-  | KragleNumber
-  | KragleString
-  | KragleTuple
-  | KragleUndefined
-  | KragleUnion
-  | KragleVoid;
-
-export abstract class KragleTypeBase<T = unknown> {
+export abstract class KragleType<T = unknown> {
   /**
    * **Warning:** This property is only used by `Unwrap` for type inference. It
    * doesn't exist at runtime.
@@ -47,7 +35,15 @@ export abstract class KragleTypeBase<T = unknown> {
    * t.string().isAssignableTo(t.string("foo")); // false
    * ```
    */
-  abstract isAssignableTo(other: KragleType): boolean;
+  isAssignableTo(other: KragleType): boolean {
+    return other instanceof KragleUnion
+      ? (other as KragleUnion).elements.some((element) =>
+          this._isAssignableTo(element)
+        )
+      : this._isAssignableTo(other);
+  }
+
+  protected abstract _isAssignableTo(other: KragleType): boolean;
 
   /**
    * Returns `true` if `value` is assignable to this type.
@@ -55,6 +51,7 @@ export abstract class KragleTypeBase<T = unknown> {
    * ```ts
    * t.string().acceptsValue("hello world"); // -> true
    * t.number().acceptsValue("4"); // -> false
+   * t.function()().acceptsValue(() => {}); // throws Error
    * ```
    */
   acceptsValue(value: unknown): boolean {
@@ -68,16 +65,17 @@ export abstract class KragleTypeBase<T = unknown> {
 // Array
 //
 
-class KragleArray<T extends KragleType = KragleType> extends KragleTypeBase<
+class KragleArray<T extends KragleType = KragleType> extends KragleType<
   readonly Unwrap<T>[]
 > {
   constructor(readonly element: T) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
+  protected override _isAssignableTo(other: KragleType): boolean {
     return (
-      other instanceof KragleArray && this.element.isAssignableTo(other.element)
+      other instanceof KragleArray &&
+      this.element.isAssignableTo((other as KragleArray).element)
     );
   }
 
@@ -94,28 +92,25 @@ function kragleArray<T extends KragleType>(element: T): KragleArray<T> {
 // Boolean
 //
 
-class KragleBoolean<T extends boolean = boolean> extends KragleTypeBase<T> {
+class KragleBoolean<T extends boolean = boolean> extends KragleType<T> {
   constructor(readonly value?: T) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
-    if (other instanceof KragleBoolean) {
-      return other.value === undefined || this.value === other.value;
+  protected override _isAssignableTo(other: KragleType): boolean {
+    if (this.value === undefined) {
+      // Special case: `boolean` contains a finite number of elements.
+      // We can check every single value.
+      return kragleUnion(
+        kragleBoolean(true),
+        kragleBoolean(false)
+      ).isAssignableTo(other);
     }
-    if (other instanceof KragleUnion) {
-      if (this.value !== undefined) {
-        return other.elements.some((element) => this.isAssignableTo(element));
-      } else {
-        // Special case: `boolean` contains a finite number of elements.
-        // We can check every single value.
-        return kragleUnion(
-          kragleBoolean(true),
-          kragleBoolean(false)
-        ).isAssignableTo(other);
-      }
-    }
-    return false;
+    return (
+      other instanceof KragleBoolean &&
+      ((other as KragleBoolean).value === undefined ||
+        (other as KragleBoolean).value === this.value)
+    );
   }
 
   override toString(): string {
@@ -134,19 +129,20 @@ function kragleBoolean<T extends boolean>(value?: T): KragleBoolean<T> {
 class KragleFunction<
   P extends KragleTuple = KragleTuple,
   R extends KragleType = KragleType
-> extends KragleTypeBase<(...args: Unwrap<P>) => Unwrap<R>> {
+> extends KragleType<(...args: Unwrap<P>) => Unwrap<R>> {
   constructor(readonly parameters: P, readonly returns: R) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
+  protected override _isAssignableTo(other: KragleType): boolean {
     if (!(other instanceof KragleFunction)) return false;
+    const other_ = other as KragleFunction;
     return (
-      this.parameters.elements.length <= other.parameters.elements.length &&
-      other.parameters.elements.every((param, i) =>
+      this.parameters.elements.length <= other_.parameters.elements.length &&
+      other_.parameters.elements.every((param, i) =>
         param.isAssignableTo(this.parameters.elements[i])
       ) &&
-      this.returns.isAssignableTo(other.returns)
+      this.returns.isAssignableTo(other_.returns)
     );
   }
 
@@ -177,15 +173,9 @@ function kragleFunction<P extends KragleTypeArray>(
 // Null
 //
 
-class KragleNull extends KragleTypeBase<null> {
-  override isAssignableTo(other: KragleType): boolean {
-    return (
-      other instanceof KragleNull ||
-      (other instanceof KragleUnion &&
-        (other as KragleUnion).elements.some((element) =>
-          this.isAssignableTo(element)
-        ))
-    );
+class KragleNull extends KragleType<null> {
+  protected override _isAssignableTo(other: KragleType): boolean {
+    return other instanceof KragleNull;
   }
 
   override toString(): string {
@@ -193,25 +183,25 @@ class KragleNull extends KragleTypeBase<null> {
   }
 }
 
-const kragleNull = new KragleNull();
+function kragleNull(): KragleNull {
+  return new KragleNull();
+}
 
 //
 // Number
 //
 
-class KragleNumber<T extends number = number> extends KragleTypeBase<T> {
+class KragleNumber<T extends number = number> extends KragleType<T> {
   constructor(readonly value?: T) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
-    if (other instanceof KragleNumber) {
-      return other.value === undefined || this.value === other.value;
-    }
-    if (other instanceof KragleUnion) {
-      return other.elements.some((element) => this.isAssignableTo(element));
-    }
-    return false;
+  protected override _isAssignableTo(other: KragleType): boolean {
+    return (
+      other instanceof KragleNumber &&
+      ((other as KragleNumber).value === undefined ||
+        (other as KragleNumber).value) === this.value
+    );
   }
 
   override toString(): string {
@@ -227,13 +217,17 @@ function kragleNumber<T extends number>(value?: T): KragleNumber<T> {
 // String
 //
 
-class KragleString<T extends string = string> extends KragleTypeBase<T> {
+class KragleString<T extends string = string> extends KragleType<T> {
   constructor(readonly value?: T) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
-    return false;
+  protected override _isAssignableTo(other: KragleType): boolean {
+    return (
+      other instanceof KragleNumber &&
+      ((other as KragleNumber).value === undefined ||
+        (other as KragleNumber).value) === this.value
+    );
   }
 
   override toString(): string {
@@ -252,20 +246,12 @@ function kragleString<T extends string>(value?: T): KragleString<T> {
 
 class KragleTuple<
   E extends KragleTypeArray = KragleTypeArray
-> extends KragleTypeBase<UnwrapArray<E>> {
+> extends KragleType<UnwrapArray<E>> {
   constructor(readonly elements: E) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
-    if (other instanceof KragleTuple) {
-      return (
-        this.elements.length >= other.elements.length &&
-        other.elements.every((element, i) =>
-          this.elements[i].isAssignableTo(element)
-        )
-      );
-    }
+  protected override _isAssignableTo(other: KragleType): boolean {
     return false;
   }
 
@@ -284,8 +270,8 @@ function kragleTuple<E extends KragleTypeArray>(
 // Undefined
 //
 
-class KragleUndefined extends KragleTypeBase<undefined> {
-  override isAssignableTo(other: KragleType): boolean {
+class KragleUndefined extends KragleType<undefined> {
+  protected override _isAssignableTo(other: KragleType): boolean {
     return other instanceof KragleUndefined;
   }
 
@@ -308,12 +294,12 @@ function kragleOptional<T extends KragleType>(
 
 class KragleUnion<
   T extends KragleTypeArray = KragleTypeArray
-> extends KragleTypeBase<Unwrap<T[number]>> {
+> extends KragleType<Unwrap<T[number]>> {
   constructor(readonly elements: T) {
     super();
   }
 
-  override isAssignableTo(other: KragleType): boolean {
+  protected override _isAssignableTo(other: KragleType): boolean {
     return false;
   }
 
@@ -335,8 +321,8 @@ function kragleUnion<T extends KragleTypeArray>(
 // Void
 //
 
-class KragleVoid extends KragleTypeBase<void> {
-  override isAssignableTo(): boolean {
+class KragleVoid extends KragleType<void> {
+  protected override _isAssignableTo(): boolean {
     return true;
   }
 
