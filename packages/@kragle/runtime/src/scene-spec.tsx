@@ -1,4 +1,4 @@
-import * as t from "./type-system.js";
+import * as t from "./type-system/index.js";
 
 export class SceneSpec<I extends t.KragleTypeRecord = {}> {
   constructor(readonly name: string, { inputs }: Omit<SceneSpec<I>, "name">) {

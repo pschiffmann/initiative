@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import * as t from "./type-system.js";
+import * as t from "./type-system/index.js";
 
 export class NodeSpec<
   I extends t.KragleTypeRecord = {},
