@@ -32,8 +32,9 @@ export abstract class KragleType<T = unknown> {
    * Returns an equivalent copy of `this` where superfluous `KragleType`
    * elements are removed.
    *
-   * For example, `string | (number | boolean)` becomes
-   * `string | number | boolean`, and `true | false` becomes `boolean`.
+   * For example, `string | "foo"` becomes `string`,
+   * `string | (number | boolean)` becomes `string | number | boolean`, and
+   * `true | false` becomes `boolean`.
    */
   normalize(): KragleType {
     throw new Error("Unimplemented");

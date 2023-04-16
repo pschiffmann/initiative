@@ -41,12 +41,16 @@ export class NodeSchema<
 // Slots
 //
 
-interface SlotSchema {
+export interface SlotSchema {
+  /**
+   * If a slot schema has an `inputs` key (even if it is empty), then that slot
+   * is a collection slot and can accept any number of children, including 0.
+   */
   readonly inputs?: t.KragleTypeRecord;
   readonly outputs?: t.KragleTypeRecord;
 }
 
-type SlotSchemas = Readonly<Record<string, SlotSchema>>;
+export type SlotSchemas = Readonly<Record<string, SlotSchema>>;
 
 /**
  * Usage:

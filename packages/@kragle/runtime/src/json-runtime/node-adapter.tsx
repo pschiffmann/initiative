@@ -66,7 +66,7 @@ export function OutputsProvider({
       <>
         {children(
           $Object.map(slots ?? {}, (slot, nodeId) =>
-            runtime.getAdapterComponent(nodeId)
+            runtime.getAdapterComponent(nodeId as string)
           )
         )}
       </>
@@ -74,7 +74,7 @@ export function OutputsProvider({
       <>
         {slots &&
           Object.entries(slots).map(([slot, nodeId]) => {
-            const NodeAdapter = runtime.getAdapterComponent(nodeId);
+            const NodeAdapter = runtime.getAdapterComponent(nodeId as string);
             return <NodeAdapter key={slot} />;
           })}
       </>
