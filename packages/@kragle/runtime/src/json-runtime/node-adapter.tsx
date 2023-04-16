@@ -8,7 +8,7 @@ export interface NodeAdapterProps {
 }
 
 export function NodeAdapter({ nodeId, runtime }: NodeAdapterProps) {
-  const nodeJson = runtime.sceneJson.nodes[nodeId];
+  const nodeJson = runtime.sceneJson.nodes[nodeId] as any;
   const { component: Component, spec } = runtime.nodeRefs.get(nodeJson.type)!;
   const inputs = useInputs(
     Object.keys(spec.inputs ?? {}),
@@ -35,7 +35,9 @@ function useInputs(
     );
     if (binding?.startsWith("constant::")) {
       const [, constantId] = binding.split("::");
-      inputs[inputName] = sceneRuntime.sceneJson.constants![constantId];
+      inputs[inputName] = (sceneRuntime.sceneJson as any).constants![
+        constantId
+      ];
     }
   }
   return inputs;

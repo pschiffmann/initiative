@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { NodeSpec } from "./node-spec.js";
+import { NodeSchema } from "./node-schema.js";
 
 export interface NodeComponentProps {
   OutputsProvider: FC<OutputsProviderProps>;
@@ -12,7 +12,7 @@ export interface OutputsProviderProps {
 }
 
 export interface NodeRef {
-  readonly spec: NodeSpec;
+  readonly spec: NodeSchema;
   readonly component: FC<NodeComponentProps>;
   readonly importPath: readonly string[];
 }
@@ -25,7 +25,7 @@ export function resolveNodeRefs(rootModule: any): NodeRefs {
   function visit(module: any, path: readonly string[] = []) {
     if (typeof module !== "object" || module === null) return;
     const { spec, component } = module;
-    if (spec instanceof NodeSpec && typeof component === "function") {
+    if (spec instanceof NodeSchema && typeof component === "function") {
       result.set(spec.name, { spec, component, importPath: path });
       return;
     }

@@ -1,22 +1,7 @@
-import { InferProps, NodeSpec, t } from "@kragle/runtime";
 import { useMemo, useRef, useState } from "react";
+import { DialogProps } from "./dialog-schema.js";
 
-export const spec = new NodeSpec("@pschiffmann/kragle-demo/Dialog", {
-  outputs: {
-    isOpen: t.boolean,
-    open: t.function()(),
-    close: t.function()(),
-    toggle: t.function()(),
-  },
-  slots: {
-    Trigger: {},
-    Content: {},
-  },
-});
-
-export const component = function Dialog({
-  OutputsProvider,
-}: InferProps<typeof spec>) {
+export function Dialog({ OutputsProvider }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -50,11 +35,9 @@ export const component = function Dialog({
       {({ Trigger, Content }) => (
         <>
           <Trigger />
-          <dialog ref={dialogRef}>
-            <Content />
-          </dialog>
+          <dialog ref={dialogRef}>{isOpen && <Content />}</dialog>
         </>
       )}
     </OutputsProvider>
   );
-};
+}

@@ -4,6 +4,7 @@ export * from "./boolean.js";
 export * from "./function.js";
 export * from "./null.js";
 export * from "./number.js";
+export * from "./resolve-type.js";
 export * from "./string.js";
 export * from "./tuple.js";
 export * from "./undefined.js";

@@ -8,6 +8,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
+  "imports": {
+    "#scenes/*": "./kragle/scenes/*"
+  },
   "dependencies": {
     "@kragle/ide": "^0.1.0",
     "@kragle/runtime": "^0.1.0",

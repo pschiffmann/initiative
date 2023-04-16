@@ -29,19 +29,6 @@ export abstract class KragleType<T = unknown> {
   protected abstract _isAssignableTo(other: KragleType): boolean;
 
   /**
-   * Returns `true` if `value` is assignable to this type.
-   *
-   * ```ts
-   * t.string().acceptsValue("hello world"); // -> true
-   * t.number().acceptsValue("4"); // -> false
-   * t.function()().acceptsValue(() => {}); // throws Error("Unimplemented")
-   * ```
-   */
-  acceptsValue(value: unknown): boolean {
-    throw new Error("Unimplemented");
-  }
-
-  /**
    * Returns an equivalent copy of `this` where superfluous `KragleType`
    * elements are removed.
    *

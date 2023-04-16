@@ -1,10 +1,11 @@
 import { ComponentType, ReactNode } from "react";
 import * as t from "./type-system/index.js";
+import { isInputId } from "./util/kragle-identifier.js";
 
 export class NodeSchema<
   I extends t.KragleTypeRecord = {},
   O extends t.KragleTypeRecord = {},
-  S extends SlotDefinitions = {}
+  S extends SlotSchemas = {}
 > {
   constructor(
     readonly name: string,
@@ -13,6 +14,22 @@ export class NodeSchema<
     this.inputs = inputs;
     this.outputs = outputs;
     this.slots = slots;
+
+    const allInputs = new Set<string>();
+    function validateInputName(inputName: string) {
+      if (!isInputId(inputName)) {
+        throw new Error(`Invalid input id: ${inputName}`);
+      }
+      if (allInputs.has(inputName)) {
+        throw new Error(`Duplicate input id: ${inputName}`);
+      }
+      allInputs.add(inputName);
+    }
+
+    Object.keys(inputs ?? {}).forEach(validateInputName);
+    Object.values(slots ?? {})
+      .flatMap((slot) => Object.keys(slot.inputs ?? {}))
+      .forEach(validateInputName);
   }
 
   readonly inputs?: I;
@@ -24,12 +41,12 @@ export class NodeSchema<
 // Slots
 //
 
-interface SlotDefinition {
+interface SlotSchema {
   readonly inputs?: t.KragleTypeRecord;
   readonly outputs?: t.KragleTypeRecord;
 }
 
-type SlotDefinitions = Readonly<Record<string, SlotDefinition>>;
+type SlotSchemas = Readonly<Record<string, SlotSchema>>;
 
 /**
  * Usage:
@@ -62,7 +79,7 @@ type SlotDefinitions = Readonly<Record<string, SlotDefinition>>;
  * // }
  * ```
  */
-type UnwrapAllSlotInputs<S extends SlotDefinitions> = {
+type UnwrapAllSlotInputs<S extends SlotSchemas> = {
   readonly [k in keyof S]: UnwrapSingleSlotInputs<S[k]["inputs"]>;
 };
 type UnwrapSingleSlotInputs<I extends t.KragleTypeRecord | undefined> =
@@ -84,27 +101,10 @@ type AddNestedKeys<T extends Record<string, {}>, K extends string> = {
   [k in keyof T]: AddKeys<T[k], K>;
 };
 
-const slots = {
-  slotX: {
-    inputs: {
-      a: t.string(),
-      b: t.optional(t.number()),
-    },
-  },
-  slotY: {
-    inputs: {
-      a: t.null(),
-      c: t.boolean(),
-    },
-  },
-};
-
-type T6 = UnwrapAllSlotInputs<typeof slots>;
-type T7 = Flatten<AddNestedKeys<T6, NestedKeys<T6>>>;
-
-export type InferSlotComponentTypes<S extends SlotDefinitions> = {
-  readonly [k in keyof S]: ComponentType<t.UnwrapRecord<S[k]["outputs"]>>;
-};
+// TODO: Explain this magic
+type FlattenSlotInputs<S extends SlotSchemas> = Flatten<
+  AddNestedKeys<UnwrapAllSlotInputs<S>, NestedKeys<UnwrapAllSlotInputs<S>>>
+>;
 
 //
 // React component props
@@ -115,14 +115,19 @@ export type InferProps<N extends NodeSchema> = N extends NodeSchema<
   infer O,
   infer S
 >
-  ? t.UnwrapRecord<I> & {
-      OutputsProvider: ComponentType<OutputsProviderProps<O, S>>;
-    }
+  ? t.UnwrapRecord<I> &
+      FlattenSlotInputs<S> & {
+        OutputsProvider: ComponentType<OutputsProviderProps<O, S>>;
+      }
   : {};
 
 type OutputsProviderProps<
   O extends t.KragleTypeRecord,
-  S extends SlotDefinitions
+  S extends SlotSchemas
 > = t.UnwrapRecord<O> & {
   children?(slots: InferSlotComponentTypes<S>): ReactNode;
+};
+
+type InferSlotComponentTypes<S extends SlotSchemas> = {
+  readonly [k in keyof S]: ComponentType<t.UnwrapRecord<S[k]["outputs"]>>;
 };

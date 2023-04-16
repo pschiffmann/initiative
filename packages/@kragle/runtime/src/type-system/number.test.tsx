@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { assertTypesAreEqual } from "./_test-utils.js";
+import { assertTypesAreEqual } from "../util/test-utils.js";
 import * as t from "./index.js";
 
 describe("isAssignableTo():", () => {
