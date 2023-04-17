@@ -9,11 +9,15 @@ export class NodeSchema<
 > {
   constructor(
     readonly name: string,
-    { inputs, outputs, slots }: Omit<NodeSchema<I, O, S>, "name">
+    {
+      inputs,
+      outputs,
+      slots,
+    }: Partial<Pick<NodeSchema<I, O, S>, "inputs" | "outputs" | "slots">>
   ) {
-    this.inputs = inputs;
-    this.outputs = outputs;
-    this.slots = slots;
+    this.inputs = inputs ?? ({} as any);
+    this.outputs = outputs ?? ({} as any);
+    this.slots = slots ?? ({} as any);
 
     const allInputs = new Set<string>();
     function validateInputName(inputName: string) {
@@ -32,9 +36,23 @@ export class NodeSchema<
       .forEach(validateInputName);
   }
 
-  readonly inputs?: I;
-  readonly outputs?: O;
-  readonly slots?: S;
+  readonly inputs: I;
+  readonly outputs: O;
+  readonly slots: S;
+
+  isCollectionSlot(slotName: string): boolean {
+    const slotSchema = this.slots[slotName];
+    if (slotSchema) return !!slotSchema.inputs;
+    throw new Error(`Slot '${slotName}' doesn't exist on type ${this.name}.`);
+  }
+
+  isCollectionInput(inputName: string): boolean {
+    if (this.inputs.hasOwnProperty(inputName)) return false;
+    for (const slotSchema of Object.values(this.slots)) {
+      if (slotSchema.inputs?.hasOwnProperty(inputName)) return true;
+    }
+    throw new Error(`Input '${inputName}' doesn't exist on type ${this.name}.`);
+  }
 }
 
 //

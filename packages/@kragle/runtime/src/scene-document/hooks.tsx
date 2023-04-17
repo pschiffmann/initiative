@@ -1,6 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { NodeJson } from "./node-json.js";
 import { NodeErrors, SceneDocument } from "./scene-document.js";
-import { NodeJson } from "./scene-json.js";
 
 export function useRootNodeId(sceneDocument: SceneDocument): string | null {
   return useSyncExternalStore(
