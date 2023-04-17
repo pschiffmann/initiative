@@ -2,39 +2,7 @@ import * as $Map from "@pschiffmann/std/map";
 import { NodeDefinitions } from "../node-definition.js";
 import { SlotSchema } from "../node-schema.js";
 import * as t from "../type-system/index.js";
-
-export interface SceneJson {
-  readonly rootNode: string;
-  readonly nodes: Readonly<Record<string, NodeJson>>;
-}
-
-export interface NodeJson {
-  readonly type: string;
-
-  readonly inputs: Readonly<
-    Record<string, NodeInputJson | readonly (NodeInputJson | null)[]>
-  >;
-
-  /**
-   * Mapping from slot name to child node id.
-   */
-  readonly slots: Readonly<Record<string, string | readonly string[]>>;
-}
-
-export type NodeInputJson =
-  | {
-      readonly type: "binding";
-      readonly nodeId: string;
-      readonly output: string;
-    }
-  // | {
-  //     readonly type: "external";
-  //     readonly sceneProp: string;
-  //   }
-  | {
-      readonly type: "constant";
-      readonly value: string | number | boolean;
-    };
+import { NodeInputJson, NodeJson } from "./scene-json.js";
 
 export type SceneDocumentPatch =
   | CreateRootNodePatch
@@ -74,6 +42,10 @@ export interface SetNodeInputPatch {
   readonly value: NodeInputJson | null;
 }
 
+export type OnSceneDocumentChangeHandler = (
+  changedNodeIds: readonly string[]
+) => void;
+
 export interface NodeErrors {
   /**
    * Missing slot inputs are listed as `<input name>/<index>`.
@@ -85,13 +57,13 @@ export interface NodeErrors {
 export class SceneDocument {
   constructor(readonly nodeDefinitions: NodeDefinitions) {}
 
-  #rootNode: string | null = null;
+  #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeJson>();
   #nodeErrors = new Map<string, NodeErrors | null>();
 
-  get rootNode(): string | null {
-    return this.#rootNode;
-  }
+  getRootNodeId = () => {
+    return this.#rootNodeId;
+  };
 
   getNode(nodeId: string): NodeJson | null {
     return this.#nodes.get(nodeId) ?? null;
@@ -159,7 +131,11 @@ export class SceneDocument {
     }
   }
 
-  #createRootNode({}: CreateRootNodePatch): void {}
+  #createRootNode({ nodeType }: CreateRootNodePatch): void {
+    const definition = this.nodeDefinitions.get(nodeType);
+    if (!definition) throw new Error(`Unknown node type: ${nodeType}`);
+    const { schema } = definition;
+  }
 
   #createNode({ nodeType, parentId, parentSlot }: CreateNodePatch): void {
     const definition = this.nodeDefinitions.get(nodeType);
@@ -173,22 +149,16 @@ export class SceneDocument {
 
   #setNodeInput({}: SetNodeInputPatch): void {}
 
-  subscribe() {}
-}
+  #subscriptions = new Set<OnSceneDocumentChangeHandler>();
+  subscribe = (onChange: OnSceneDocumentChangeHandler) => {
+    if (this.#subscriptions.has(onChange)) {
+      throw new Error("function is already subscribed to this document.");
+    }
+    this.#subscriptions.add(onChange);
 
-export interface ParseSceneJsonResult {
-  readonly sceneDocument: SceneDocument;
-  readonly errors: readonly string[];
-}
-
-export function parseSceneJson(
-  nodeDefinitions: NodeDefinitions,
-  sceneJson: SceneJson
-): ParseSceneJsonResult {
-  const sceneDocument = new SceneDocument(nodeDefinitions);
-  const errors: string[] = [];
-
-  function x() {}
-
-  return { sceneDocument, errors };
+    let called = false;
+    return () => {
+      if (!called) this.#subscriptions.delete(onChange);
+    };
+  };
 }

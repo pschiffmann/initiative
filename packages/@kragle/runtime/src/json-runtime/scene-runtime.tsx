@@ -1,9 +1,9 @@
 import * as $Map from "@pschiffmann/std/map";
 import { Context, createContext, FC } from "react";
 import { NodeRefs, OutputsProviderProps } from "../node-ref.js";
+import { SceneJson } from "../scene-document/index.js";
 import { withProps } from "../util/with-props.js";
 import { NodeAdapter, OutputsProvider } from "./node-adapter.js";
-import { SceneJson } from "./scene-document.js";
 
 export class SceneRuntime {
   constructor(readonly sceneJson: SceneJson, readonly nodeRefs: NodeRefs) {}
