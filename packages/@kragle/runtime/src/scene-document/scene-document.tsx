@@ -1,17 +1,16 @@
 import * as $Map from "@pschiffmann/std/map";
 import { NodeDefinitions } from "../node-definition.js";
-import { SlotSchema } from "../node-schema.js";
 import * as t from "../type-system/index.js";
 import { assertIsNodeId, isNodeId } from "../util/kragle-identifier.js";
 import * as $NodeJson from "./node-json.js";
-import { NodeInputJson, NodeJson, NodeParent } from "./node-json.js";
+import { InputBindingJson, NodeJson } from "./node-json.js";
 
 export type SceneDocumentPatch =
   | CreateRootNodePatch
   | CreateNodePatch
   | DeleteNodePatch
   | RenameNodePatch
-  | SetNodeInputPatch;
+  | BindNodeInputPatch;
 
 export interface CreateRootNodePatch {
   readonly type: "create-root-node";
@@ -38,17 +37,23 @@ export interface RenameNodePatch {
   readonly newId: string;
 }
 
-export interface SetNodeInputPatch {
-  readonly type: "set-node-input";
+export interface BindNodeInputPatch {
+  readonly type: "bind-node-input";
   readonly nodeId: string;
   readonly inputName: string;
   readonly index?: number;
-  readonly value: NodeInputJson | null;
+  readonly binding: InputBindingJson | null;
 }
 
 export type OnSceneDocumentChangeHandler = (
   changedNodeIds: readonly string[]
 ) => void;
+
+interface NodeParent {
+  readonly nodeId: string;
+  readonly slotName: string;
+  readonly index?: number;
+}
 
 export interface NodeErrors {
   /**
@@ -78,6 +83,12 @@ export class SceneDocument {
     return this.#nodes.get(nodeId) ?? null;
   }
 
+  #getNode(nodeId: string): NodeJson {
+    const nodeJson = this.#nodes.get(nodeId);
+    if (!nodeJson) throw new Error(`Can't find node ${nodeId}`);
+    return nodeJson;
+  }
+
   #generateNodeId(prefix: string): string {
     if (!isNodeId(prefix)) prefix = "Node";
     for (let i = 1; ; i++) {
@@ -86,11 +97,40 @@ export class SceneDocument {
     }
   }
 
+  /**
+   * Returns the slot name of `ancestor` that leads to `descendant` in the node
+   * tree.
+   *
+   * Throws an error if `descendant` is not a descendant of `ancestor`.
+   */
+  getNodeSlotNameInAncestor({
+    descendant,
+    ancestor,
+  }: {
+    descendant: string;
+    ancestor: string;
+  }): string {
+    for (
+      let current = this.#nodeParents.get(descendant);
+      current;
+      current = this.#nodeParents.get(current.nodeId)
+    ) {
+      if (current.nodeId === ancestor) return current.slotName;
+    }
+    throw new Error(
+      `Node '${descendant}' is not a descendant of '${ancestor}'.`
+    );
+  }
+
   //
   // Node errors
   //
 
   #nodeErrors = new Map<string, NodeErrors | null>();
+
+  get hasErrors(): boolean {
+    return this.#nodeErrors.size !== 0;
+  }
 
   getNodeErrors(nodeId: string): NodeErrors | null {
     return $Map.putIfAbsent(this.#nodeErrors, nodeId, () =>
@@ -99,36 +139,33 @@ export class SceneDocument {
   }
 
   #resolveNodeErrors(nodeId: string): NodeErrors | null {
-    const nodeJson = this.#nodes.get(nodeId);
-    if (!nodeJson) throw new Error(`Can't find node ${nodeId}`);
+    const nodeJson = this.#getNode(nodeId);
     const { schema } = this.nodeDefinitions.get(nodeJson.type)!;
 
     const missingInputs = new Set<string>();
     const missingSlots = new Set<string>();
 
-    // Check simple inputs for missing values
-    for (const [name, type] of Object.entries(schema.inputs)) {
-      if (!nodeJson.inputs[name] && !t.undefined().isAssignableTo(type)) {
-        missingInputs.add(name);
+    // Check single inputs for missing values
+    for (const [inputName, type] of Object.entries(schema.inputs)) {
+      if (!nodeJson.inputs[inputName] && !t.undefined().isAssignableTo(type)) {
+        missingInputs.add(inputName);
       }
     }
 
-    // Check slot collection inputs for missing values
-    for (const [name, type] of Object.values(schema.slots).flatMap((slot) =>
-      Object.entries(slot.inputs ?? {})
-    )) {
-      const inputs = nodeJson.inputs[name] as readonly (NodeInputJson | null)[];
-      for (const [index, value] of inputs.entries()) {
+    // Check collection inputs for missing values
+    for (const [slotName, type] of schema.getCollectionInputs()) {
+      const bindings = nodeJson.collectionInputs[slotName];
+      for (const [index, value] of bindings.entries()) {
         if (!value && !t.undefined().isAssignableTo(type)) {
-          missingInputs.add(`${name}/${index}`);
+          missingInputs.add(`${slotName}/${index}`);
         }
       }
     }
 
     // Check for missing slots
-    for (const [name, slotSchema] of Object.entries<SlotSchema>(schema.slots)) {
-      if (!slotSchema.inputs && !nodeJson.slots[name]) {
-        missingSlots.add(name);
+    for (const slotName of Object.keys(schema.slots)) {
+      if (!schema.isCollectionSlot(slotName) && !nodeJson.slots[slotName]) {
+        missingSlots.add(slotName);
       }
     }
 
@@ -145,13 +182,15 @@ export class SceneDocument {
 
   subscribe = (onChange: OnSceneDocumentChangeHandler) => {
     if (this.#subscriptions.has(onChange)) {
-      throw new Error("function is already subscribed to this document.");
+      throw new Error("'onChange' is already subscribed to this document.");
     }
     this.#subscriptions.add(onChange);
 
     let called = false;
     return () => {
-      if (!called) this.#subscriptions.delete(onChange);
+      if (called) return;
+      called = true;
+      this.#subscriptions.delete(onChange);
     };
   };
 
@@ -179,8 +218,8 @@ export class SceneDocument {
         return patch.nodeId === this.#rootNodeId
           ? this.#renameRootNode(patch)
           : this.#renameNode(patch);
-      case "set-node-input":
-        return this.#setNodeInput(patch);
+      case "bind-node-input":
+        return this.#bindNodeInput(patch);
     }
   }
 
@@ -189,15 +228,14 @@ export class SceneDocument {
       throw new Error("Scene document is not empty.");
     }
     const definition = this.nodeDefinitions.get(nodeType);
-    if (!definition) throw new Error(`Unknown node type: ${nodeType}`);
-    const { schema } = definition;
+    if (!definition) throw new Error(`Unknown node type '${nodeType}'.`);
     if (nodeId) {
       assertIsNodeId(nodeId);
     } else {
       nodeId = this.#generateNodeId(definition.importName);
     }
     this.#rootNodeId = nodeId;
-    this.#nodes.set(nodeId, $NodeJson.create(schema));
+    this.#nodes.set(nodeId, $NodeJson.create(definition.schema));
     this.#notifySubscriptions([nodeId]);
   }
 
@@ -207,49 +245,46 @@ export class SceneDocument {
     parentSlot,
     nodeId,
   }: CreateNodePatch): void {
-    if (!parentSlot) throw new Error("Missing parameter :parentSlot");
-
-    const parentJson = this.#nodes.get(parentId);
-    if (!parentJson) throw new Error(`Can't find node: ${parentId}`);
+    const parentJson = this.#getNode(parentId);
     const parentSchema = this.nodeDefinitions.get(parentJson.type)!.schema;
-    if (
-      !parentSchema.isCollectionSlot(parentSlot) &&
-      parentJson.slots[parentSlot]
-    ) {
-      throw new Error(
-        `Slot '${parentSlot}' of node '${parentId}' already contains a node.`
-      );
-    }
 
     const childDefinition = this.nodeDefinitions.get(nodeType);
-    if (!childDefinition) throw new Error(`Unknown node type: ${nodeType}`);
+    if (!childDefinition) throw new Error(`Unknown node type '${nodeType}'.`);
 
     if (nodeId) {
       assertIsNodeId(nodeId);
+      if (this.#nodes.has(nodeId)) {
+        throw new Error(`A node with id '${nodeId}' already exists.`);
+      }
     } else {
       nodeId = this.#generateNodeId(childDefinition.importName);
     }
 
-    const newParentJson = $NodeJson.addChild(
-      parentSchema,
-      parentJson,
-      parentSlot,
-      nodeId
+    let nodeParent: NodeParent;
+    if (parentSchema.isCollectionSlot(parentSlot)) {
+      nodeParent = {
+        nodeId: parentId,
+        slotName: parentSlot,
+        index: parentJson.collectionSlots[parentSlot].length,
+      };
+    } else {
+      if (parentJson.slots[parentSlot]) {
+        throw new Error(
+          `Slot '${parentSlot}' of node '${parentId}' is not empty.`
+        );
+      }
+      nodeParent = { nodeId: parentId, slotName: parentSlot };
+    }
+
+    this.#nodes.set(
+      parentId,
+      $NodeJson.addChild(parentSchema, parentJson, parentSlot, nodeId)
     );
-    this.#nodes.set(parentId, newParentJson);
-    this.#nodes.set(nodeId, $NodeJson.create(childDefinition.schema));
     this.#nodeErrors.delete(parentId);
-    this.#nodeParents.set(
-      nodeId,
-      parentSchema.isCollectionSlot(parentSlot)
-        ? {
-            nodeId: parentId,
-            slotName: parentSlot,
-            index:
-              (newParentJson.slots[parentSlot] as readonly string[]).length - 1,
-          }
-        : { nodeId: parentId, slotName: parentSlot }
-    );
+
+    this.#nodes.set(nodeId, $NodeJson.create(childDefinition.schema));
+    this.#nodeParents.set(nodeId, nodeParent);
+
     this.#notifySubscriptions([parentId, nodeId]);
   }
 
@@ -264,7 +299,7 @@ export class SceneDocument {
 
   #deleteNode({ nodeId }: DeleteNodePatch): void {
     const nodeParent = this.#nodeParents.get(nodeId);
-    if (!nodeParent) throw new Error(`Can't find node: ${nodeId}`);
+    if (!nodeParent) throw new Error(`Can't find node '${nodeId}'.`);
 
     const { nodeId: parentId, slotName, index } = nodeParent;
     const parentJson = this.#nodes.get(parentId)!;
@@ -278,8 +313,8 @@ export class SceneDocument {
 
     this.#nodes.set(parentId, newParentJson);
     if (parentSchema.isCollectionSlot(slotName)) {
-      const newSlots = newParentJson.slots[slotName] as readonly string[];
-      for (const [index, childId] of newSlots.entries()) {
+      const newChildren = newParentJson.collectionSlots[slotName];
+      for (const [index, childId] of newChildren.entries()) {
         this.#nodeParents.set(childId, { nodeId: parentId, slotName, index });
       }
     }
@@ -291,11 +326,15 @@ export class SceneDocument {
       this.#nodes.delete(nodeId);
       this.#nodeErrors.delete(nodeId);
       this.#nodeParents.delete(nodeId);
-      for (const children of Object.values(nodeJson.slots)) {
-        if (typeof children === "string") {
-          deleteRecursive(children);
-        } else {
-          children.forEach(deleteRecursive);
+
+      const { schema } = this.nodeDefinitions.get(nodeJson.type)!;
+      for (const slotName of Object.keys(schema.slots)) {
+        const child = nodeJson.slots[slotName];
+        if (child) deleteRecursive(child);
+      }
+      for (const slotName of schema.getCollectionSlots()) {
+        for (const child of nodeJson.collectionSlots[slotName]) {
+          deleteRecursive(child);
         }
       }
     };
@@ -306,6 +345,9 @@ export class SceneDocument {
 
   #renameRootNode({ nodeId, newId }: RenameNodePatch): void {
     assertIsNodeId(newId);
+    if (this.#nodes.has(newId)) {
+      throw new Error(`A node with id '${newId}' already exists.`);
+    }
 
     const nodeJson = this.#nodes.get(nodeId)!;
     this.#rootNodeId = newId;
@@ -314,19 +356,21 @@ export class SceneDocument {
     this.#nodeErrors.set(newId, this.#nodeErrors.get(nodeId)!);
     this.#nodeErrors.delete(nodeId);
 
-    for (const children of Object.values(nodeJson.slots)) {
-      if (typeof children === "string") {
-        this.#nodeParents.set(children, {
-          ...this.#nodeParents.get(children)!,
+    const { schema } = this.nodeDefinitions.get(nodeJson.type)!;
+    for (const slotName of Object.keys(schema.slots)) {
+      const child = nodeJson.slots[slotName];
+      if (!child) continue;
+      this.#nodeParents.set(child, {
+        ...this.#nodeParents.get(child)!,
+        nodeId,
+      });
+    }
+    for (const slotName of schema.getCollectionSlots()) {
+      for (const child of nodeJson.collectionSlots[slotName]) {
+        this.#nodeParents.set(child, {
+          ...this.#nodeParents.get(child)!,
           nodeId,
         });
-      } else {
-        for (const child of children) {
-          this.#nodeParents.set(child, {
-            ...this.#nodeParents.get(child)!,
-            nodeId,
-          });
-        }
       }
     }
 
@@ -335,17 +379,30 @@ export class SceneDocument {
 
   #renameNode({ nodeId, newId }: RenameNodePatch): void {
     assertIsNodeId(newId);
+    if (this.#nodes.has(newId)) {
+      throw new Error(`A node with id '${newId}' already exists.`);
+    }
     const nodeParent = this.#nodeParents.get(nodeId);
-    if (!nodeParent) throw new Error(`Can't find node: ${nodeId}`);
+    if (!nodeParent) throw new Error(`Can't find node '${nodeId}'.`);
 
     const parentJson = this.#nodes.get(nodeParent.nodeId)!;
-    const newParentJson = { ...parentJson, slots: { ...parentJson.slots } };
-    if (typeof parentJson.slots[nodeParent.slotName] === "string") {
-      newParentJson.slots[nodeParent.slotName] = newId;
-    } else {
-      const newChildren = [...parentJson.slots[nodeParent.slotName]];
+    const parentSchema = this.nodeDefinitions.get(parentJson.type)!.schema;
+    let newParentJson: NodeJson;
+    if (parentSchema.isCollectionSlot(nodeParent.slotName)) {
+      const newChildren = [...parentJson.collectionSlots[nodeParent.slotName]];
       newChildren[nodeParent.index!] = newId;
-      newParentJson.slots[nodeParent.slotName] = newChildren;
+      newParentJson = {
+        ...parentJson,
+        collectionSlots: {
+          ...parentJson.collectionSlots,
+          [nodeParent.slotName]: newChildren,
+        },
+      };
+    } else {
+      newParentJson = {
+        ...parentJson,
+        slots: { ...parentJson.slots, [nodeParent.slotName]: newId },
+      };
     }
     this.#nodes.set(nodeParent.nodeId, newParentJson);
 
@@ -355,14 +412,18 @@ export class SceneDocument {
     this.#nodeErrors.set(newId, this.#nodeErrors.get(nodeId)!);
     this.#nodeErrors.delete(nodeId);
 
-    for (const children of Object.values(nodeJson.slots)) {
-      if (typeof children === "string") {
-        this.#nodeParents.set(children, {
-          ...this.#nodeParents.get(children)!,
-          nodeId,
-        });
+    const schema = this.nodeDefinitions.get(nodeJson.type)!.schema;
+    for (const slotName of Object.keys(schema.slots)) {
+      if (schema.isCollectionSlot(slotName)) {
+        for (const child of nodeJson.collectionSlots[slotName]) {
+          this.#nodeParents.set(child, {
+            ...this.#nodeParents.get(child)!,
+            nodeId,
+          });
+        }
       } else {
-        for (const child of children) {
+        const child = nodeJson.slots[slotName];
+        if (child) {
           this.#nodeParents.set(child, {
             ...this.#nodeParents.get(child)!,
             nodeId,
@@ -374,26 +435,87 @@ export class SceneDocument {
     this.#notifySubscriptions([nodeParent.nodeId, nodeId, newId]);
   }
 
-  #setNodeInput({ nodeId, inputName, index, value }: SetNodeInputPatch): void {
-    const nodeJson = this.#nodes.get(nodeId);
-    if (!nodeJson) throw new Error(`Can't find node: ${nodeId}`);
+  #bindNodeInput({
+    nodeId,
+    inputName,
+    index,
+    binding,
+  }: BindNodeInputPatch): void {
+    let bindingType: t.KragleType;
+    switch (binding?.type) {
+      case "node-output": {
+        const ancestorNodeJson = this.#getNode(binding.nodeId);
+        const ancestorSchema = this.nodeDefinitions.get(
+          ancestorNodeJson.type
+        )!.schema;
+        const ancestorSlot = this.getNodeSlotNameInAncestor({
+          descendant: nodeId,
+          ancestor: binding.nodeId,
+        });
+        const outputType =
+          ancestorSchema.outputs[binding.outputName] ??
+          ancestorSchema.slots[ancestorSlot].outputs?.[binding.outputName];
+        if (!outputType) {
+          throw new Error(
+            `Node '${binding.nodeId}' doesn't expose an output ` +
+              `'${binding.outputName}' to node '${nodeId}'.`
+          );
+        }
+        bindingType = outputType;
+        break;
+      }
+      case "constant": {
+        bindingType = t.resolveType(binding.value);
+        break;
+      }
+    }
 
+    const nodeJson = this.#getNode(nodeId);
     const { schema } = this.nodeDefinitions.get(nodeJson.type)!;
-    const newNodeJson = { ...nodeJson, inputs: { ...nodeJson.inputs } };
+    let newNodeJson: NodeJson;
     if (schema.isCollectionInput(inputName)) {
-      if (!index)
+      if (!index) {
         throw new Error(
-          `Input '${inputName}' of node ${nodeId} is a collection input.`
+          `Parameter 'index' is required to bind collection input ` +
+            `'${inputName}' of node '${nodeId}'.`
         );
-      const newInputs = [
-        ...(nodeJson.inputs[inputName] as readonly (NodeInputJson | null)[]),
-      ];
-      newInputs[index] = value;
-      newNodeJson.inputs[inputName] = newInputs;
-    } else if (value) {
-      newNodeJson.inputs[inputName] = value;
+      }
+      if (binding !== null) {
+        const [, inputType] = [...schema.getCollectionInputs()].find(
+          (input) => input[0] === inputName
+        )!;
+        if (!bindingType!.isAssignableTo(inputType)) {
+          throw new Error(
+            `Can't bind input '${inputName}/${index}' of node '${nodeId}' to ` +
+              `value of type '${bindingType!}'.`
+          );
+        }
+      }
+      const newInputs = [...nodeJson.collectionInputs[inputName]];
+      newInputs[index] = binding;
+      newNodeJson = {
+        ...nodeJson,
+        collectionInputs: {
+          ...nodeJson.collectionInputs,
+          [inputName]: newInputs,
+        },
+      };
+    } else if (binding) {
+      const inputType = schema.inputs[inputName];
+      if (!bindingType!.isAssignableTo(inputType)) {
+        throw new Error(
+          `Can't bind input '${inputName}' of node '${nodeId}' to value of ` +
+            `type '${bindingType!}'.`
+        );
+      }
+      newNodeJson = {
+        ...nodeJson,
+        inputs: { ...nodeJson.inputs, [inputName]: binding },
+      };
     } else {
-      delete newNodeJson.inputs[inputName];
+      const inputs = { ...nodeJson.inputs };
+      delete inputs[inputName];
+      newNodeJson = { ...nodeJson, inputs };
     }
     this.#nodes.set(nodeId, newNodeJson);
     this.#nodeErrors.delete(nodeId);

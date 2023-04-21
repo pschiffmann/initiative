@@ -14,3 +14,4 @@ export function assertIsNodeId(name: string): void {
 
 const nodeIdPattern = /^[A-Z][A-Za-z0-9]*$/;
 const inputIdPattern = /^[a-z][A-Za-z0-9]*$/;
+const outputNamePattern = /^[a-z][A-Za-z0-9]*(?:\$[A-Za-z0-9]+)$/;

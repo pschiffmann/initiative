@@ -1,4 +1,5 @@
 import { ComponentType, ReactNode } from "react";
+import { NodeJson } from "./scene-document/index.js";
 import * as t from "./type-system/index.js";
 import { isInputId } from "./util/kragle-identifier.js";
 
@@ -39,11 +40,29 @@ export class NodeSchema<
   readonly inputs: I;
   readonly outputs: O;
   readonly slots: S;
+  readonly validate?: ValidateNode;
+
+  /**
+   * Map from collection input name to slot name.
+   */
+  #collectionInputSources = new Map<string, string>();
+
+  *getCollectionInputs(): Iterable<[slotName: string, type: t.KragleType]> {
+    for (const slotSchema of Object.values(this.slots)) {
+      if (slotSchema.inputs) yield* Object.entries(slotSchema.inputs);
+    }
+  }
+
+  *getCollectionSlots(): Iterable<string> {
+    for (const [slotName, slotSchema] of Object.entries(this.slots)) {
+      if (slotSchema.inputs) yield slotName;
+    }
+  }
 
   isCollectionSlot(slotName: string): boolean {
     const slotSchema = this.slots[slotName];
     if (slotSchema) return !!slotSchema.inputs;
-    throw new Error(`Slot '${slotName}' doesn't exist on type ${this.name}.`);
+    throw new Error(`Slot '${slotName}' doesn't exist on type '${this.name}'.`);
   }
 
   isCollectionInput(inputName: string): boolean {
@@ -51,9 +70,17 @@ export class NodeSchema<
     for (const slotSchema of Object.values(this.slots)) {
       if (slotSchema.inputs?.hasOwnProperty(inputName)) return true;
     }
-    throw new Error(`Input '${inputName}' doesn't exist on type ${this.name}.`);
+    throw new Error(
+      `Input '${inputName}' doesn't exist on type '${this.name}'.`
+    );
   }
 }
+
+/**
+ * This callback can be used to implement custom validation logic. It is only
+ * called if `nodeJson` has passed the type system based validation.
+ */
+export type ValidateNode = (nodeJson: NodeJson) => string | null;
 
 //
 // Slots
@@ -147,6 +174,8 @@ type OutputsProviderProps<
   O extends t.KragleTypeRecord,
   S extends SlotSchemas
 > = t.UnwrapRecord<O> & {
+  // className?: string;
+  // style?: CSSProperties;
   children?(slots: InferSlotComponentTypes<S>): ReactNode;
 };
 
