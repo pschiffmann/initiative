@@ -17,7 +17,7 @@ export abstract class KragleType<T = unknown> {
    * ```
    */
   isAssignableTo(other: KragleType): boolean {
-    if (other instanceof t.Void) {
+    if (other instanceof t.Any || other instanceof t.Void) {
       return true;
     } else if (t.Union.is(other)) {
       return other.elements.some((element) => this._isAssignableTo(element));

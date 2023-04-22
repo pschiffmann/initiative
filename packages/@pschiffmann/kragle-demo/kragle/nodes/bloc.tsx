@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { BlocProps } from "./bloc-schema.js";
+import { BlocProps } from "./bloc.schema.js";
 
 export function Bloc({ OutputsProvider }: BlocProps) {
   const [n, setN] = useState(0);

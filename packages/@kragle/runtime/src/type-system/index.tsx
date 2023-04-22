@@ -1,4 +1,5 @@
 export * from "./_type-inference.js";
+export * from "./any.js";
 export * from "./array.js";
 export * from "./boolean.js";
 export * from "./function.js";

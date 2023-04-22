@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { DialogProps } from "./dialog-schema.js";
+import { DialogProps } from "./dialog.schema.js";
 
 export function Dialog({ OutputsProvider }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
