@@ -1,4 +1,4 @@
-import { ComponentType, ReactNode } from "react";
+import { ComponentType, PropsWithChildren, ReactElement } from "react";
 import { NodeJson } from "./scene-document/index.js";
 import * as t from "./type-system/index.js";
 import { isInputId } from "./util/kragle-identifier.js";
@@ -171,22 +171,31 @@ export type InferProps<N extends NodeSchema> = N extends NodeSchema<
   infer S
 >
   ? t.UnwrapRecord<I> &
-      FlattenSlotInputs<S> & {
-        OutputsProvider: ComponentType<OutputsProviderProps<O, S>>;
-      }
+      FlattenSlotInputs<S> &
+      SlotPropMixin<S> &
+      OutputsProviderPropMixin<O>
   : {};
 
-type OutputsProviderProps<
-  O extends t.KragleTypeRecord,
-  S extends SlotSchemas
-> = t.UnwrapRecord<O> & {
-  // className?: string;
-  // style?: CSSProperties;
-  children?(slots: InferSlotComponentTypes<S>): ReactNode;
+type SlotPropMixin<S extends SlotSchemas> = keyof S extends never
+  ? {}
+  : {
+      readonly slots: {
+        readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
+          ? readonly SlotPropValue<S[slotName]>[]
+          : SlotPropValue<S[slotName]>;
+      };
+    };
+
+type SlotPropValue<S extends SlotSchema> = {
+  readonly nodeId: string;
+  readonly element: S["outputs"] extends {}
+    ? (
+        o: { readonly key?: string } & t.UnwrapRecord<S["outputs"]>
+      ) => ReactElement
+    : (o?: { readonly key?: string }) => ReactElement;
 };
 
-type InferSlotComponentTypes<S extends SlotSchemas> = {
-  readonly [k in keyof S]: S[k]["inputs"] extends {}
-    ? readonly ComponentType<t.UnwrapRecord<S[k]["outputs"]>>[]
-    : ComponentType<t.UnwrapRecord<S[k]["outputs"]>>;
-};
+type OutputsProviderPropMixin<O extends t.KragleTypeRecord> =
+  keyof O extends never
+    ? {}
+    : { OutputsProvider: ComponentType<PropsWithChildren<t.UnwrapRecord<O>>> };

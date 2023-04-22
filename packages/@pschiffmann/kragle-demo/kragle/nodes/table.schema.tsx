@@ -2,18 +2,16 @@ import { InferProps, NodeSchema, t } from "@kragle/runtime";
 
 export const TableSchema = new NodeSchema("@pschiffmann/kragle-demo/Table", {
   inputs: {
-    elements: t.array(t.any()),
-    getElementKey: t.optional(
-      t.function(t.any())(t.union(t.string(), t.number()))
-    ),
+    rows: t.array(t.any()),
+    getRowKey: t.optional(t.function(t.any())(t.string())),
   },
   slots: {
-    Column: {
+    column: {
       inputs: {
         header: t.string(),
       },
       outputs: {
-        element: t.any(),
+        row: t.any(),
       },
     },
   },

@@ -12,10 +12,10 @@ test("InferProps turns Schema.inputs into props", () => {
   });
   type Props = InferProps<typeof schema>;
 
-  function Component({ a, b, OutputsProvider }: Props) {
+  function Component({ a, b }: Props) {
     assertTypesAreEqual<typeof a, string>(true);
     assertTypesAreEqual<typeof b, number | undefined>(true);
-    return <OutputsProvider />;
+    return null;
   }
 });
 
@@ -35,26 +35,16 @@ test("InferProps turns Schema.outputs into OutputsProvider props", () => {
   }
 });
 
-test("InferProps adds Schema.slots to the OutputsProvider.children parameter", () => {
+test("InferProps turns Schema.slots into a slots prop", () => {
   const schema = new NodeSchema("@kragle/runtime/Test", {
     slots: {
-      X: {},
-      Y: {},
+      x: {},
     },
   });
   type Props = InferProps<typeof schema>;
 
-  function Component({ OutputsProvider }: Props) {
-    return (
-      <OutputsProvider>
-        {({ X, Y }) => (
-          <>
-            <X />
-            <Y />
-          </>
-        )}
-      </OutputsProvider>
-    );
+  function Component({ slots }: Props) {
+    return <>{slots.x.element()}</>;
   }
 });
 
@@ -64,13 +54,13 @@ test("InferProps adds Schema.slots.inputs to props", () => {
       a: t.string(),
     },
     slots: {
-      X: {
+      x: {
         inputs: {
           b: t.string(),
           c: t.optional(t.number()),
         },
       },
-      Y: {
+      y: {
         inputs: {
           d: t.union(t.string(), t.null()),
         },
@@ -79,65 +69,44 @@ test("InferProps adds Schema.slots.inputs to props", () => {
   });
   type Props = InferProps<typeof schema>;
 
-  function Component({ a, b, c, d, OutputsProvider }: Props) {
+  function Component({ a, b, c, d }: Props) {
     assertTypesAreEqual<typeof a, string>(true);
     assertTypesAreEqual<typeof b, readonly string[]>(true);
     assertTypesAreEqual<typeof c, readonly (number | undefined)[]>(true);
     assertTypesAreEqual<typeof d, readonly (string | null)[]>(true);
-    return <OutputsProvider />;
+    return null;
   }
 });
 
-test("InferProps turns OutputsProvider.slots into arrays for collection slots", () => {
+test("InferProps turns slots into arrays for collection slots", () => {
   const schema = new NodeSchema("@kragle/runtime/Test", {
     slots: {
-      X: {
-        inputs: {},
-        outputs: {
-          q: t.number(),
-          r: t.optional(t.boolean()),
-        },
-      },
-      Y: {
+      x: {
         inputs: {},
       },
     },
   });
   type Props = InferProps<typeof schema>;
 
-  function Component({ OutputsProvider }: Props) {
-    let outputQ!: number;
-    let outputR!: boolean | undefined;
-    return (
-      <OutputsProvider>
-        {({ X: Xs, Y: Ys }) => (
-          <>
-            {Xs.map((X, i) => (
-              <X key={i} q={outputQ} r={outputR} />
-            ))}
-            {Ys.map((Y, i) => (
-              <Y key={i} />
-            ))}
-          </>
-        )}
-      </OutputsProvider>
-    );
+  function Component({ slots }: Props) {
+    return <>{slots.x.map((x) => x.element())}</>;
   }
 });
 
-test("InferProps adds Schema.slots.outputs to the slot props", () => {
+test("InferProps adds Schema.slots.outputs to the slots.*.element parammeters", () => {
   const schema = new NodeSchema("@kragle/runtime/Test", {
     outputs: {
       a: t.string(),
     },
     slots: {
-      X: {
+      x: {
         outputs: {
           b: t.string(),
           c: t.optional(t.number()),
         },
       },
-      Y: {
+      y: {
+        inputs: {},
         outputs: {
           d: t.union(t.string(), t.null()),
         },
@@ -146,19 +115,15 @@ test("InferProps adds Schema.slots.outputs to the slot props", () => {
   });
   type Props = InferProps<typeof schema>;
 
-  function Component({ OutputsProvider }: Props) {
+  function Component({ slots, OutputsProvider }: Props) {
     let outputA!: string;
     let outputB!: string;
     let outputC!: number | undefined;
     let outputD!: string | null;
     return (
       <OutputsProvider a={outputA}>
-        {({ X, Y }) => (
-          <>
-            <X b={outputB} c={outputC} />
-            <Y d={outputD} />
-          </>
-        )}
+        {slots.x.element({ b: outputB, c: outputC })}
+        {slots.y.map((y) => y.element({ d: outputD }))}
       </OutputsProvider>
     );
   }

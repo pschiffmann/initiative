@@ -8,8 +8,8 @@ export const DialogSchema = new NodeSchema("@pschiffmann/kragle-demo/Dialog", {
     toggle: t.function()(),
   },
   slots: {
-    Trigger: {},
-    Content: {},
+    trigger: {},
+    content: {},
   },
 });
 

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { DialogProps } from "./dialog.schema.js";
 
-export function Dialog({ OutputsProvider }: DialogProps) {
+export function Dialog({ slots, OutputsProvider }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -32,12 +32,8 @@ export function Dialog({ OutputsProvider }: DialogProps) {
 
   return (
     <OutputsProvider isOpen={isOpen} open={open} close={close} toggle={toggle}>
-      {({ Trigger, Content }) => (
-        <>
-          <Trigger />
-          <dialog ref={dialogRef}>{isOpen && <Content />}</dialog>
-        </>
-      )}
+      {slots.trigger.element()}
+      <dialog ref={dialogRef}>{isOpen && slots.content.element()}</dialog>
     </OutputsProvider>
   );
 }

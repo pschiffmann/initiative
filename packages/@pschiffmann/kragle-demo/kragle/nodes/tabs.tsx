@@ -1,28 +1,36 @@
 import { useState } from "react";
 import { TabsProps } from "./tabs.schema.js";
 
-export function Tabs({ label: labels, OutputsProvider }: TabsProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
+export function Tabs({ label, slots, OutputsProvider }: TabsProps) {
+  const [activeTabPanel, setActiveTabPanel] = useState("");
 
   return (
-    <OutputsProvider activeIndex={0} activateIndex={setActiveIndex}>
-      {({ TabPanel: TabPanels }) => {
-        const TabPanel = TabPanels[activeIndex];
-        return (
-          <div className="tab-container">
-            <div className="tab-list">
-              {labels.map((label, i) => (
-                <button key={i} onClick={() => setActiveIndex(i)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="tab-panel">
-              <TabPanel />
-            </div>
-          </div>
-        );
-      }}
+    <OutputsProvider
+      activeTabPanel={activeTabPanel}
+      activateTabPanel={setActiveTabPanel}
+    >
+      <div className="tab-container">
+        <div className="tab-list">
+          {slots.tabPanel.map((tabPanel, i) => (
+            <button
+              key={tabPanel.nodeId}
+              style={
+                activeTabPanel === tabPanel.nodeId
+                  ? { fontWeight: 700 }
+                  : undefined
+              }
+              onClick={() => setActiveTabPanel(tabPanel.nodeId)}
+            >
+              {label[i]}
+            </button>
+          ))}
+        </div>
+        <div className="tab-panel">
+          {slots.tabPanel
+            .find((tabPanel) => tabPanel.nodeId === activeTabPanel)
+            ?.element()}
+        </div>
+      </div>
     </OutputsProvider>
   );
 }

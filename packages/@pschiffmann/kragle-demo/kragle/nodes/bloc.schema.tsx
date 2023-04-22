@@ -6,7 +6,7 @@ export const BlocSchema = new NodeSchema("@pschiffmann/kragle-demo/Bloc", {
     increaseCounter: t.function()(),
   },
   slots: {
-    Children: {},
+    child: {},
   },
 });
 

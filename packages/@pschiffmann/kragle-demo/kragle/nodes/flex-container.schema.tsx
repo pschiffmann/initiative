@@ -7,7 +7,7 @@ export const FlexContainerSchema = new NodeSchema(
       flexDirection: t.union(t.string("column"), t.string("row")),
     },
     slots: {
-      Child: {
+      child: {
         inputs: {},
       },
     },
