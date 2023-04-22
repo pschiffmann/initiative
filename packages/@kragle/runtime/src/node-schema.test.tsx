@@ -4,7 +4,7 @@ import * as t from "./type-system/index.js";
 import { assertTypesAreEqual } from "./util/test-utils.js";
 
 test("InferProps turns Schema.inputs into props", () => {
-  const schema = new NodeSchema("@kragle/runtime::Test", {
+  const schema = new NodeSchema("@kragle/runtime/Test", {
     inputs: {
       a: t.string(),
       b: t.optional(t.number()),
@@ -20,7 +20,7 @@ test("InferProps turns Schema.inputs into props", () => {
 });
 
 test("InferProps turns Schema.outputs into OutputsProvider props", () => {
-  const schema = new NodeSchema("@kragle/runtime::Test", {
+  const schema = new NodeSchema("@kragle/runtime/Test", {
     outputs: {
       a: t.string(),
       b: t.optional(t.number()),
@@ -36,7 +36,7 @@ test("InferProps turns Schema.outputs into OutputsProvider props", () => {
 });
 
 test("InferProps adds Schema.slots to the OutputsProvider.children parameter", () => {
-  const schema = new NodeSchema("@kragle/runtime::Test", {
+  const schema = new NodeSchema("@kragle/runtime/Test", {
     slots: {
       X: {},
       Y: {},
@@ -47,7 +47,7 @@ test("InferProps adds Schema.slots to the OutputsProvider.children parameter", (
   function Component({ OutputsProvider }: Props) {
     return (
       <OutputsProvider>
-        {({ X, Y, ...rest }) => (
+        {({ X, Y }) => (
           <>
             <X />
             <Y />
@@ -59,7 +59,7 @@ test("InferProps adds Schema.slots to the OutputsProvider.children parameter", (
 });
 
 test("InferProps adds Schema.slots.inputs to props", () => {
-  const schema = new NodeSchema("@kragle/runtime::Test", {
+  const schema = new NodeSchema("@kragle/runtime/Test", {
     inputs: {
       a: t.string(),
     },
@@ -88,8 +88,45 @@ test("InferProps adds Schema.slots.inputs to props", () => {
   }
 });
 
+test("InferProps turns OutputsProvider.slots into arrays for collection slots", () => {
+  const schema = new NodeSchema("@kragle/runtime/Test", {
+    slots: {
+      X: {
+        inputs: {},
+        outputs: {
+          q: t.number(),
+          r: t.optional(t.boolean()),
+        },
+      },
+      Y: {
+        inputs: {},
+      },
+    },
+  });
+  type Props = InferProps<typeof schema>;
+
+  function Component({ OutputsProvider }: Props) {
+    let outputQ!: number;
+    let outputR!: boolean | undefined;
+    return (
+      <OutputsProvider>
+        {({ X: Xs, Y: Ys }) => (
+          <>
+            {Xs.map((X, i) => (
+              <X key={i} q={outputQ} r={outputR} />
+            ))}
+            {Ys.map((Y, i) => (
+              <Y key={i} />
+            ))}
+          </>
+        )}
+      </OutputsProvider>
+    );
+  }
+});
+
 test("InferProps adds Schema.slots.outputs to the slot props", () => {
-  const schema = new NodeSchema("@kragle/runtime::Test", {
+  const schema = new NodeSchema("@kragle/runtime/Test", {
     outputs: {
       a: t.string(),
     },

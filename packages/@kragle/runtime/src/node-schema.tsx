@@ -3,6 +3,12 @@ import { NodeJson } from "./scene-document/index.js";
 import * as t from "./type-system/index.js";
 import { isInputId } from "./util/kragle-identifier.js";
 
+export type AnyNodeSchema = NodeSchema<
+  t.KragleTypeRecord,
+  t.KragleTypeRecord,
+  SlotSchemas
+>;
+
 export class NodeSchema<
   I extends t.KragleTypeRecord = {},
   O extends t.KragleTypeRecord = {},
@@ -47,7 +53,7 @@ export class NodeSchema<
    */
   #collectionInputSources = new Map<string, string>();
 
-  *getCollectionInputs(): Iterable<[slotName: string, type: t.KragleType]> {
+  *getCollectionInputs(): Iterable<[inputName: string, type: t.KragleType]> {
     for (const slotSchema of Object.values(this.slots)) {
       if (slotSchema.inputs) yield* Object.entries(slotSchema.inputs);
     }
@@ -180,5 +186,7 @@ type OutputsProviderProps<
 };
 
 type InferSlotComponentTypes<S extends SlotSchemas> = {
-  readonly [k in keyof S]: ComponentType<t.UnwrapRecord<S[k]["outputs"]>>;
+  readonly [k in keyof S]: S[k]["inputs"] extends {}
+    ? readonly ComponentType<t.UnwrapRecord<S[k]["outputs"]>>[]
+    : ComponentType<t.UnwrapRecord<S[k]["outputs"]>>;
 };
