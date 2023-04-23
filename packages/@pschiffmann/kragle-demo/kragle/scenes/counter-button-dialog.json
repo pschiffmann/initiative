@@ -1,35 +1,101 @@
 {
   "type": "@kragle/runtime/EmptyScene",
-  "rootNode": "127831a1-51e5-495a-9e8c-7d522af2ca00",
-  "constants": {
-    "fc8f80a0-ab06-4dd5-9e8a-cfbe493bd7cc": "Open dialog"
-  },
+  "rootNode": "CounterBloc",
   "nodes": {
-    "127831a1-51e5-495a-9e8c-7d522af2ca00": {
-      "type": "@pschiffmann/kragle-demo/Bloc",
+    "CounterBloc": {
+      "type": "@pschiffmann/kragle-demo/CounterBloc",
       "slots": {
-        "Children": "53ddca1b-e594-4edb-b5f9-99495f50cebe"
+        "child": "Dialog"
       }
     },
-    "53ddca1b-e594-4edb-b5f9-99495f50cebe": {
+    "Dialog": {
       "type": "@pschiffmann/kragle-demo/Dialog",
       "slots": {
-        "Trigger": "3d4bff37-a0da-47b0-90cf-6e0a532c645a",
-        "Content": "9a6c63b1-a514-47d4-b305-091e0b6a4495"
+        "trigger": "OpenDialogButton",
+        "content": "DialogContent"
       }
     },
-    "3d4bff37-a0da-47b0-90cf-6e0a532c645a": {
+    "OpenDialogButton": {
       "type": "@pschiffmann/kragle-demo/Button",
       "inputs": {
-        "label": "constant::fc8f80a0-ab06-4dd5-9e8a-cfbe493bd7cc",
-        "onPress": "53ddca1b-e594-4edb-b5f9-99495f50cebe::open"
+        "label": {
+          "type": "constant",
+          "value": "Open dialog"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "Dialog",
+          "outputName": "open"
+        }
       }
     },
-    "9a6c63b1-a514-47d4-b305-091e0b6a4495": {
+    "DialogContent": {
+      "type": "@pschiffmann/kragle-demo/FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "constant",
+          "value": "column"
+        }
+      },
+      "collectionSlots": {
+        "child": [
+          "CounterLabel",
+          "IncreaseCounterButton",
+          "DecreaseCounterButton",
+          "ResetCounterButton"
+        ]
+      }
+    },
+    "CounterLabel": {
+      "type": "@pschiffmann/kragle-demo/Typography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "CounterBloc",
+          "outputName": "label"
+        }
+      }
+    },
+    "IncreaseCounterButton": {
       "type": "@pschiffmann/kragle-demo/Button",
       "inputs": {
-        "label": "127831a1-51e5-495a-9e8c-7d522af2ca00::label",
-        "onPress": "127831a1-51e5-495a-9e8c-7d522af2ca00::increaseCounter"
+        "label": {
+          "type": "constant",
+          "value": "n++"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "CounterBloc",
+          "outputName": "increaseCounter"
+        }
+      }
+    },
+    "DecreaseCounterButton": {
+      "type": "@pschiffmann/kragle-demo/Button",
+      "inputs": {
+        "label": {
+          "type": "constant",
+          "value": "n--"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "CounterBloc",
+          "outputName": "decreaseCounter"
+        }
+      }
+    },
+    "ResetCounterButton": {
+      "type": "@pschiffmann/kragle-demo/Button",
+      "inputs": {
+        "label": {
+          "type": "constant",
+          "value": "n = 0"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "CounterBloc",
+          "outputName": "reset"
+        }
       }
     }
   }
