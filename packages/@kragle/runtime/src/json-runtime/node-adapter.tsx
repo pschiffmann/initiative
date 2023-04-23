@@ -1,90 +1,103 @@
 import * as $Object from "@pschiffmann/std/object";
-import { createContext, FC, ReactNode, useContext } from "react";
+import { ComponentType, createContext, FC } from "react";
+import { useNode } from "../scene-document/index.js";
+import { useInputValues } from "./bindings.js";
+import {
+  createOutputsProvider,
+  OutputsProviderProps,
+} from "./outputs-provider.js";
 import { SceneRuntime } from "./scene-runtime.js";
+import {
+  slotElement,
+  SlotElement,
+  slotElementWithOutputs,
+} from "./slot-element.js";
 
-export interface NodeAdapterProps {
-  nodeId: string;
-  runtime: SceneRuntime;
-}
-
-export function NodeAdapter({ nodeId, runtime }: NodeAdapterProps) {
-  const nodeJson = runtime.sceneJson.nodes[nodeId] as any;
-  const { component: Component, spec } = runtime.nodeRefs.get(nodeJson.type)!;
-  const inputs = useInputs(
-    Object.keys(spec.inputs ?? {}),
-    runtime,
-    nodeJson.inputs ?? {}
-  );
-  const OutputsProvider = runtime.getOutputsProviderComponent(nodeId);
-
-  return <Component OutputsProvider={OutputsProvider} {...inputs} />;
-}
-
-function useInputs(
-  inputNames: readonly string[],
+export function createNodeComponent(
   sceneRuntime: SceneRuntime,
-  bindings: Readonly<Record<string, string>>
-) {
-  const inputs: Record<string, unknown> = {};
-  for (const inputName of inputNames) {
-    const binding = bindings[inputName];
-    inputs[inputName] = useContext(
-      binding
-        ? sceneRuntime.getContextForNodeOutput(binding)
-        : unboundInputContext
-    );
-    if (binding?.startsWith("constant::")) {
-      const [, constantId] = binding.split("::");
-      inputs[inputName] = (sceneRuntime.sceneJson as any).constants![
-        constantId
-      ];
-    }
-  }
-  return inputs;
-}
-
-const unboundInputContext = createContext<unknown>(undefined);
-
-interface OutputsProviderProps {
-  nodeId: string;
-  runtime: SceneRuntime;
-  children?(slots: Record<string, FC>): ReactNode;
-  [outputName: string]: unknown;
-}
-
-export function OutputsProvider({
-  nodeId,
-  runtime,
-  children,
-  ...outputs
-}: OutputsProviderProps) {
-  const { type, slots } = runtime.sceneJson.nodes[nodeId];
-  const { spec } = runtime.nodeRefs.get(type)!;
-
-  let result =
-    typeof children === "function" ? (
-      <>
-        {children(
-          $Object.map(slots ?? {}, (slot, nodeId) =>
-            runtime.getAdapterComponent(nodeId as string)
-          )
-        )}
-      </>
-    ) : (
-      <>
-        {slots &&
-          Object.entries(slots).map(([slot, nodeId]) => {
-            const NodeAdapter = runtime.getAdapterComponent(nodeId as string);
-            return <NodeAdapter key={slot} />;
-          })}
-      </>
-    );
-
-  for (const outputName of Object.keys(spec.outputs ?? {})) {
-    const Context = runtime.getContextForNodeOutput(`${nodeId}::${outputName}`);
-    result = (
-      <Context.Provider value={outputs[outputName]}>{result}</Context.Provider>
-    );
-  }
+  nodeId: string
+): ComponentType {
+  const outputsProvider = createOutputsProvider(nodeId);
+  const result: FC = () => NodeComponent(sceneRuntime, nodeId, outputsProvider);
+  result.displayName = nodeId;
   return result;
 }
+
+function NodeComponent(
+  sceneRuntime: SceneRuntime,
+  nodeId: string,
+  OutputsProvider: ComponentType<OutputsProviderProps>
+) {
+  const nodeJson = useNode(sceneRuntime.sceneDocument, nodeId)!;
+  const { schema, component: Component } =
+    sceneRuntime.sceneDocument.nodeDefinitions.get(nodeJson.type)!;
+
+  const inputs = useInputValues(nodeJson, schema);
+
+  const errors = sceneRuntime.sceneDocument.getNodeErrors(nodeId);
+  if (errors) {
+    console.log("early abort because of errors", { nodeId, errors });
+    return (
+      <div>
+        Node '{nodeId}' is incomplete and can't be rendered.
+        <br />
+        Missing inputs: {errors.missingInputs.size} (
+        {[...errors.missingInputs].join(", ")})
+        <br />
+        Missing slots: {errors.missingSlots.size} (
+        {[...errors.missingSlots].join(", ")})
+      </div>
+    );
+  }
+
+  const slots: Record<string, SlotElement | readonly SlotElement[]> =
+    $Object.map(schema.slots, (slotName, slotSchema) => {
+      const hasOutputs = !!slotSchema.outputs;
+      if (schema.isCollectionSlot(slotName)) {
+        return nodeJson.collectionSlots[slotName].map<SlotElement>(
+          (childNodeId) => ({
+            nodeId: childNodeId,
+            element: hasOutputs
+              ? ({
+                  key,
+                  ...outputs
+                }: { key?: string } & Record<string, unknown> = {}) =>
+                  slotElementWithOutputs(
+                    sceneRuntime,
+                    nodeId,
+                    childNodeId,
+                    key,
+                    outputs
+                  )
+              : ({ key }: { key?: string } = {}) =>
+                  slotElement(sceneRuntime, childNodeId, key),
+          })
+        );
+      } else {
+        const childNodeId = nodeJson.slots[slotName];
+        return {
+          nodeId: childNodeId,
+          element: hasOutputs
+            ? ({
+                key,
+                ...outputs
+              }: { key?: string } & Record<string, unknown> = {}) =>
+                slotElementWithOutputs(
+                  sceneRuntime,
+                  nodeId,
+                  childNodeId,
+                  key,
+                  outputs
+                )
+            : ({ key }: { key?: string } = {}) =>
+                slotElement(sceneRuntime, childNodeId, key),
+        };
+      }
+    });
+
+  return (
+    <Component {...inputs} slots={slots} OutputsProvider={OutputsProvider} />
+  );
+}
+
+const dummyContext = createContext(undefined);

@@ -19,14 +19,14 @@ export function parseSceneJson(
   const sceneDocument = new SceneDocument(nodeDefinitions);
   const errors: string[] = [];
 
-  const queue = new Set<string>([sceneJson.rootNode]);
+  const queue = new Set<string>();
 
   /**
    * Returns `true` if `nodeId` was sucessfully added to `SceneDocument`.
    */
   function discoverNode(
     nodeId: string,
-    parent: { nodeId: string; slotName: string } | null
+    parent?: { nodeId: string; slotName: string }
   ): boolean {
     const nodeJson = sceneJson.nodes[nodeId];
     if (!nodeJson) {
@@ -36,22 +36,24 @@ export function parseSceneJson(
     try {
       const nodeType = nodeJson.type;
       sceneDocument.applyPatch(
-        parent === null
+        !parent
           ? { type: "create-root-node", nodeType, nodeId }
           : {
               type: "create-node",
               nodeType,
               parentId: parent.nodeId,
               parentSlot: parent.slotName,
+              nodeId,
             }
       );
+      queue.add(nodeId);
       return true;
     } catch (e) {
       errors.push(
         e instanceof Error
           ? e.message
           : `Error while adding node '${nodeId}' as ` +
-              (parent !== null
+              (parent
                 ? `child of node '${parent.nodeId}' in slot '${parent.slotName}'`
                 : `root node`) +
               `: ${e}`
@@ -100,7 +102,7 @@ export function parseSceneJson(
         if (!Array.isArray(children)) continue;
 
         let allChildrenAddedSuccessfully = true;
-        for (const [index, child] of children) {
+        for (const [index, child] of children.entries()) {
           allChildrenAddedSuccessfully &&= discoverNode(child, {
             nodeId,
             slotName,
@@ -126,22 +128,7 @@ export function parseSceneJson(
     }
   }
 
-  if (sceneJson.rootNode) {
-    const nodeId = sceneJson.rootNode;
-    try {
-      const nodeJson = sceneJson.nodes[nodeId];
-      if (!nodeJson) throw new Error(`Can't find node '${nodeId}'.`);
-      sceneDocument.applyPatch({
-        type: "create-root-node",
-        nodeType: nodeJson.type,
-        nodeId,
-      });
-      queue.add(sceneJson.rootNode);
-    } catch (e) {
-      errors.push(e instanceof Error ? e.message : `${e}`);
-    }
-  }
-
+  if (sceneJson.rootNode) discoverNode(sceneJson.rootNode);
   for (const nodeId of queue) {
     processNode(nodeId);
   }

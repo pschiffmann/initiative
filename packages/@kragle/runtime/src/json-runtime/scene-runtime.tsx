@@ -1,39 +1,25 @@
 import * as $Map from "@pschiffmann/std/map";
-import { Context, createContext, FC } from "react";
-import { NodeRefs, OutputsProviderProps } from "../node-ref.js";
-import { SceneJson } from "../scene-document/index.js";
-import { withProps } from "../util/with-props.js";
-import { NodeAdapter, OutputsProvider } from "./node-adapter.js";
+import { ComponentType } from "react";
+import { SceneDocument } from "../scene-document/index.js";
+import { createNodeComponent } from "./node-adapter.js";
 
 export class SceneRuntime {
-  constructor(readonly sceneJson: SceneJson, readonly nodeRefs: NodeRefs) {}
-
-  /** Map from node id to `WithProps(NodeComponent)`. */
-  #adapterComponents = new Map<string, FC>();
-
-  getAdapterComponent(nodeId: string): FC {
-    return $Map.putIfAbsent(this.#adapterComponents, nodeId, () =>
-      withProps(NodeAdapter, { nodeId, runtime: this })
-    );
+  constructor(readonly sceneDocument: SceneDocument) {
+    sceneDocument.subscribe((changedNodeIds) => {
+      for (const nodeId of changedNodeIds) {
+        const nodeJson = this.sceneDocument.getNode(nodeId);
+        if (!nodeJson) {
+          this.#nodeComponents.delete(nodeId);
+        }
+      }
+    });
   }
 
-  #outputsProviderComponents = new Map<string, FC<OutputsProviderProps>>();
+  #nodeComponents = new Map<string, ComponentType>();
 
-  getOutputsProviderComponent(nodeId: string): FC<OutputsProviderProps> {
-    return $Map.putIfAbsent(this.#outputsProviderComponents, nodeId, () =>
-      withProps(OutputsProvider, { nodeId, runtime: this })
+  getNodeComponent(nodeId: string): ComponentType {
+    return $Map.putIfAbsent(this.#nodeComponents, nodeId, () =>
+      createNodeComponent(this, nodeId)
     );
   }
-
-  #outputContexts = new Map<string, Context<unknown>>();
-
-  getContextForNodeOutput(outputId: string): Context<unknown> {
-    return $Map.putIfAbsent(this.#outputContexts, outputId, () =>
-      createContext<unknown>(undefined)
-    );
-  }
-}
-
-export function useRootNode(runtime: SceneRuntime): string {
-  return runtime.sceneJson.rootNode;
 }
