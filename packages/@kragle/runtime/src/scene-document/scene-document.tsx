@@ -189,7 +189,7 @@ export class SceneDocument {
 
   subscribe = (onChange: OnSceneDocumentChangeHandler) => {
     if (this.#subscriptions.has(onChange)) {
-      throw new Error("'onChange' is already subscribed to this document.");
+      throw new Error("'onChange' is already subscribed to this object.");
     }
     this.#subscriptions.add(onChange);
 
@@ -220,10 +220,20 @@ export class SceneDocument {
 
   set patchListener(patchListener: PatchListener | null) {
     this.#assertPatchListenerEnabled();
-    if (patchListener && this.#patchListener) {
-      throw new Error(`'SceneDocument.patchListener' is already set.`);
+    if (patchListener) {
+      if (this.#patchListener) {
+        throw new Error(`This object already has a 'patchListener' assigned.`);
+      }
+      this.#patchListener = patchListener;
+      const patches = this.#queuedPatches!;
+      this.#queuedPatches = null;
+      for (const patch of patches) {
+        patchListener(patch);
+      }
+    } else if (this.#patchListener) {
+      this.#patchListener = null;
+      this.#queuedPatches = [];
     }
-    this.#patchListener = patchListener;
   }
 
   #assertPatchListenerEnabled(): void {

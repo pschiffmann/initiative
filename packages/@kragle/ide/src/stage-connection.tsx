@@ -28,13 +28,13 @@ export function useIdeConnection(
 
       const document = new SceneDocument(nodeDefinitions);
       setDocument(document);
-      stagePort.addEventListener("message", (e) => document.applyPatch(e.data));
+      stagePort.onmessage = (e) => document.applyPatch(e.data);
 
       return () => {
         setDocument(null);
       };
     },
-    [document],
+    [nodeDefinitions],
     100
   );
 

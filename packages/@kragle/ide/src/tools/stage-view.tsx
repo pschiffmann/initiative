@@ -10,7 +10,5 @@ export function StageView({ sceneDocument }: StageViewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   useStageConnection(iframeRef, sceneDocument);
 
-  return (
-    <iframe ref={iframeRef} className="scene-viewer" src="//localhost:5173/" />
-  );
+  return <iframe ref={iframeRef} className="scene-viewer" src="./stage.html" />;
 }
