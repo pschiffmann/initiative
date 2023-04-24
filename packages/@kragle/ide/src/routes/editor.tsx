@@ -1,56 +1,114 @@
-import { useState } from "react";
-import { BindingsInspector } from "../tools/bindings-inspector.js";
-import { NodeEditor } from "../tools/node-editor.js";
+import { NodeDefinitions, SceneDocument } from "@kragle/runtime";
+import { ReactNode, useState } from "react";
+import { NodeBindingsEditor } from "../tools/node-bindings-editor.js";
 import { NodeTree } from "../tools/node-tree.js";
-import { SceneViewer } from "../tools/scene-viewer.js";
+import { StageView } from "../tools/stage-view.js";
+
+declare module "csstype" {
+  interface Properties {
+    "--tool-size"?: number;
+  }
+}
 
 export interface EditorProps {
-  kragleDirectory: FileSystemDirectoryHandle;
-  sceneName: string;
+  nodeDefinitions: NodeDefinitions;
+  sceneDocument: SceneDocument;
   onSceneClose(): void;
 }
 
 export function Editor({
-  kragleDirectory,
-  sceneName,
+  nodeDefinitions,
+  sceneDocument,
   onSceneClose,
 }: EditorProps) {
-  const [visible, setVisible] = useState(() => [true, true, true, false]);
+  const [activeTool, setActiveTool] = useState<"node-tree" | "node-bindings">(
+    "node-tree"
+  );
+
+  const [[toolWidth, sceneViewerWidth], setLayout] = useState<
+    [toolWidth: number, sceneViewerWidth: number]
+  >([1, 2]);
 
   return (
     <div className="editor">
       <div className="editor__header">
         <button onClick={onSceneClose}>Close scene</button>
-        <button>Save</button>
-        <div />
-
-        {toolLabels.map((label, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              const v = [...visible];
-              v[i] = !visible[i];
-              setVisible(v);
-            }}
-          >
-            {`${label}: ${visible[i] ? "visible" : "hidden"}`}
-          </button>
-        ))}
+        <button disabled>Save</button>
       </div>
 
       <div className="editor__tools">
-        {visible[0] && <NodeTree />}
-        {visible[1] && <SceneViewer />}
-        {visible[2] && <NodeEditor />}
-        {visible[3] && <BindingsInspector />}
+        {activeTool === "node-tree" ? (
+          <ToolFrame
+            title="Node tree"
+            headerAction={
+              <button onClick={() => setActiveTool("node-bindings")}>
+                Show node bindings
+              </button>
+            }
+            size={toolWidth}
+          >
+            <NodeTree />
+          </ToolFrame>
+        ) : (
+          <ToolFrame
+            title="Node bindings editor"
+            headerAction={
+              <button onClick={() => setActiveTool("node-tree")}>
+                Show node tree
+              </button>
+            }
+            size={toolWidth}
+          >
+            <NodeBindingsEditor />
+          </ToolFrame>
+        )}
+
+        <div className="editor__layout-buttons">
+          <button
+            className="editor__layout-button"
+            disabled={!toolWidth}
+            onClick={() => setLayout([toolWidth - 1, sceneViewerWidth + 1])}
+          >
+            ←
+          </button>
+          <button
+            className="editor__layout-button"
+            disabled={!sceneViewerWidth}
+            onClick={() => setLayout([toolWidth + 1, sceneViewerWidth - 1])}
+          >
+            →
+          </button>
+        </div>
+
+        <ToolFrame title="Stage" size={sceneViewerWidth}>
+          <StageView sceneDocument={sceneDocument} />
+        </ToolFrame>
       </div>
     </div>
   );
 }
 
-const toolLabels = [
-  "Node tree",
-  "Scene viewer",
-  "Node editor",
-  "Bindings inspector",
-];
+interface ToolFrameProps {
+  title: string;
+  headerAction?: ReactNode;
+  size: number;
+  children: ReactNode;
+}
+
+function ToolFrame({ title, headerAction, size, children }: ToolFrameProps) {
+  return (
+    <div
+      className="editor__tool"
+      style={{
+        "--tool-size": size,
+        display: size ? "block" : "none",
+      }}
+    >
+      <div className="editor__tool-title">{title}</div>
+      {headerAction && (
+        <div className="editor__tool-action">{headerAction}</div>
+      )}
+      <div className="editor__tool-content">{children}</div>
+    </div>
+  );
+}

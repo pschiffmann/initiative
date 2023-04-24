@@ -1,6 +1,7 @@
 import sceneJson from "#scenes/counter-button-dialog.json";
 import {
   Scene,
+  SceneDocument,
   SceneRuntime,
   parseSceneJson,
   resolveNodeDefinitions,
@@ -8,7 +9,7 @@ import {
 import * as nodes from "../kragle/nodes/index.js";
 
 const { sceneDocument, errors } = parseSceneJson(
-  resolveNodeDefinitions(nodes),
+  new SceneDocument(resolveNodeDefinitions(nodes)),
   sceneJson as any
 );
 if (errors) console.log(errors);

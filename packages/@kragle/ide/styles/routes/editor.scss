@@ -20,4 +20,15 @@
     display: flex;
     gap: 8px;
   }
+
+  &__tool {
+    flex: var(--tool-size) 0 0;
+    background-color: #eee;
+  }
+
+  &__layout-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 }

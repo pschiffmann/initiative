@@ -1,29 +1,31 @@
+import { NodeDefinitions, SceneDocument } from "@kragle/runtime";
 import { useState } from "react";
 import { DirectorySelect } from "./routes/directory-select.js";
 import { Editor } from "./routes/editor.js";
 import { SceneSelect } from "./routes/scene-select.js";
 
 export interface AppProps {
-  nodes: any;
+  nodeDefinitions: NodeDefinitions;
 }
 
-export function App({ nodes }: AppProps) {
+export function App({ nodeDefinitions }: AppProps) {
   const [kragleDirectory, setKragleDirectory] =
     useState<FileSystemDirectoryHandle>();
-  const [sceneName, setSceneName] = useState<string>();
+  const [sceneDocument, setSceneDocument] = useState<SceneDocument>();
 
   return !kragleDirectory ? (
     <DirectorySelect onDirectoryChange={setKragleDirectory} />
-  ) : !sceneName ? (
+  ) : !sceneDocument ? (
     <SceneSelect
+      nodeDefinitions={nodeDefinitions}
       kragleDirectory={kragleDirectory}
-      onSceneChange={setSceneName}
+      onSceneChange={setSceneDocument}
     />
   ) : (
     <Editor
-      kragleDirectory={kragleDirectory}
-      sceneName={sceneName}
-      onSceneClose={() => setSceneName(undefined)}
+      nodeDefinitions={nodeDefinitions}
+      sceneDocument={sceneDocument}
+      onSceneClose={() => setSceneDocument(undefined)}
     />
   );
 }

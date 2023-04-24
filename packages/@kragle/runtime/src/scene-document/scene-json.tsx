@@ -1,4 +1,3 @@
-import { NodeDefinitions } from "../node-definition.js";
 import { InputBindingJson, NodeJson } from "./node-json.js";
 import { SceneDocument } from "./scene-document.js";
 
@@ -13,10 +12,12 @@ export interface ParseSceneJsonResult {
 }
 
 export function parseSceneJson(
-  nodeDefinitions: NodeDefinitions,
+  sceneDocument: SceneDocument,
   sceneJson: SceneJson
 ): ParseSceneJsonResult {
-  const sceneDocument = new SceneDocument(nodeDefinitions);
+  if (sceneDocument.getRootNodeId() !== null) {
+    throw new Error(`'sceneDocument' must be empty.`);
+  }
   const errors: string[] = [];
 
   const queue = new Set<string>();
@@ -70,7 +71,7 @@ export function parseSceneJson(
     // `nodeId` has been added to `sceneDocument` when this function is called,
     // so we know that `nodeJson` and `schema` exist.
     const nodeJson = sceneJson.nodes[nodeId];
-    const { schema } = nodeDefinitions.get(nodeJson.type)!;
+    const { schema } = sceneDocument.nodeDefinitions.get(nodeJson.type)!;
 
     function bindInput(
       inputName: string,

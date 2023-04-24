@@ -45,6 +45,8 @@ export interface BindNodeInputPatch {
   readonly binding: InputBindingJson | null;
 }
 
+export type PatchListener = (patch: SceneDocumentPatch) => void;
+
 export type OnSceneDocumentChangeHandler = (
   changedNodeIds: readonly string[]
 ) => void;
@@ -64,7 +66,12 @@ export interface NodeErrors {
 }
 
 export class SceneDocument {
-  constructor(readonly nodeDefinitions: NodeDefinitions) {}
+  constructor(
+    readonly nodeDefinitions: NodeDefinitions,
+    enablePatchListener = false
+  ) {
+    this.#queuedPatches = enablePatchListener ? [] : null;
+  }
 
   #rootNodeId: string | null = null;
 
@@ -201,26 +208,69 @@ export class SceneDocument {
   }
 
   //
+  // Patches listener
+  //
+
+  #patchListener: PatchListener | null = null;
+
+  get patchListener(): PatchListener | null {
+    this.#assertPatchListenerEnabled();
+    return this.#patchListener;
+  }
+
+  set patchListener(patchListener: PatchListener | null) {
+    this.#assertPatchListenerEnabled();
+    if (patchListener && this.#patchListener) {
+      throw new Error(`'SceneDocument.patchListener' is already set.`);
+    }
+    this.#patchListener = patchListener;
+  }
+
+  #assertPatchListenerEnabled(): void {
+    if (!this.#patchListener && !this.#queuedPatches) {
+      throw new Error(
+        `Property 'patchListener' is not enabled on this object.`
+      );
+    }
+  }
+
+  #queuedPatches: SceneDocumentPatch[] | null;
+
+  #notifyPatchListener(patch: SceneDocumentPatch): void {
+    if (this.#patchListener) {
+      this.#patchListener(patch);
+    } else {
+      this.#queuedPatches?.push(patch);
+    }
+  }
+
+  //
   // Node patches
   //
 
   applyPatch(patch: SceneDocumentPatch): void {
     switch (patch.type) {
       case "create-root-node":
-        return this.#createRootNode(patch);
+        this.#createRootNode(patch);
+        break;
       case "create-node":
-        return this.#createNode(patch);
+        this.#createNode(patch);
+        break;
       case "delete-node":
-        return patch.nodeId === this.#rootNodeId
+        patch.nodeId === this.#rootNodeId
           ? this.#deleteRootNode()
           : this.#deleteNode(patch);
+        break;
       case "rename-node":
-        return patch.nodeId === this.#rootNodeId
+        patch.nodeId === this.#rootNodeId
           ? this.#renameRootNode(patch)
           : this.#renameNode(patch);
+        break;
       case "bind-node-input":
-        return this.#bindNodeInput(patch);
+        this.#bindNodeInput(patch);
+        break;
     }
+    this.#notifyPatchListener(patch);
   }
 
   #createRootNode({ nodeType, nodeId }: CreateRootNodePatch): void {
