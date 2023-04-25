@@ -1,0 +1,93 @@
+.node-box {
+  box-sizing: border-box;
+  width: 300px;
+  padding: 8px;
+  border: 1px solid rgb(0 0 0 / 12%);
+  border-radius: 8px;
+  background-color: #fff;
+
+  &__id {
+    font-weight: 700;
+  }
+
+  &__type {
+    font-size: 14px;
+    color: rgb(0 0 0 / 0.6);
+  }
+
+  &__section {
+    margin: 8px -8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 10px;
+    color: rgb(0 0 0 / 0.6);
+    text-transform: uppercase;
+
+    &::before {
+      content: "";
+      width: 16px;
+      border-bottom: 1px solid rgb(0 0 0 / 0.12);
+    }
+    &::after {
+      content: "";
+      flex: 1 0 0;
+      border-bottom: 1px solid rgb(0 0 0 / 0.12);
+    }
+  }
+
+  &__io-row {
+    position: relative;
+    margin: 8px 0;
+  }
+  &__io-connector {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 1px solid rgb(0 0 0 / 12%);
+    border-radius: 50%;
+    background-color: lightgreen;
+
+    &--input {
+      top: 8px;
+      left: -24px;
+    }
+    &--output {
+      top: 8px;
+      right: -24px;
+    }
+  }
+  &__io-name {
+    padding: 0 4px;
+    font-size: 12px;
+    &--output {
+      text-align: end;
+    }
+  }
+  &__io-type {
+    padding: 0 4px;
+    font-size: 12px;
+    color: rgb(0 0 0 / 0.6);
+
+    &--output {
+      text-align: end;
+    }
+  }
+
+  &__io-input {
+    box-sizing: border-box;
+    height: 24px;
+    border: 1px solid rgb(0 0 0 / 0.12);
+    padding: 0 8px;
+    margin: 4px 0;
+    width: 100%;
+    border-radius: 4px;
+  }
+
+  &__input-group {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgb(0 0 0 / 0.6);
+  }
+}

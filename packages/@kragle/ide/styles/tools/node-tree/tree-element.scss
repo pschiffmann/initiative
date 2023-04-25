@@ -1,0 +1,25 @@
+.tree-element {
+  &__self {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  &__node-id {
+    font-size: 14px;
+  }
+  &__self-button {
+    border: 0;
+    background: transparent;
+  }
+
+  &__slots {
+    padding-left: 16px;
+  }
+
+  &__slot-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgb(0 0 0 / 0.6);
+  }
+}

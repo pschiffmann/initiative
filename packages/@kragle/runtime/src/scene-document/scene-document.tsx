@@ -422,14 +422,14 @@ export class SceneDocument {
       if (!child) continue;
       this.#nodeParents.set(child, {
         ...this.#nodeParents.get(child)!,
-        nodeId,
+        nodeId: newId,
       });
     }
     for (const slotName of schema.getCollectionSlots()) {
       for (const child of nodeJson.collectionSlots[slotName]) {
         this.#nodeParents.set(child, {
           ...this.#nodeParents.get(child)!,
-          nodeId,
+          nodeId: newId,
         });
       }
     }
@@ -478,7 +478,7 @@ export class SceneDocument {
         for (const child of nodeJson.collectionSlots[slotName]) {
           this.#nodeParents.set(child, {
             ...this.#nodeParents.get(child)!,
-            nodeId,
+            nodeId: newId,
           });
         }
       } else {
@@ -486,7 +486,7 @@ export class SceneDocument {
         if (child) {
           this.#nodeParents.set(child, {
             ...this.#nodeParents.get(child)!,
-            nodeId,
+            nodeId: newId,
           });
         }
       }

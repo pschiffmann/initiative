@@ -1,7 +1,7 @@
 import { NodeDefinitions, SceneDocument } from "@kragle/runtime";
 import { ReactNode, useState } from "react";
-import { NodeBindingsEditor } from "../tools/node-bindings-editor.js";
-import { NodeTree } from "../tools/node-tree.js";
+import { NodeBindingsEditor } from "../tools/node-bindings-editor/index.js";
+import { NodeTree } from "../tools/node-tree/index.js";
 import { StageView } from "../tools/stage-view.js";
 
 declare module "csstype" {
@@ -47,7 +47,7 @@ export function Editor({
             }
             size={toolWidth}
           >
-            <NodeTree />
+            <NodeTree document={sceneDocument} />
           </ToolFrame>
         ) : (
           <ToolFrame
@@ -59,7 +59,7 @@ export function Editor({
             }
             size={toolWidth}
           >
-            <NodeBindingsEditor />
+            <NodeBindingsEditor document={sceneDocument} />
           </ToolFrame>
         )}
 
@@ -101,7 +101,7 @@ function ToolFrame({ title, headerAction, size, children }: ToolFrameProps) {
       className="editor__tool"
       style={{
         "--tool-size": size,
-        display: size ? "block" : "none",
+        display: size ? "grid" : "none",
       }}
     >
       <div className="editor__tool-title">{title}</div>

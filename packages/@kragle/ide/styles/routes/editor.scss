@@ -23,7 +23,25 @@
 
   &__tool {
     flex: var(--tool-size) 0 0;
+    display: grid;
+    grid:
+      "title action" auto
+      "content content" 1fr
+      / 1fr auto;
+    padding: 8px;
+    gap: 8px;
     background-color: #eee;
+  }
+
+  &__title {
+    grid-area: title;
+    font-size: 20px;
+  }
+  &__tool-action {
+    grid-area: action;
+  }
+  &__tool-content {
+    grid-area: content;
   }
 
   &__layout-buttons {
