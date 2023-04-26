@@ -1,0 +1,12 @@
+@use "collection-input-row";
+@use "input-row";
+@use "node-box";
+@use "output-row";
+
+.bindings-editor {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  overflow: auto;
+}

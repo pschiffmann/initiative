@@ -17,6 +17,7 @@
 
   &__tools {
     grid-area: tools;
+    min-height: 0;
     display: flex;
     gap: 8px;
   }
@@ -42,6 +43,7 @@
   }
   &__tool-content {
     grid-area: content;
+    min-height: 0;
   }
 
   &__layout-buttons {

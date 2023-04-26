@@ -42,7 +42,7 @@ export function Editor({
             title="Node tree"
             headerAction={
               <button onClick={() => setActiveTool("node-bindings")}>
-                Show node bindings
+                Edit bindings
               </button>
             }
             size={toolWidth}
@@ -54,7 +54,7 @@ export function Editor({
             title="Node bindings editor"
             headerAction={
               <button onClick={() => setActiveTool("node-tree")}>
-                Show node tree
+                Edit tree
               </button>
             }
             size={toolWidth}

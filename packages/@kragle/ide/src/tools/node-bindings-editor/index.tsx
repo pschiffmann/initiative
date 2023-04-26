@@ -16,7 +16,9 @@ export function NodeBindingsEditor({ document }: NodeBindingsEditorProps) {
         nodeId="ArticlesTable"
         nodeJson={{
           type: "@pschiffmann/kragle-demo/Dialog",
-          inputs: {},
+          inputs: {
+            title: { type: "constant", value: "Dialog title" },
+          },
           collectionInputs: {},
           slots: {},
           collectionSlots: {
