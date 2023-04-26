@@ -16,12 +16,12 @@ export function CollectionInputRow({
 }: CollectionInputRowProps) {
   return (
     <div className={cls.block()}>
-      <div className={cls.element("connector")} />
       <div className={cls.element("name")}>{inputName}</div>
       <div className={cls.element("type")}>{type.toString()}</div>
       <div className={cls.element("values")}>
         {slotChildren.map((childId, i) => (
           <div key={childId} className={cls.element("value")}>
+            <div className={cls.element("connector")} />
             <div className={cls.element("child-id")}>{childId}</div>
             <div className={cls.element("value-group")}>
               <select className={cls.element("select")}>

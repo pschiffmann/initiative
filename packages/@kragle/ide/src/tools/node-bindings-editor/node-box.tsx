@@ -1,4 +1,5 @@
 import { AnyNodeSchema, NodeJson } from "@kragle/runtime";
+import { Fragment } from "react";
 import { bemClasses } from "../../bem-classes.js";
 import { CollectionInputRow } from "./collection-input-row.js";
 import { InputRow } from "./input-row.js";
@@ -31,26 +32,17 @@ export function NodeBox({ schema, nodeId, nodeJson }: NodeBoxProps) {
         />
       ))}
 
-      {/* {["Column 1", "Column 2"].map((name) => (
-        <Fragment key={name}>
-          <div className={cls.element("collection-input")}>{name}</div>
-          {Object.entries(schema.inputs).map(([inputName, type]) => (
-            <InputRow
+      {Object.entries(schema.slots).map(([slotName, slotSchema]) => (
+        <Fragment key={slotName}>
+          {Object.entries(slotSchema.inputs ?? {}).map(([inputName, type]) => (
+            <CollectionInputRow
               key={inputName}
               inputName={inputName}
               type={type}
-              binding={nodeJson.inputs[inputName] ?? null}
+              slotChildren={nodeJson.collectionSlots[slotName]}
             />
           ))}
         </Fragment>
-      ))} */}
-
-      {Object.entries(schema.inputs).map(([inputName, type]) => (
-        <CollectionInputRow
-          inputName={inputName}
-          type={type}
-          slotChildren={["Column1", "Column2", "Column3"]}
-        />
       ))}
 
       <div className={cls.element("section")}>Outputs</div>

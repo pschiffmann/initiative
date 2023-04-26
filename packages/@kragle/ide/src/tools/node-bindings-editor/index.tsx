@@ -10,25 +10,18 @@ export function NodeBindingsEditor({ document }: NodeBindingsEditorProps) {
     <div className="bindings-editor">
       <NodeBox
         schema={
-          document.nodeDefinitions.get("@pschiffmann/kragle-demo/Dialog")!
-            .schema
+          document.nodeDefinitions.get("@pschiffmann/kragle-demo/Table")!.schema
         }
         nodeId="ArticlesTable"
         nodeJson={{
-          type: "@pschiffmann/kragle-demo/Dialog",
+          type: "@pschiffmann/kragle-demo/Table",
           inputs: {
             title: { type: "constant", value: "Dialog title" },
           },
           collectionInputs: {},
           slots: {},
           collectionSlots: {
-            column: [
-              "NameColumn",
-              "WeightPerArticleColumn",
-              "LogisticalUnitColumn",
-              "AllowedStackSizeColumn",
-              "ActionColumn",
-            ],
+            column: ["NameColumn", "PriceColumn", "QuantityColumn"],
           },
         }}
       />
