@@ -4,6 +4,7 @@
 @use "output-row";
 
 .bindings-editor {
+  position: relative;
   height: 100%;
   display: grid;
   place-items: center;

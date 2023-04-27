@@ -1,30 +1,30 @@
 import { SceneDocument } from "@kragle/runtime";
 import { NodeBox } from "./node-box.js";
+import { useLayout } from "./use-layout.js";
 
 interface NodeBindingsEditorProps {
   document: SceneDocument;
 }
 
 export function NodeBindingsEditor({ document }: NodeBindingsEditorProps) {
+  const layout = useLayout(document);
   return (
     <div className="bindings-editor">
-      <NodeBox
-        schema={
-          document.nodeDefinitions.get("@pschiffmann/kragle-demo/Table")!.schema
-        }
-        nodeId="ArticlesTable"
-        nodeJson={{
-          type: "@pschiffmann/kragle-demo/Table",
-          inputs: {
-            title: { type: "constant", value: "Dialog title" },
-          },
-          collectionInputs: {},
-          slots: {},
-          collectionSlots: {
-            column: ["NameColumn", "PriceColumn", "QuantityColumn"],
-          },
-        }}
-      />
+      <div style={{ width: layout.canvasWidth, height: layout.canvasHeight }}>
+        {Object.entries(layout.nodeBoxPositions).map(([nodeId, position]) => {
+          const nodeJson = document.getNode(nodeId)!;
+          const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
+          return (
+            <NodeBox
+              key={nodeId}
+              position={position}
+              nodeId={nodeId}
+              nodeJson={nodeJson}
+              schema={schema}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

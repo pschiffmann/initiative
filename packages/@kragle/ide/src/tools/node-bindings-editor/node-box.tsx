@@ -4,56 +4,88 @@ import { bemClasses } from "../../bem-classes.js";
 import { CollectionInputRow } from "./collection-input-row.js";
 import { InputRow } from "./input-row.js";
 import { OutputRow } from "./output-row.js";
+import { NodeBoxPosition } from "./use-layout.js";
 
 const cls = bemClasses("node-box");
 
 export interface NodeBoxProps {
+  position: NodeBoxPosition;
   schema: AnyNodeSchema;
   nodeId: string;
   nodeJson: NodeJson;
 }
 
-export function NodeBox({ schema, nodeId, nodeJson }: NodeBoxProps) {
-  schema.getCollectionInputs();
+export function NodeBox({ position, schema, nodeId, nodeJson }: NodeBoxProps) {
+  const inputNames = Object.keys(schema.inputs);
+  for (const [slotName, slotSchema] of Object.entries(schema.slots)) {
+    for (const inputName of Object.keys(slotSchema.inputs ?? {})) {
+      const children = nodeJson.collectionSlots[slotName];
+      if (children.length) {
+        inputNames.push(...children.map((_, i) => `${inputName}/${i}`));
+      } else {
+        inputNames.push(`${inputName}/-1`);
+      }
+    }
+  }
+  const outputNames = [
+    ...Object.keys(schema.outputs),
+    ...Object.values(schema.slots).flatMap((slotSchema) =>
+      Object.keys(slotSchema.outputs ?? {})
+    ),
+  ];
+
   return (
-    <div className={cls.block()}>
+    <div
+      className={cls.block()}
+      style={{ top: position.offsetTop, left: position.offsetLeft }}
+    >
       <div className={cls.element("header")}>
         <div className={cls.element("id")}>{nodeId}</div>
         <div className={cls.element("type")}>{schema.name}</div>
       </div>
 
-      <div className={cls.element("section")}>Inputs</div>
-      {Object.entries(schema.inputs).map(([inputName, type]) => (
-        <InputRow
-          key={inputName}
-          inputName={inputName}
-          type={type}
-          binding={nodeJson.inputs[inputName] ?? null}
-        />
-      ))}
-
-      {Object.entries(schema.slots).map(([slotName, slotSchema]) => (
-        <Fragment key={slotName}>
-          {Object.entries(slotSchema.inputs ?? {}).map(([inputName, type]) => (
-            <CollectionInputRow
+      {!!inputNames.length && (
+        <>
+          <div className={cls.element("section")}>Inputs</div>
+          {Object.entries(schema.inputs).map(([inputName, type]) => (
+            <InputRow
               key={inputName}
               inputName={inputName}
               type={type}
-              slotChildren={nodeJson.collectionSlots[slotName]}
+              binding={nodeJson.inputs[inputName] ?? null}
             />
           ))}
-        </Fragment>
-      ))}
 
-      <div className={cls.element("section")}>Outputs</div>
-      {[
-        ...Object.entries(schema.outputs),
-        ...Object.values(schema.slots).flatMap((slotSchema) =>
-          Object.entries(slotSchema.outputs ?? {})
-        ),
-      ].map(([outputName, type]) => (
-        <OutputRow key={outputName} outputName={outputName} type={type} />
-      ))}
+          {Object.entries(schema.slots).map(([slotName, slotSchema]) => (
+            <Fragment key={slotName}>
+              {Object.entries(slotSchema.inputs ?? {}).map(
+                ([inputName, type]) => (
+                  <CollectionInputRow
+                    key={inputName}
+                    inputName={inputName}
+                    type={type}
+                    slotChildren={nodeJson.collectionSlots[slotName]}
+                  />
+                )
+              )}
+            </Fragment>
+          ))}
+        </>
+      )}
+
+      {!!outputNames.length && (
+        <>
+          <div className={cls.element("section")}>Outputs</div>
+          {[
+            ...Object.entries(schema.outputs),
+            ...Object.values(schema.slots).flatMap((slotSchema) =>
+              Object.entries(slotSchema.outputs ?? {})
+            ),
+          ].map(([outputName, type]) => (
+            <OutputRow key={outputName} outputName={outputName} type={type} />
+          ))}
+        </>
+      )}
     </div>
   );
 }
