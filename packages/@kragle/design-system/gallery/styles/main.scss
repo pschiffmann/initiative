@@ -1,0 +1,69 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: sans-serif;
+}
+
+.tonal-palette {
+  height: 48px;
+  margin: 8px;
+  border: 1px solid rgb(0 0 0 / 12%);
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+
+  &__label {
+    width: 80px;
+    align-self: center;
+  }
+
+  &__tone {
+    width: 48px;
+  }
+}
+
+.kragle-button {
+  position: relative;
+  height: 32px;
+  border: 0;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  background-color: blue;
+  color: white;
+
+  &__label {
+    position: relative;
+    font-size: 14px;
+    font-weight: 700;
+    transition: top 100ms;
+  }
+
+  &::after {
+    position: absolute;
+    inset: auto 12px 4px;
+    height: 2px;
+    border-radius: 1px;
+    background-color: currentColor;
+    opacity: 0;
+    content: "";
+    transition: opacity 100ms, bottom 100ms;
+  }
+
+  &:is(:hover, :focus-visible)::after {
+    bottom: 6px;
+    opacity: 1;
+  }
+
+  &:active::after {
+    bottom: 7px;
+  }
+  // &:active > &__label {
+  //   top: 1px;
+  // }
+}
