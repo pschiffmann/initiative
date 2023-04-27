@@ -21,5 +21,11 @@
   &__connection-line {
     stroke: lightskyblue;
     stroke-width: 4px;
+    stroke-linecap: round;
+  }
+  &__child-line {
+    stroke: #555;
+    stroke-width: 4px;
+    stroke-dasharray: 16px 8px;
   }
 }

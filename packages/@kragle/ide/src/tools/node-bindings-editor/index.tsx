@@ -2,7 +2,12 @@ import { SceneDocument } from "@kragle/runtime";
 import { ReactElement } from "react";
 import { bemClasses } from "../../bem-classes.js";
 import { NodeBox } from "./node-box.js";
-import { Layout, nodeBoxSizes, useLayout } from "./use-layout.js";
+import {
+  Layout,
+  NodeBoxPosition,
+  nodeBoxSizes,
+  useLayout,
+} from "./use-layout.js";
 
 const cls = bemClasses("bindings-editor");
 
@@ -49,6 +54,47 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
       width={layout.canvasWidth}
       height={layout.canvasHeight}
     >
+      {Object.entries(layout.nodeBoxPositions).flatMap(
+        ([parentId, parentPosition]) => {
+          const lines: ReactElement[] = [];
+
+          function addLine(childId: string, childPosition: NodeBoxPosition) {
+            lines.push(
+              <line
+                key={childId}
+                className={cls.element("child-line")}
+                x1={parentPosition.offsetLeft + nodeBoxSizes.boxWidth}
+                y1={
+                  parentPosition.offsetTop +
+                  nodeBoxSizes.header / 2 +
+                  nodeBoxSizes.padding
+                }
+                x2={childPosition.offsetLeft}
+                y2={
+                  childPosition.offsetTop +
+                  nodeBoxSizes.header / 2 +
+                  nodeBoxSizes.padding
+                }
+              />
+            );
+          }
+
+          const nodeJson = document.getNode(parentId)!;
+          const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
+          for (const childId of Object.values(nodeJson.slots)) {
+            if (!childId) continue;
+            addLine(childId, layout.nodeBoxPositions[childId]);
+          }
+          for (const slotName of schema.getCollectionSlots()) {
+            for (const childId of nodeJson.collectionSlots[slotName]) {
+              addLine(childId, layout.nodeBoxPositions[childId]);
+            }
+          }
+
+          return lines;
+        }
+      )}
+
       {Object.entries(layout.nodeBoxPositions).flatMap(
         ([targetId, targetPosition]) => {
           const lines: ReactElement[] = [];

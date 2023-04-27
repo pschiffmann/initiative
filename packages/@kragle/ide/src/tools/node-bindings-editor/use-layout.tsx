@@ -171,6 +171,6 @@ export const nodeBoxSizes = {
    */
   ioRow: 48,
 
-  connectorOffsetX: 4,
+  connectorOffsetX: 8,
   connectorOffsetY: 24,
 };
