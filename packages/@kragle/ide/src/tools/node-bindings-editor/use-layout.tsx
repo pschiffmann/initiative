@@ -137,16 +137,14 @@ function calculateInnerDimensions(
 /**
  * All heights in px.
  */
-const nodeBoxSizes = {
+export const nodeBoxSizes = {
   /**
    * Minimum distance between the canvas top/left edge and the NodeBox top/left
    * edge.
    */
   canvasOffset: 16,
 
-  /**
-   * The `NodeBox` width is 320px.
-   */
+  boxWidth: 320,
   columnWidth: 400,
 
   /**
@@ -172,4 +170,7 @@ const nodeBoxSizes = {
    * edge.
    */
   ioRow: 48,
+
+  connectorOffsetX: 4,
+  connectorOffsetY: 24,
 };

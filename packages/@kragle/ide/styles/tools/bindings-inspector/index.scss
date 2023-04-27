@@ -4,10 +4,22 @@
 @use "output-row";
 
 .bindings-editor {
-  position: relative;
   height: 100%;
   display: grid;
   place-items: center;
   padding: 8px;
   overflow: auto;
+  box-shadow: 0 0 12px -4px inset;
+
+  &__container {
+    position: relative;
+  }
+
+  &__connection-lines {
+    position: absolute;
+  }
+  &__connection-line {
+    stroke: lightskyblue;
+    stroke-width: 4px;
+  }
 }

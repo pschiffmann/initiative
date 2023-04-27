@@ -60,6 +60,7 @@ function StringBindingEditor({ binding }: StringBindingEditorProps) {
         type="text"
         className={cls.element("textfield")}
         value={(binding as any).value}
+        onChange={() => {}}
       />
       <button className={cls.element("unbind")}>❌</button>
     </div>
