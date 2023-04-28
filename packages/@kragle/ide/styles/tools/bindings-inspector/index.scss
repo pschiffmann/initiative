@@ -1,31 +1,27 @@
 @use "collection-input-row";
 @use "input-row";
+@use "node-bindings-canvas";
 @use "node-box";
 @use "output-row";
 
 .bindings-editor {
   height: 100%;
   display: grid;
-  place-items: center;
-  padding: 8px;
-  overflow: auto;
-  box-shadow: 0 0 12px -4px inset;
+  grid:
+    "canvas" 1fr
+    "controls" auto
+    / 1fr;
+  gap: 8px;
+  place-items: stretch;
 
-  &__container {
-    position: relative;
+  &__canvas-shadow {
+    z-index: 0;
+    grid-area: canvas;
+    box-shadow: 0 0 12px -4px inset;
+    pointer-events: none;
   }
 
-  &__connection-lines {
-    position: absolute;
-  }
-  &__connection-line {
-    stroke: lightskyblue;
-    stroke-width: 4px;
-    stroke-linecap: round;
-  }
-  &__child-line {
-    stroke: #555;
-    stroke-width: 4px;
-    stroke-dasharray: 16px 8px;
+  &__zoom-control {
+    place-self: center end;
   }
 }
