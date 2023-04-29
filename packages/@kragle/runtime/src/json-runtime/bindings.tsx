@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useContext } from "react";
-import { AnyNodeSchema } from "../node-schema.js";
+import { NodeSchema } from "../node-schema.js";
 import { InputBindingJson, NodeJson } from "../scene-document/index.js";
 
 const OutputValuesContext = createContext<OutputValues>({});
@@ -29,14 +29,14 @@ export function OutputValuesProvider({
   );
 }
 
-export function useInputValues(nodeJson: NodeJson, schema: AnyNodeSchema) {
+export function useInputValues(nodeJson: NodeJson, schema: NodeSchema) {
   const ancestorOutputValues = useContext(OutputValuesContext);
   return resolveInputValues(nodeJson, schema, ancestorOutputValues);
 }
 
 function resolveInputValues(
   nodeJson: NodeJson,
-  schema: AnyNodeSchema,
+  schema: NodeSchema,
   ancestorOutputValues: OutputValues
 ): Record<string, unknown> {
   const result: Record<string, unknown> = {};

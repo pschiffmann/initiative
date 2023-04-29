@@ -1,4 +1,4 @@
-import { AnyNodeSchema, NodeJson } from "@kragle/runtime";
+import { NodeJson, NodeSchema } from "@kragle/runtime";
 import { Fragment } from "react";
 import { bemClasses } from "../../bem-classes.js";
 import { CollectionInputRow } from "./collection-input-row.js";
@@ -10,7 +10,7 @@ const cls = bemClasses("node-box");
 
 export interface NodeBoxProps {
   position: NodeBoxPosition;
-  schema: AnyNodeSchema;
+  schema: NodeSchema;
   nodeId: string;
   nodeJson: NodeJson;
 }

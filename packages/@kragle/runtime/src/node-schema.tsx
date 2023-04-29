@@ -3,11 +3,15 @@ import { NodeJson } from "./scene-document/index.js";
 import * as t from "./type-system/index.js";
 import { isInputId } from "./util/kragle-identifier.js";
 
-export type AnyNodeSchema = NodeSchema<
-  t.KragleTypeRecord,
-  t.KragleTypeRecord,
-  SlotSchemas
->;
+interface NodeSchemaInit<
+  I extends t.KragleTypeRecord = {},
+  O extends t.KragleTypeRecord = {},
+  S extends SlotSchemas = {}
+> {
+  readonly inputs?: I;
+  readonly outputs?: O;
+  readonly slots?: S;
+}
 
 export class NodeSchema<
   I extends t.KragleTypeRecord = {},
@@ -16,11 +20,7 @@ export class NodeSchema<
 > {
   constructor(
     readonly name: string,
-    {
-      inputs,
-      outputs,
-      slots,
-    }: Partial<Pick<NodeSchema<I, O, S>, "inputs" | "outputs" | "slots">>
+    { inputs, outputs, slots }: NodeSchemaInit<I, O, S>
   ) {
     this.inputs = inputs ?? ({} as any);
     this.outputs = outputs ?? ({} as any);
@@ -43,9 +43,9 @@ export class NodeSchema<
       .forEach(validateInputName);
   }
 
-  readonly inputs: I;
-  readonly outputs: O;
-  readonly slots: S;
+  readonly inputs: t.KragleTypeRecord;
+  readonly outputs: t.KragleTypeRecord;
+  readonly slots: SlotSchemas;
   readonly validate?: ValidateNode;
 
   /**

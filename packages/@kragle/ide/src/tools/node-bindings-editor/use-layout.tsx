@@ -1,4 +1,4 @@
-import { AnyNodeSchema, NodeJson, SceneDocument } from "@kragle/runtime";
+import { NodeJson, NodeSchema, SceneDocument } from "@kragle/runtime";
 
 export function useLayout(document: SceneDocument) {
   return calculateLayout(document);
@@ -82,7 +82,7 @@ function calculateLayout(document: SceneDocument): Layout {
 }
 
 function calculateInnerDimensions(
-  schema: AnyNodeSchema,
+  schema: NodeSchema,
   nodeJson: NodeJson
 ): Pick<NodeBoxPosition, "height" | "inputOffsets" | "outputOffsets"> {
   const inputOffsets: Record<string, number> = {};
