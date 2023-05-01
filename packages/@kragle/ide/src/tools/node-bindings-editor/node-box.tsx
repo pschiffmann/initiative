@@ -1,4 +1,4 @@
-import { NodeJson, NodeSchema } from "@kragle/runtime";
+import { NodeSchema, SceneDocument, useNode } from "@kragle/runtime";
 import { Fragment } from "react";
 import { bemClasses } from "../../bem-classes.js";
 import { CollectionInputRow } from "./collection-input-row.js";
@@ -10,12 +10,14 @@ const cls = bemClasses("node-box");
 
 export interface NodeBoxProps {
   position: NodeBoxPosition;
+  document: SceneDocument;
   schema: NodeSchema;
   nodeId: string;
-  nodeJson: NodeJson;
 }
 
-export function NodeBox({ position, schema, nodeId, nodeJson }: NodeBoxProps) {
+export function NodeBox({ position, document, schema, nodeId }: NodeBoxProps) {
+  const nodeJson = useNode(document, nodeId)!;
+
   const inputNames = Object.keys(schema.inputs);
   for (const [slotName, slotSchema] of Object.entries(schema.slots)) {
     for (const inputName of Object.keys(slotSchema.inputs ?? {})) {
@@ -50,6 +52,8 @@ export function NodeBox({ position, schema, nodeId, nodeJson }: NodeBoxProps) {
           {Object.entries(schema.inputs).map(([inputName, type]) => (
             <InputRow
               key={inputName}
+              document={document}
+              nodeId={nodeId}
               inputName={inputName}
               type={type}
               binding={nodeJson.inputs[inputName] ?? null}

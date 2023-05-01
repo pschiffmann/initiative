@@ -43,6 +43,15 @@
     align-items: center;
     border: 1px solid rgb(0 0 0 / 0.12);
     border-radius: 4px;
+    font-size: 14px;
+  }
+
+  &__value-link {
+    flex: 1 0 0;
+    padding: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__select {
@@ -51,6 +60,7 @@
     border: none;
     flex: 1 0 0;
     font-style: italic;
+    font-size: inherit;
     background-color: transparent;
   }
 
@@ -58,6 +68,7 @@
     min-width: 0;
     border: none;
     flex: 1 0 0;
+    font-size: inherit;
   }
 
   &__unbind {

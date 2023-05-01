@@ -104,6 +104,16 @@ export class SceneDocument {
     }
   }
 
+  *getAncestors(nodeId: string): Iterable<string> {
+    for (
+      let current = this.#nodeParents.get(nodeId);
+      current;
+      current = this.#nodeParents.get(current.nodeId)
+    ) {
+      yield current.nodeId;
+    }
+  }
+
   /**
    * Returns the slot name of `ancestor` that leads to `descendant` in the node
    * tree.

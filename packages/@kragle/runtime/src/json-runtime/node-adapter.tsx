@@ -38,7 +38,11 @@ function NodeComponent(
   if (errors) {
     console.log("early abort because of errors", { nodeId, errors });
     return (
-      <div>
+      <div
+        style={{
+          background: `repeating-linear-gradient(45deg, #ffcccc, #ffcccc 10px, #ff8888 10px, #ff8888 20px)`,
+        }}
+      >
         Node '{nodeId}' is incomplete and can't be rendered.
         <br />
         Missing inputs: {errors.missingInputs.size} (

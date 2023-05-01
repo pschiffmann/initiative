@@ -40,8 +40,8 @@ export function NodeBindingsCanvas({
             <NodeBox
               key={nodeId}
               position={position}
+              document={document}
               nodeId={nodeId}
-              nodeJson={nodeJson}
               schema={schema}
             />
           );
