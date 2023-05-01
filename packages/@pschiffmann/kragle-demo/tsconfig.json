@@ -8,6 +8,7 @@
   "compilerOptions": {
     "noEmit": true,
     "tsBuildInfoFile": "dist/.tsbuildinfo",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   }
 }
