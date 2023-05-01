@@ -382,6 +382,7 @@ export class SceneDocument {
     );
 
     this.#nodes.set(parentId, newParentJson);
+    this.#nodeErrors.delete(parentId);
     if (parentSchema.isCollectionSlot(slotName)) {
       const newChildren = newParentJson.collectionSlots[slotName];
       for (const [index, childId] of newChildren.entries()) {
@@ -544,7 +545,7 @@ export class SceneDocument {
     const { schema } = this.nodeDefinitions.get(nodeJson.type)!;
     let newNodeJson: NodeJson;
     if (schema.isCollectionInput(inputName)) {
-      if (!index) {
+      if (index === undefined) {
         throw new Error(
           `Parameter 'index' is required to bind collection input ` +
             `'${inputName}' of node '${nodeId}'.`

@@ -1,4 +1,5 @@
-import sceneJson from "#scenes/counter-button-dialog.json";
+// import sceneJson from "#scenes/counter-button-dialog.json";
+import sceneJson from "#scenes/article-management.json";
 import {
   Scene,
   SceneDocument,

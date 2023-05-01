@@ -121,7 +121,7 @@ function calculateInnerDimensions(
   if (outputNames.length) {
     boxHeight += nodeBoxSizes.section; // "Outputs" section header
 
-    for (const outputName of Object.keys(schema.outputs)) {
+    for (const outputName of outputNames) {
       outputOffsets[outputName] = boxHeight;
       boxHeight += nodeBoxSizes.ioRow;
     }

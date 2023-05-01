@@ -8,7 +8,9 @@ export interface NodeTreeProps {
 export function NodeTree({ document }: NodeTreeProps) {
   const rootNode = useRootNodeId(document);
   return rootNode ? (
-    <TreeElement document={document} nodeId={rootNode} />
+    <div className="node-tree">
+      <TreeElement document={document} nodeId={rootNode} />
+    </div>
   ) : (
     <div>Error: Tree is empty.</div>
   );

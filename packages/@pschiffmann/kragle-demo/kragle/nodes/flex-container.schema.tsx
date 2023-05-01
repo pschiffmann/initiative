@@ -5,10 +5,20 @@ export const FlexContainerSchema = new NodeSchema(
   {
     inputs: {
       flexDirection: t.union(t.string("column"), t.string("row")),
+      gap: t.optional(t.number()),
     },
     slots: {
       child: {
-        inputs: {},
+        inputs: {
+          alignSelf: t.optional(
+            t.union(
+              t.string("start"),
+              t.string("center"),
+              t.string("end"),
+              t.string("stretch")
+            )
+          ),
+        },
       },
     },
   }

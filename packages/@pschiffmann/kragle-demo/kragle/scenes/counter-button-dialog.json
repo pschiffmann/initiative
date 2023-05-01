@@ -38,6 +38,9 @@
           "value": "column"
         }
       },
+      "collectionInputs": {
+        "alignSelf": []
+      },
       "collectionSlots": {
         "child": [
           "CounterLabel",

@@ -27,8 +27,10 @@ export function useIdeConnection(
       window.postMessage(message, "/", [idePort]);
 
       const document = new SceneDocument(nodeDefinitions);
-      setDocument(document);
       stagePort.onmessage = (e) => document.applyPatch(e.data);
+
+      // TODO: Workaround for some weird race condition
+      $Promise.wait(500).then(() => setDocument(document));
 
       return () => {
         setDocument(null);

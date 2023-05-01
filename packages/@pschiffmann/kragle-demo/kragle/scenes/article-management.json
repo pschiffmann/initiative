@@ -1,0 +1,312 @@
+{
+  "type": "@kragle/runtime/EmptyScene",
+  "rootNode": "ArticlcesRepository",
+  "nodes": {
+    "ArticlcesRepository": {
+      "type": "@pschiffmann/kragle-demo/ArticleRepository",
+      "slots": {
+        "child": "PageLayout"
+      }
+    },
+    "PageLayout": {
+      "type": "@pschiffmann/kragle-demo/FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "constant",
+          "value": "column"
+        },
+        "gap": {
+          "type": "constant",
+          "value": 24
+        }
+      },
+      "collectionInputs": {
+        "alignSelf": [null, { "type": "constant", "value": "end" }]
+      },
+      "collectionSlots": {
+        "child": ["PageTitle", "NewArticleDialog", "ArticlesTable"]
+      }
+    },
+    "PageTitle": {
+      "type": "@pschiffmann/kragle-demo/MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "constant",
+          "value": "Article Management"
+        },
+        "variant": {
+          "type": "constant",
+          "value": "h3"
+        }
+      }
+    },
+    "NewArticleDialog": {
+      "type": "@pschiffmann/kragle-demo/MuiDialog",
+      "inputs": {
+        "title": {
+          "type": "constant",
+          "value": "New Article"
+        }
+      },
+      "slots": {
+        "trigger": "NewArticleButton",
+        "content": "NewArticleBloc"
+      }
+    },
+    "NewArticleButton": {
+      "type": "@pschiffmann/kragle-demo/MuiButton",
+      "inputs": {
+        "label": {
+          "type": "constant",
+          "value": "Add new"
+        },
+        "variant": {
+          "type": "constant",
+          "value": "contained"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "NewArticleDialog",
+          "outputName": "open"
+        }
+      }
+    },
+    "NewArticleBloc": {
+      "type": "@pschiffmann/kragle-demo/MuiTypography",
+      "inputs": {
+        "text": { "type": "constant", "value": "Under construction" }
+      }
+    },
+    "ArticlesTable": {
+      "type": "@pschiffmann/kragle-demo/MuiTable",
+      "inputs": {
+        "rows": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "articles"
+        },
+        "getRowKey": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "getArticleId"
+        }
+      },
+      "collectionInputs": {
+        "header": [
+          { "type": "constant", "value": "Id" },
+          { "type": "constant", "value": "Name" },
+          { "type": "constant", "value": "Price" },
+          { "type": "constant", "value": "Action" }
+        ],
+        "align": [null, null, { "type": "constant", "value": "right" }, null]
+      },
+      "collectionSlots": {
+        "column": ["IdColumn", "NameColumn", "PriceColumn", "EditColumn"]
+      }
+    },
+    "IdColumn": {
+      "type": "@pschiffmann/kragle-demo/CallUnaryFunctionHelper",
+      "inputs": {
+        "function": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "getArticleId"
+        },
+        "argument": {
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row"
+        }
+      },
+      "slots": {
+        "child": "IdColumnText"
+      }
+    },
+    "IdColumnText": {
+      "type": "@pschiffmann/kragle-demo/MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "IdColumn",
+          "outputName": "result"
+        },
+        "variant": {
+          "type": "constant",
+          "value": "body2"
+        }
+      }
+    },
+    "NameColumn": {
+      "type": "@pschiffmann/kragle-demo/CallUnaryFunctionHelper",
+      "inputs": {
+        "function": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "getArticleName"
+        },
+        "argument": {
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row"
+        }
+      },
+      "slots": {
+        "child": "NameColumnText"
+      }
+    },
+    "NameColumnText": {
+      "type": "@pschiffmann/kragle-demo/MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "NameColumn",
+          "outputName": "result"
+        },
+        "variant": {
+          "type": "constant",
+          "value": "body2"
+        }
+      }
+    },
+    "PriceColumn": {
+      "type": "@pschiffmann/kragle-demo/CallUnaryFunctionHelper",
+      "inputs": {
+        "function": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "getArticlePrice"
+        },
+        "argument": {
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row"
+        }
+      },
+      "slots": {
+        "child": "PriceColumnText"
+      }
+    },
+    "PriceColumnText": {
+      "type": "@pschiffmann/kragle-demo/MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "PriceColumn",
+          "outputName": "result"
+        },
+        "variant": {
+          "type": "constant",
+          "value": "body2"
+        }
+      }
+    },
+    "EditColumn": {
+      "type": "@pschiffmann/kragle-demo/MuiDialog",
+      "inputs": {
+        "title": {
+          "type": "constant",
+          "value": "Edit Article"
+        }
+      },
+      "slots": {
+        "trigger": "EditArticleButton",
+        "content": "EditArticleBloc"
+      }
+    },
+    "EditArticleButton": {
+      "type": "@pschiffmann/kragle-demo/MuiButton",
+      "inputs": {
+        "label": { "type": "constant", "value": "Edit" },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "EditColumn",
+          "outputName": "open"
+        }
+      }
+    },
+    "EditArticleBloc": {
+      "type": "@pschiffmann/kragle-demo/EditArticleBloc",
+      "inputs": {
+        "article": {
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row"
+        },
+        "updateArticle": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "updateArticle"
+        }
+      },
+      "slots": {
+        "child": "EditArticleFormLayout"
+      }
+    },
+    "EditArticleFormLayout": {
+      "type": "@pschiffmann/kragle-demo/FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "constant",
+          "value": "column"
+        },
+        "gap": {
+          "type": "constant",
+          "value": 24
+        }
+      },
+      "collectionInputs": {
+        "alignSelf": []
+      },
+      "collectionSlots": {
+        "child": [
+          "EditArticleNameTextField",
+          "EditArticlePriceTextField",
+          "UpdateArticleButton"
+        ]
+      }
+    },
+    "EditArticleNameTextField": {
+      "type": "@pschiffmann/kragle-demo/MuiTextField",
+      "inputs": {
+        "label": { "type": "constant", "value": "Name" },
+        "value": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "name"
+        },
+        "onChange": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "updateName"
+        }
+      }
+    },
+    "EditArticlePriceTextField": {
+      "type": "@pschiffmann/kragle-demo/MuiTextField",
+      "inputs": {
+        "label": { "type": "constant", "value": "Price" },
+        "value": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "price"
+        },
+        "onChange": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "updatePrice"
+        }
+      }
+    },
+    "UpdateArticleButton": {
+      "type": "@pschiffmann/kragle-demo/MuiButton",
+      "inputs": {
+        "label": { "type": "constant", "value": "Save" },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "save"
+        }
+      }
+    }
+  }
+}

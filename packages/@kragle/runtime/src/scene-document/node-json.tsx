@@ -45,10 +45,12 @@ export function create(
 ): NodeJson {
   const collectionInputs: Record<string, null[]> = {};
   const collectionSlots: Record<string, string[]> = {};
-  for (const slotName of Object.keys(schema.slots)) {
-    if (schema.isCollectionSlot(slotName)) {
-      collectionInputs[slotName] = [];
-      collectionSlots[slotName] = [];
+  for (const [slotName, slotSchema] of Object.entries(schema.slots)) {
+    const { inputs } = slotSchema;
+    if (!inputs) continue;
+    collectionSlots[slotName] = [];
+    for (const inputName of Object.keys(inputs)) {
+      collectionInputs[inputName] = [];
     }
   }
   return {
