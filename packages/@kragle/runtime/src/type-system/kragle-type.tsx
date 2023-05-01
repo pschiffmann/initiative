@@ -36,8 +36,8 @@ export abstract class KragleType<T = unknown> {
    * `string | (number | boolean)` becomes `string | number | boolean`, and
    * `true | false` becomes `boolean`.
    */
-  normalize(): KragleType {
-    throw new Error("Unimplemented");
+  canonicalize(): KragleType {
+    return this;
   }
 
   abstract toString(addBrackets?: boolean): string;

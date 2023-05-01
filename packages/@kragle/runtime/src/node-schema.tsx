@@ -1,3 +1,4 @@
+import * as $Object from "@pschiffmann/std/object";
 import { ComponentType, PropsWithChildren, ReactElement } from "react";
 import { NodeJson } from "./scene-document/index.js";
 import * as t from "./type-system/index.js";
@@ -22,9 +23,17 @@ export class NodeSchema<
     readonly name: string,
     { inputs, outputs, slots }: NodeSchemaInit<I, O, S>
   ) {
-    this.inputs = inputs ?? ({} as any);
-    this.outputs = outputs ?? ({} as any);
-    this.slots = slots ?? ({} as any);
+    this.inputs = $Object.map(inputs ?? {}, (_, type: t.KragleType) =>
+      type.canonicalize()
+    );
+    this.outputs = $Object.map(outputs ?? {}, (_, type: t.KragleType) =>
+      type.canonicalize()
+    );
+    this.slots = $Object.map(slots ?? {}, (_, { inputs, outputs }) => ({
+      inputs: inputs && $Object.map(inputs, (_, type) => type.canonicalize()),
+      outputs:
+        outputs && $Object.map(outputs, (_, type) => type.canonicalize()),
+    }));
 
     const allInputs = new Set<string>();
     function validateInputName(inputName: string) {

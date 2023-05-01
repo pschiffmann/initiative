@@ -12,6 +12,10 @@ class KragleArray<T extends KragleType = KragleType> extends KragleType<
     return KragleArray.is(other) && this.element.isAssignableTo(other.element);
   }
 
+  override canonicalize(): t.KragleType {
+    return new KragleArray(this.element.canonicalize());
+  }
+
   override toString(): string {
     return `${this.element.toString(true)}[]`;
   }

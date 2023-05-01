@@ -27,6 +27,58 @@ class KragleUnion<
     return this._isAssignableTo(other);
   }
 
+  override canonicalize(): KragleType {
+    const result: KragleType[] = [];
+    let containsTrue = false;
+    let containsFalse = false;
+
+    function addElement(element: t.KragleType) {
+      for (const [i, other] of result.entries()) {
+        if (element.isAssignableTo(other)) return;
+        if (other.isAssignableTo(element)) {
+          result[i] = element;
+          return;
+        }
+      }
+      result.push(element);
+    }
+
+    function addBoolean(element: t.Boolean) {
+      switch (element.value) {
+        case true:
+          containsTrue = true;
+          break;
+        case false:
+          containsFalse = true;
+          break;
+        case undefined:
+          containsTrue = containsFalse = true;
+          break;
+      }
+    }
+
+    for (const element of this.elements.flatMap((e) => {
+      const canonicalized = e.canonicalize();
+      return KragleUnion.is(canonicalized)
+        ? canonicalized.elements
+        : [canonicalized];
+    })) {
+      if (t.Boolean.is(element)) {
+        addBoolean(element);
+      } else {
+        addElement(element);
+      }
+    }
+
+    if (containsTrue || containsFalse) {
+      result.push(
+        t.boolean(containsTrue && containsFalse ? undefined : containsTrue)
+      );
+    }
+
+    return result.length === 1 ? result[0] : new KragleUnion(result);
+  }
+
   protected override _isAssignableTo(other: KragleType): boolean {
     return this.elements.every((element) => element.isAssignableTo(other));
   }
@@ -50,27 +102,33 @@ function kragleUnion<T extends t.KragleTypeArray>(
   return new KragleUnion<T>(elements);
 }
 
-function collapseTrueFalse(elements: t.KragleTypeArray): t.KragleTypeArray {
-  let containsTrue = false;
-  let containsFalse = false;
-  for (const element of elements) {
-    if (!t.Boolean.is(element)) continue;
-    switch (element.value) {
-      case true:
-        containsTrue = true;
-        break;
-      case false:
-        containsFalse = true;
-        break;
+/**
+ * Removes `t.undefined()` from `union`.
+ *
+ * Throws an error if `union` contains nested unions; this can be avoided by
+ * calling `union.canonicalize()` first.
+ */
+function kragleRequired<T extends t.KragleTypeArray>(
+  union: KragleUnion<T>
+): KragleType {
+  const elements = union.elements.filter((e) => {
+    if (KragleUnion.is(e)) {
+      throw new Error(`'union' is not 'canonicalize()'d.`);
     }
+    return !(e instanceof t.Undefined);
+  });
+  switch (elements.length) {
+    // case 0:
+    //   return t.never();
+    case 1:
+      return elements[0];
+    default:
+      return new KragleUnion(elements);
   }
-  return containsTrue && containsFalse
-    ? [...elements.filter((e) => !t.Boolean.is(e)), t.boolean()]
-    : elements;
 }
 
-function flattenNestedUnions(elements: t.KragleTypeArray): t.KragleTypeArray {
-  return elements.flatMap((e) => (KragleUnion.is(e) ? e.elements : e));
-}
-
-export { KragleUnion as Union, kragleUnion as union };
+export {
+  KragleUnion as Union,
+  kragleUnion as union,
+  kragleRequired as required,
+};

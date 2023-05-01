@@ -28,6 +28,10 @@ class KragleTuple<
     return false;
   }
 
+  override canonicalize(): t.KragleType {
+    return new KragleTuple(this.elements.map((e) => e.canonicalize()));
+  }
+
   override toString(): string {
     return `[${this.elements.join(", ")}]`;
   }

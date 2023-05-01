@@ -20,6 +20,13 @@ class KragleFunction<
     return true;
   }
 
+  override canonicalize(): t.KragleType {
+    return new KragleFunction(
+      this.parameters.map((p) => p.canonicalize()),
+      this.returns.canonicalize()
+    );
+  }
+
   override toString(addBrackets?: boolean): string {
     const params = this.parameters
       .map((param, i) => `p${i + 1}: ${param}`)
