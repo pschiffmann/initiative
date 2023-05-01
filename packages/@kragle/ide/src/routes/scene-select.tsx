@@ -21,13 +21,14 @@ export function SceneSelect({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const files = [];
+      const files: FileSystemFileHandle[] = [];
       for await (const handle of kragleDirectory.values()) {
         if (handle.kind === "file" && handle.name.endsWith(".json")) {
           files.push(handle);
         }
       }
-      if (!cancelled) setFiles(files);
+      if (!cancelled)
+        setFiles(files.sort((a, b) => a.name.localeCompare(b.name)));
     })();
 
     return () => {

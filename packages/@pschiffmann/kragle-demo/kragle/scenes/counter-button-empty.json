@@ -1,0 +1,10 @@
+{
+  "type": "@kragle/runtime/EmptyScene",
+  "rootNode": "CounterBloc",
+  "nodes": {
+    "CounterBloc": {
+      "type": "@pschiffmann/kragle-demo/CounterBloc",
+      "slots": {}
+    }
+  }
+}
