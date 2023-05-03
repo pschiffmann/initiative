@@ -2,6 +2,7 @@ export * from "./_type-inference.js";
 export * from "./any.js";
 export * from "./array.js";
 export * from "./boolean.js";
+export * from "./entity.js";
 export * from "./function.js";
 export * from "./kragle-type.js";
 export * from "./null.js";
