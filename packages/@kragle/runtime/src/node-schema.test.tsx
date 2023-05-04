@@ -128,3 +128,23 @@ test("InferProps adds Schema.slots.outputs to the slots.*.element parammeters", 
     );
   }
 });
+
+test("InferProps plays nice with generics", () => {
+  const schema = new NodeSchema("@kragle/runtime/Test", (t1, t2, t3) => ({
+    inputs: {
+      a: t.array(t1),
+      b: t.function(t1)(t.string()),
+      c: t.function(t1)(t.array(t2)),
+      d: t.function(t2)(t.string()),
+    },
+    outputs: {
+      x: t1,
+      y: t2,
+    },
+  }));
+  type Props = InferProps<typeof schema>;
+
+  function Component({ a, b, c, d, OutputsProvider }: Props) {
+    return <OutputsProvider x={a[0]} y={c(a[0])[0]} />;
+  }
+});
