@@ -182,7 +182,7 @@ function calculateLayout2(document: SceneDocument): Layout {
     if (n.inputs.length == 0) {
       continue;
     }
-    for (let c in n.inputs) {
+    for (let c of n.inputs) {
       let column_from = allnodes.get(c)!.column;
       let column_too = n.column;
       let connection = column_from.toString() + gap + column_too.toString();
