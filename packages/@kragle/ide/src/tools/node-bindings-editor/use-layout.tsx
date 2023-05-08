@@ -156,7 +156,7 @@ function calculateLayout2(document: SceneDocument): Layout {
       }
       let child: nodesBox = {
         column: depth,
-        row: [0, 0],
+        row: [-1, -1],
         ID: c,
         inputs: inputIDs,
         connections: new Map(),
@@ -308,7 +308,7 @@ function calculateLayout2(document: SceneDocument): Layout {
       columnraw.push([n.ID, n.row![0], n.row![1]]);
     }
     columnraw.sort(function (a, b) {
-      return b[1] * 10 + b[2] - (a[1] * 10 + a[2]);
+      return a[1] * 10 + a[2] - (b[1] * 10 + b[2]);
     });
     let columnlayout: Array<string> = [];
     columnraw.forEach(function (value) {
