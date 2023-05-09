@@ -6,20 +6,35 @@ export const FlexContainerSchema = new NodeSchema(
     inputs: {
       flexDirection: t.union(t.string("column"), t.string("row")),
       gap: t.optional(t.number()),
+      alignSelf1: t.optional(
+        t.union(
+          t.string("start"),
+          t.string("center"),
+          t.string("end"),
+          t.string("stretch")
+        )
+      ),
+      alignSelf2: t.optional(
+        t.union(
+          t.string("start"),
+          t.string("center"),
+          t.string("end"),
+          t.string("stretch")
+        )
+      ),
+      alignSelf3: t.optional(
+        t.union(
+          t.string("start"),
+          t.string("center"),
+          t.string("end"),
+          t.string("stretch")
+        )
+      ),
     },
     slots: {
-      child: {
-        inputs: {
-          alignSelf: t.optional(
-            t.union(
-              t.string("start"),
-              t.string("center"),
-              t.string("end"),
-              t.string("stretch")
-            )
-          ),
-        },
-      },
+      child1: {},
+      child2: {},
+      child3: {},
     },
   }
 );

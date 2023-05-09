@@ -3,16 +3,16 @@ import { FlexContainerProps } from "./flex-container.schema.js";
 export function FlexContainer({
   flexDirection,
   gap,
-  alignSelf,
+  alignSelf1,
+  alignSelf2,
+  alignSelf3,
   slots,
 }: FlexContainerProps) {
   return (
     <div style={{ display: "flex", flexDirection, gap }}>
-      {slots.child.map((child, i) => (
-        <div key={child.nodeId} style={{ alignSelf: alignSelf[i] }}>
-          {child.element()}
-        </div>
-      ))}
+      <div style={{ alignSelf: alignSelf1 }}>{slots.child1.element()}</div>
+      <div style={{ alignSelf: alignSelf2 }}>{slots.child2.element()}</div>
+      <div style={{ alignSelf: alignSelf3 }}>{slots.child3.element()}</div>
     </div>
   );
 }

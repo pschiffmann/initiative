@@ -18,13 +18,16 @@
         "gap": {
           "type": "constant",
           "value": 24
+        },
+        "alignSelf2": {
+          "type": "constant",
+          "value": "end"
         }
       },
-      "collectionInputs": {
-        "alignSelf": [null, { "type": "constant", "value": "end" }]
-      },
-      "collectionSlots": {
-        "child": ["PageTitle", "NewArticleDialog", "ArticlesTable"]
+      "slots": {
+        "child1": "PageTitle",
+        "child2": "NewArticleDialog",
+        "child3": "ArticlesTable"
       }
     },
     "PageTitle": {
@@ -89,19 +92,29 @@
           "type": "node-output",
           "nodeId": "ArticlcesRepository",
           "outputName": "getArticleId"
+        },
+        "header1": {
+          "type": "constant",
+          "value": "Id"
+        },
+        "header2": {
+          "type": "constant",
+          "value": "Name"
+        },
+        "header3": {
+          "type": "constant",
+          "value": "Price"
+        },
+        "header4": {
+          "type": "constant",
+          "value": "Action"
         }
       },
-      "collectionInputs": {
-        "header": [
-          { "type": "constant", "value": "Id" },
-          { "type": "constant", "value": "Name" },
-          { "type": "constant", "value": "Price" },
-          { "type": "constant", "value": "Action" }
-        ],
-        "align": [null, null, { "type": "constant", "value": "right" }, null]
-      },
-      "collectionSlots": {
-        "column": ["IdColumn", "NameColumn", "PriceColumn", "EditColumn"]
+      "slots": {
+        "column1": "IdColumn",
+        "column2": "NameColumn",
+        "column3": "PriceColumn",
+        "column4": "EditColumn"
       }
     },
     "IdColumn": {
@@ -254,15 +267,10 @@
           "value": 24
         }
       },
-      "collectionInputs": {
-        "alignSelf": []
-      },
-      "collectionSlots": {
-        "child": [
-          "EditArticleNameTextField",
-          "EditArticlePriceTextField",
-          "UpdateArticleButton"
-        ]
+      "slots": {
+        "child1": "EditArticleNameTextField",
+        "child2": "EditArticlePriceTextField",
+        "child3": "UpdateArticleButton"
       }
     },
     "EditArticleNameTextField": {
