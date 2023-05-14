@@ -85,7 +85,7 @@ export class NodeData implements NodeJson {
     callback: (childId: string | null, slotName: string, index?: number) => R
   ): R[] {
     const result: R[] = [];
-    this.schema.forEachSlot((slotName, isCollectionSlot) => {
+    this.schema.forEachSlot((slotName, { isCollectionSlot }) => {
       if (isCollectionSlot) {
         const childCount = this.collectionSlotSizes[slotName];
         if (childCount === 0) {
@@ -164,9 +164,9 @@ export class NodeData implements NodeJson {
   }
 
   addChild(childId: string, slotName: string, index?: number): NodeData {
-    return this.schema.isCollectionSlot(slotName)
-      ? this.#addCollectionChild(childId, slotName, index)
-      : this.#addRegularChild(childId, slotName);
+    return this.schema.getCollectionInputSlot(slotName) === null
+      ? this.#addRegularChild(childId, slotName)
+      : this.#addCollectionChild(childId, slotName, index);
   }
 
   #addRegularChild(childId: string, slotName: string): NodeData {
@@ -214,9 +214,9 @@ export class NodeData implements NodeJson {
   }
 
   removeChild(slotName: string, index?: number): NodeData {
-    return this.schema.isCollectionSlot(slotName)
-      ? this.#removeCollectionChild(slotName, index)
-      : this.#removeRegularChild(slotName);
+    return this.schema.getCollectionInputSlot(slotName) === null
+      ? this.#removeRegularChild(slotName)
+      : this.#removeCollectionChild(slotName, index);
   }
 
   #removeRegularChild(slotName: string): NodeData {
