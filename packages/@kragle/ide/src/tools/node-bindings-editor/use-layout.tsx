@@ -50,7 +50,12 @@ function calculateLayout(document: SceneDocument): Layout {
     const nodeJson = document.getNode(nodeId)!;
     const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
     const innerDimensions = calculateInnerDimensions(schema, nodeJson);
-    const columnHeight = columnHeights.get(column) ?? nodeBoxSizes.canvasOffset;
+    const columnHeight = Math.max(
+      columnHeights.get(column) ?? nodeBoxSizes.canvasOffset,
+      nodeId === document.getRootNodeId()
+        ? 0
+        : nodeBoxPositions[[...document.getAncestors(nodeId)][0]].offsetTop
+    );
     nodeBoxPositions[nodeId] = {
       offsetLeft: nodeBoxSizes.canvasOffset + column * nodeBoxSizes.columnWidth,
       offsetTop: columnHeight,
