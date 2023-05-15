@@ -39,11 +39,11 @@ export function validateNodeOutputName(
   schemaName: string,
   outputName: string
 ): void {
-  if (!outputName.match(memberPattern)) {
+  if (!outputName.match(outputPattern)) {
     throw new Error(
       `Invalid output name '${outputName}' in NodeSchema '${schemaName}': ` +
         `must start with a lowercase letter, and contain only alphanumeric ` +
-        `characters.`
+        `characters, and may contain a single '$' group separator.`
     );
   }
 }
@@ -121,3 +121,4 @@ export function validateLibraryExportName(
 
 const namespacePattern = /^[A-Z][A-Za-z0-9]*$/;
 const memberPattern = /^[a-z][A-Za-z0-9]*$/;
+const outputPattern = /^[a-z][A-Za-z0-9]*(?:\$[a-z][A-Za-z0-9]*)$/;

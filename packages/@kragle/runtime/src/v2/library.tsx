@@ -4,7 +4,7 @@ import {
   validateLibraryName,
 } from "./validate-names.js";
 
-export class Library<M extends t.KragleTypeRecord = {}> {
+export class LibrarySchema<M extends t.KragleTypeRecord = {}> {
   constructor(readonly name: string, members: M) {
     validateLibraryName(name);
 
@@ -19,8 +19,5 @@ export class Library<M extends t.KragleTypeRecord = {}> {
   readonly exports: t.KragleTypeRecord;
 }
 
-export type InferNamespaceMembers<L extends Library> = L extends Library<
-  infer M
->
-  ? t.UnwrapRecord<M>
-  : {};
+export type InferNamespaceMembers<L extends LibrarySchema> =
+  L extends LibrarySchema<infer M> ? t.UnwrapRecord<M> : {};
