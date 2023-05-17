@@ -1,6 +1,6 @@
 import { ComponentType } from "react";
 import * as t from "../type-system/index.js";
-import { LibrarySchema } from "./library.js";
+import { LibrarySchema } from "./library-schema.js";
 import { NodeSchema } from "./node-schema.js";
 
 export interface NodeDefinition {
@@ -175,10 +175,7 @@ function resolveLibraryDefinition(
       );
     }
   }
-  return {
-    moduleName,
-    exportNamePrefix,
-    schema,
-    members,
-  };
+  return Object.keys(members).length === Object.keys(schema.exports).length
+    ? { moduleName, exportNamePrefix, schema, members }
+    : null;
 }
