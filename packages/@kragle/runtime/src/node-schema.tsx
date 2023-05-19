@@ -21,29 +21,28 @@ export class NodeSchema<
 > {
   constructor(
     readonly name: string,
-    init:
-      | NodeSchemaInit<I, O, S>
-      | (<
-          TypeVariable1,
-          TypeVariable2,
-          TypeVariable3,
-          TypeVariable4,
-          TypeVariable5,
-          TypeVariable6,
-          TypeVariable7,
-          TypeVariable8
-        >(
-          t1: t.Entity<TypeVariable1>,
-          t2: t.Entity<TypeVariable2>,
-          t3: t.Entity<TypeVariable3>,
-          t4: t.Entity<TypeVariable4>,
-          t5: t.Entity<TypeVariable5>,
-          t6: t.Entity<TypeVariable6>,
-          t7: t.Entity<TypeVariable7>,
-          t8: t.Entity<TypeVariable8>
-        ) => NodeSchemaInit<I, O, S>)
+    init: NodeSchemaInit<I, O, S>
+    // | (<
+    //     TypeVariable1,
+    //     TypeVariable2,
+    //     TypeVariable3,
+    //     TypeVariable4,
+    //     TypeVariable5,
+    //     TypeVariable6,
+    //     TypeVariable7,
+    //     TypeVariable8
+    //   >(
+    //     t1: t.Entity<TypeVariable1>,
+    //     t2: t.Entity<TypeVariable2>,
+    //     t3: t.Entity<TypeVariable3>,
+    //     t4: t.Entity<TypeVariable4>,
+    //     t5: t.Entity<TypeVariable5>,
+    //     t6: t.Entity<TypeVariable6>,
+    //     t7: t.Entity<TypeVariable7>,
+    //     t8: t.Entity<TypeVariable8>
+    //   ) => NodeSchemaInit<I, O, S>)
   ) {
-    const { inputs, outputs, slots } = init as NodeSchemaInit<I, O, S>;
+    const { inputs, outputs, slots } = init; // as NodeSchemaInit<I, O, S>;
     this.inputs = $Object.map(inputs ?? {}, (_, type: t.KragleType) =>
       type.canonicalize()
     );
