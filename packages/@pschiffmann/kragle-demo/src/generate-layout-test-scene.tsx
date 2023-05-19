@@ -1,17 +1,21 @@
-import { InputBindingJson, NodeJson, SceneJson } from "@kragle/runtime";
+import {
+  InputBindingJson,
+  NodeJson,
+  NodeSchema,
+  SceneJson,
+} from "@kragle/runtime";
 import fs from "fs";
 import {
-  LayoutTest0i5oSchema,
-  LayoutTest12i3oSchema,
-  LayoutTest1i4oSchema,
-  LayoutTest2i3oSchema,
-  LayoutTest3i12oSchema,
-  LayoutTest3i2oSchema,
-  LayoutTest4i1oSchema,
-  LayoutTest5i0oSchema,
-  LayoutTest6i9oSchema,
-  LayoutTest9i6oSchema,
-} from "../kragle/nodes/layout-test.js";
+  LayoutTest0i2o1sSchema,
+  LayoutTest1i1o1sSchema,
+  LayoutTest2i0o0sSchema,
+  LayoutTest2i1o2sSchema,
+  LayoutTest2i3o2sSchema,
+  LayoutTest3i1o1sSchema,
+  LayoutTest3i6o2sSchema,
+  LayoutTest5i2o3sSchema,
+  LayoutTest7i4o4sSchema,
+} from "../kragle/nodes/index.js";
 
 //
 // Generation parameters
@@ -20,38 +24,37 @@ import {
 const fileName = "./kragle/scenes/layout-test.json";
 const depth = 10;
 const inputProbablity = 0.5;
-const childProbablity = 0.2;
+const childProbablity = 0.5;
+const minNodes = 50;
+const maxNodes = 200;
 
 // Contains some schemas multiple times to increase their chance of being
 // generated.
-const schemas = [
-  LayoutTest0i5oSchema,
-  LayoutTest1i4oSchema,
-  LayoutTest1i4oSchema,
-  LayoutTest2i3oSchema,
-  LayoutTest2i3oSchema,
-  LayoutTest2i3oSchema,
-  LayoutTest2i3oSchema,
-  LayoutTest3i2oSchema,
-  LayoutTest3i2oSchema,
-  LayoutTest3i2oSchema,
-  LayoutTest3i2oSchema,
-  LayoutTest4i1oSchema,
-  LayoutTest4i1oSchema,
-  LayoutTest4i1oSchema,
-  LayoutTest5i0oSchema,
-  LayoutTest12i3oSchema,
-  LayoutTest9i6oSchema,
-  LayoutTest6i9oSchema,
-  LayoutTest3i12oSchema,
-];
+const schemas = generateSchemasArray([
+  [LayoutTest0i2o1sSchema, 3],
+  [LayoutTest2i0o0sSchema, 3],
+  [LayoutTest1i1o1sSchema, 5],
+  [LayoutTest2i1o2sSchema, 5],
+  [LayoutTest3i1o1sSchema, 5],
+  [LayoutTest2i3o2sSchema, 5],
+  [LayoutTest5i2o3sSchema, 1],
+  [LayoutTest3i6o2sSchema, 1],
+  [LayoutTest7i4o4sSchema, 1],
+]);
 
 function main() {
   const rootNode = "N1";
-  const nodes: Record<string, NodeJson> = {};
-  generateNode(nodes, [], rootNode, depth);
+  let nodes: Record<string, NodeJson> = {};
+  while (
+    Object.keys(nodes).length < minNodes ||
+    Object.keys(nodes).length > maxNodes
+  ) {
+    nodes = {};
+    generateNode(nodes, [], rootNode, depth);
+  }
+
   const sceneJson: SceneJson = { rootNode, nodes };
-  fs.writeFileSync(fileName, JSON.stringify(sceneJson, null, 2));
+  fs.writeFileSync(fileName, JSON.stringify(sceneJson, null, 2) + "\n");
 }
 
 main();
@@ -98,6 +101,18 @@ function generateNode(
   for (const childNodeId of Object.values(nodeJson.slots)) {
     generateNode(nodes, nextAncestorOutputs, childNodeId, maxDepth - 1);
   }
+}
+
+function generateSchemasArray(
+  schemas: Iterable<[NodeSchema, number]>
+): NodeSchema[] {
+  const result: NodeSchema[] = [];
+  for (const [schema, repeat] of schemas) {
+    for (let i = 0; i < repeat; i++) {
+      result.push(schema);
+    }
+  }
+  return result;
 }
 
 /**
