@@ -6,7 +6,8 @@
   ],
   "include": ["kragle/**/*", "src/**/*", "kragle/scenes/*.json"],
   "compilerOptions": {
-    "noEmit": true,
+    "rootDir": ".",
+    "outDir": "dist/",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
     "resolveJsonModule": true,
     "skipLibCheck": true

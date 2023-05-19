@@ -1,0 +1,238 @@
+{
+  "rootNode": "N1",
+  "nodes": {
+    "N1": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest3i2o",
+      "inputs": {},
+      "collectionInputs": {},
+      "slots": {
+        "c2": "N1x2",
+        "c3": "N1x3"
+      },
+      "collectionSlots": {}
+    },
+    "N1x2": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest9i6o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o3"
+        },
+        "i3": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o3"
+        },
+        "i6": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o1"
+        },
+        "i7": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o2"
+        },
+        "i8": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o2"
+        },
+        "i9": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o3"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c1": "N1x2x1",
+        "c4": "N1x2x4"
+      },
+      "collectionSlots": {}
+    },
+    "N1x2x1": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest3i12o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1x2",
+          "outputName": "o5"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c4": "N1x2x1x4"
+      },
+      "collectionSlots": {}
+    },
+    "N1x2x1x4": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest2i3o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1x2",
+          "outputName": "o9"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {},
+      "collectionSlots": {}
+    },
+    "N1x2x4": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest2i3o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o3"
+        },
+        "i2": {
+          "type": "node-output",
+          "nodeId": "N1x2",
+          "outputName": "o9"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {},
+      "collectionSlots": {}
+    },
+    "N1x3": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest2i3o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o3"
+        },
+        "i2": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o2"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c3": "N1x3x3"
+      },
+      "collectionSlots": {}
+    },
+    "N1x3x3": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest2i3o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o3"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c1": "N1x3x3x1",
+        "c2": "N1x3x3x2"
+      },
+      "collectionSlots": {}
+    },
+    "N1x3x3x1": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest1i4o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o1"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c3": "N1x3x3x1x3"
+      },
+      "collectionSlots": {}
+    },
+    "N1x3x3x1x3": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest1i4o",
+      "inputs": {},
+      "collectionInputs": {},
+      "slots": {},
+      "collectionSlots": {}
+    },
+    "N1x3x3x2": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest2i3o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1x3",
+          "outputName": "o1"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c4": "N1x3x3x2x4"
+      },
+      "collectionSlots": {}
+    },
+    "N1x3x3x2x4": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest2i3o",
+      "inputs": {
+        "i2": {
+          "type": "node-output",
+          "nodeId": "N1x3x3",
+          "outputName": "o1"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c3": "N1x3x3x2x4x3"
+      },
+      "collectionSlots": {}
+    },
+    "N1x3x3x2x4x3": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest5i0o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1x3x3",
+          "outputName": "o1"
+        },
+        "i3": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o1"
+        },
+        "i4": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o2"
+        },
+        "i5": {
+          "type": "node-output",
+          "nodeId": "N1",
+          "outputName": "o1"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {
+        "c2": "N1x3x3x2x4x3x2"
+      },
+      "collectionSlots": {}
+    },
+    "N1x3x3x2x4x3x2": {
+      "type": "@pschiffmann/kragle-demo/LayoutTest4i1o",
+      "inputs": {
+        "i1": {
+          "type": "node-output",
+          "nodeId": "N1x3x3x2x4x3",
+          "outputName": "o3"
+        },
+        "i2": {
+          "type": "node-output",
+          "nodeId": "N1x3",
+          "outputName": "o2"
+        }
+      },
+      "collectionInputs": {},
+      "slots": {},
+      "collectionSlots": {}
+    }
+  }
+}

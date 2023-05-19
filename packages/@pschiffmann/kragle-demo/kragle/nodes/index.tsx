@@ -13,6 +13,7 @@ export * from "./dialog.schema.js";
 export * from "./flex-container.js";
 export * from "./flex-container.schema.js";
 export * from "./index.js";
+export * from "./layout-test.js";
 export * from "./mui/button.js";
 export * from "./mui/button.schema.js";
 export * from "./mui/dialog.js";
