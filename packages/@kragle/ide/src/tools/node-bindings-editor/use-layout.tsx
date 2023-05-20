@@ -10,17 +10,7 @@ export interface Layout {
   readonly nodeBoxPositions: Readonly<Record<string, NodeBoxPosition>>;
 }
 
-export interface NodeBoxPosition {
-  /**
-   * Distance between the canvas left edge and the NodeBox left edge in px.
-   */
-  readonly offsetLeft: number;
-
-  /**
-   * Distance between the canvas top edge and the NodeBox top edge in px.
-   */
-  readonly offsetTop: number;
-
+interface NodeBoxDimensions {
   /**
    * NodeBox height in px.
    */
@@ -39,57 +29,146 @@ export interface NodeBoxPosition {
   readonly outputOffsets: Readonly<Record<string, number>>;
 }
 
+export interface NodeBoxPosition extends NodeBoxDimensions {
+  /**
+   * Distance between the canvas left edge and the NodeBox left edge in px.
+   */
+  readonly offsetLeft: number;
+
+  /**
+   * Distance between the canvas top edge and the NodeBox top edge in px.
+   */
+  readonly offsetTop: number;
+}
+
 function calculateLayout(document: SceneDocument): Layout {
+  const dimensionsMap = new Map<string, NodeBoxDimensions>();
+  const treeHeightsMap = new Map<string, number>();
+  calculateTreeHeight(
+    dimensionsMap,
+    treeHeightsMap,
+    document.getRootNodeId()!,
+    document
+  );
+
+  const nodeBoxPositions: Record<string, NodeBoxPosition> = {};
+  calculateNodeBoxPosition(
+    nodeBoxPositions,
+    dimensionsMap,
+    treeHeightsMap,
+    document,
+    document.getRootNodeId()!,
+    0
+  );
+
   let canvasWidth = 0;
   let canvasHeight = 0;
-  const nodeBoxPositions: Record<string, NodeBoxPosition> = {};
-  const columnHeights = new Map<number, number>();
-
-  const queue = new Set([{ nodeId: document.getRootNodeId()!, column: 0 }]);
-  for (const { nodeId, column } of queue) {
-    const nodeJson = document.getNode(nodeId)!;
-    const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
-    const innerDimensions = calculateInnerDimensions(schema, nodeJson);
-    const columnHeight = Math.max(
-      columnHeights.get(column) ?? nodeBoxSizes.canvasOffset,
-      nodeId === document.getRootNodeId()
-        ? 0
-        : nodeBoxPositions[[...document.getAncestors(nodeId)][0]].offsetTop
-    );
-    nodeBoxPositions[nodeId] = {
-      offsetLeft: nodeBoxSizes.canvasOffset + column * nodeBoxSizes.columnWidth,
-      offsetTop: columnHeight,
-      ...innerDimensions,
-    };
-
-    const newColumnHeight =
-      columnHeight + innerDimensions.height + nodeBoxSizes.canvasOffset;
+  for (const boxPosition of Object.values(nodeBoxPositions)) {
     canvasWidth = Math.max(
       canvasWidth,
-      2 * nodeBoxSizes.canvasOffset + (column + 1) * nodeBoxSizes.columnWidth
+      boxPosition.offsetLeft + nodeBoxSizes.boxWidth + nodeBoxSizes.canvasOffset
     );
-    canvasHeight = Math.max(canvasHeight, newColumnHeight);
-    columnHeights.set(column, newColumnHeight);
-
-    for (const slotName of Object.keys(schema.slots)) {
-      if (schema.isCollectionSlot(slotName)) {
-        for (const childId of nodeJson.collectionSlots[slotName]) {
-          queue.add({ nodeId: childId, column: column + 1 });
-        }
-      } else {
-        const childId = nodeJson.slots[slotName];
-        if (childId) queue.add({ nodeId: childId, column: column + 1 });
-      }
-    }
+    canvasHeight = Math.max(
+      canvasHeight,
+      boxPosition.offsetTop + boxPosition.height + nodeBoxSizes.canvasOffset
+    );
   }
 
   return { canvasWidth, canvasHeight, nodeBoxPositions };
 }
 
-function calculateInnerDimensions(
+/**
+ * Fills `innerDimensionsMap`, `treeHeightsMap` and `columnsMap` in-place.
+ */
+function calculateTreeHeight(
+  dimensionsMap: Map<string, NodeBoxDimensions>,
+  treeHeightsMap: Map<string, number>,
+  nodeId: string,
+  document: SceneDocument
+) {
+  const nodeJson = document.getNode(nodeId)!;
+  const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
+  const innerDimensions = calculateNodeBoxDimensions(schema, nodeJson);
+  dimensionsMap.set(nodeId, innerDimensions);
+
+  let totalChildrenHeight = 0;
+  for (const slotName of Object.keys(schema.slots)) {
+    if (schema.isCollectionSlot(slotName)) {
+      for (const childId of nodeJson.collectionSlots[slotName]) {
+        calculateTreeHeight(dimensionsMap, treeHeightsMap, childId, document);
+        totalChildrenHeight +=
+          treeHeightsMap.get(childId)! + nodeBoxSizes.canvasOffset;
+      }
+    } else {
+      const childId = nodeJson.slots[slotName];
+      if (!childId) continue;
+      calculateTreeHeight(dimensionsMap, treeHeightsMap, childId, document);
+      totalChildrenHeight +=
+        treeHeightsMap.get(childId)! + nodeBoxSizes.canvasOffset;
+    }
+  }
+  treeHeightsMap.set(
+    nodeId,
+    Math.max(
+      innerDimensions.height + nodeBoxSizes.canvasOffset,
+      totalChildrenHeight
+    )
+  );
+}
+
+function calculateNodeBoxPosition(
+  nodeBoxPositions: Record<string, NodeBoxPosition>,
+  dimensionsMap: ReadonlyMap<string, NodeBoxDimensions>,
+  treeHeightsMap: ReadonlyMap<string, number>,
+  document: SceneDocument,
+  nodeId: string,
+  offsetY: number,
+  column = 0
+) {
+  const dimensions = dimensionsMap.get(nodeId)!;
+  nodeBoxPositions[nodeId] = {
+    offsetLeft: column * nodeBoxSizes.columnWidth,
+    offsetTop: offsetY + (treeHeightsMap.get(nodeId)! - dimensions.height) / 2,
+    ...dimensions,
+  };
+
+  const nodeJson = document.getNode(nodeId)!;
+  const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
+  for (const slotName of Object.keys(schema.slots)) {
+    if (schema.isCollectionSlot(slotName)) {
+      for (const childId of nodeJson.collectionSlots[slotName]) {
+        calculateNodeBoxPosition(
+          nodeBoxPositions,
+          dimensionsMap,
+          treeHeightsMap,
+          document,
+          childId,
+          offsetY,
+          column + 1
+        );
+        offsetY += treeHeightsMap.get(childId)!;
+      }
+    } else {
+      const childId = nodeJson.slots[slotName];
+      if (!childId) continue;
+      calculateNodeBoxPosition(
+        nodeBoxPositions,
+        dimensionsMap,
+        treeHeightsMap,
+        document,
+        childId,
+        offsetY,
+        column + 1
+      );
+      offsetY += treeHeightsMap.get(childId)!;
+    }
+  }
+}
+
+function calculateNodeBoxDimensions(
   schema: NodeSchema,
   nodeJson: NodeJson
-): Pick<NodeBoxPosition, "height" | "inputOffsets" | "outputOffsets"> {
+): NodeBoxDimensions {
   const inputOffsets: Record<string, number> = {};
   const outputOffsets: Record<string, number> = {};
 
