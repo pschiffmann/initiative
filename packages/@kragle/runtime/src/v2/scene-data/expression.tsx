@@ -1,5 +1,5 @@
 import * as $Array from "@pschiffmann/std/array";
-import { t } from "../index.js";
+import { t } from "../../index.js";
 
 /**
  * Expression serialization format.

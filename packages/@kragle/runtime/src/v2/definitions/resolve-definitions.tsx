@@ -1,5 +1,5 @@
 import { ComponentType } from "react";
-import * as t from "../type-system/index.js";
+import * as t from "../../type-system/index.js";
 import { LibrarySchema } from "./library-schema.js";
 import { NodeSchema } from "./node-schema.js";
 
@@ -17,10 +17,34 @@ export interface LibraryDefinition {
   readonly members: { readonly [memberName: string]: any };
 }
 
-export interface Definitions {
-  readonly entities: { readonly [entityName: string]: t.KragleType };
-  readonly nodes: { readonly [nodeName: string]: NodeDefinition };
-  readonly libraries: { readonly [libraryName: string]: LibraryDefinition };
+export class Definitions {
+  constructor(
+    readonly entities: ReadonlyMap<string, t.Entity>,
+    readonly nodeDefinitions: ReadonlyMap<string, NodeDefinition>,
+    readonly libraryDefinitions: ReadonlyMap<string, LibraryDefinition>
+  ) {}
+
+  getEntity(entityName: string): t.Entity {
+    const entity = this.entities.get(entityName);
+    if (entity) return entity;
+    throw new Error(`Entity '${entityName}' not found.`);
+  }
+
+  getNode(nodeName: string): NodeDefinition {
+    const nodeDefinition = this.nodeDefinitions.get(nodeName);
+    if (nodeDefinition) return nodeDefinition;
+    throw new Error(`NodeSchema '${nodeName}' not found.`);
+  }
+
+  getLibrary(libraryName: string): LibraryDefinition {
+    const libraryDefinition = this.libraryDefinitions.get(libraryName);
+    if (libraryDefinition) return libraryDefinition;
+    throw new Error(`LibrarySchema '${libraryName}' not found.`);
+  }
+
+  merge(other: Definitions): Definitions {
+    throw new Error("Unimplemented");
+  }
 }
 
 export type ModuleRef = [moduleName: string, module: Object];
@@ -36,21 +60,21 @@ function processModule([moduleName, module]: ModuleRef): [
   definitions: Definitions
 ] {
   let hasErrors = false;
-  const entities: Record<string, t.Entity> = {};
+  const entities = new Map<string, t.Entity>();
 
   const nodeSchemas = new Map<string, NodeSchema>();
   const librarySchemas = new Map<string, LibrarySchema>();
   const otherExports = new Map<string, unknown>();
   for (const [exportName, value] of Object.entries(module)) {
     if (value instanceof t.Entity) {
-      if (entities[value.name] && entities[value.name] !== value) {
+      if (entities.has(value.name) && entities.get(value.name) !== value) {
         console.error(
           `Module '${moduleName}' exports multiple 't.entity()' types with ` +
             `name '${value.name}'. Do create entity types only once, then ` +
             `reference that instance in all schemas that need it.`
         );
       } else {
-        entities[value.name] = value;
+        entities.set(value.name, value);
       }
     } else if (value instanceof NodeSchema) {
       nodeSchemas.set(exportName, value);
@@ -61,7 +85,7 @@ function processModule([moduleName, module]: ModuleRef): [
     }
   }
 
-  const nodes: Record<string, NodeDefinition> = {};
+  const nodes = new Map<string, NodeDefinition>();
   for (const [exportName, schema] of nodeSchemas) {
     const definition = resolveNodeDefinition(
       moduleName,
@@ -70,13 +94,13 @@ function processModule([moduleName, module]: ModuleRef): [
       otherExports
     );
     if (definition) {
-      nodes[schema.name] = definition;
+      nodes.set(schema.name, definition);
     } else {
       hasErrors = true;
     }
   }
 
-  const libraries: Record<string, LibraryDefinition> = {};
+  const libraries = new Map<string, LibraryDefinition>();
   for (const [exportName, schema] of librarySchemas) {
     const definition = resolveLibraryDefinition(
       moduleName,
@@ -85,7 +109,7 @@ function processModule([moduleName, module]: ModuleRef): [
       otherExports
     );
     if (definition) {
-      libraries[schema.name] = definition;
+      libraries.set(schema.name, definition);
     } else {
       hasErrors = true;
     }
@@ -103,7 +127,7 @@ function processModule([moduleName, module]: ModuleRef): [
     );
   }
 
-  return [hasErrors, { entities, nodes, libraries }];
+  return [hasErrors, new Definitions(entities, nodes, libraries)];
 }
 
 function resolveNodeDefinition(

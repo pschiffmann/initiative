@@ -1,8 +1,8 @@
-import * as t from "../type-system/index.js";
+import * as t from "../../type-system/index.js";
 import {
   validateLibraryExportName,
   validateLibraryName,
-} from "./validate-names.js";
+} from "../validate-names.js";
 
 export class LibrarySchema<M extends t.KragleTypeRecord = {}> {
   constructor(readonly name: string, members: M) {

@@ -1,11 +1,11 @@
-import * as t from "../type-system/index.js";
-import { NodeJson } from "./node-data.js";
+import * as t from "../../type-system/index.js";
+import { NodeJson } from "../scene-data/node-data.js";
 import {
   validateNodeInputName,
   validateNodeOutputName,
   validateNodeSchemaName,
   validateNodeSlotName,
-} from "./validate-names.js";
+} from "../validate-names.js";
 
 //
 // NodeSchemaInit

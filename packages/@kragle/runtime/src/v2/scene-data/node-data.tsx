@@ -1,6 +1,7 @@
-import * as t from "../type-system/index.js";
+import * as t from "../../type-system/index.js";
+import { NodeSchema } from "../definitions/index.js";
+import { validateNodeId } from "../validate-names.js";
 import { ExpressionJson } from "./expression.js";
-import { NodeSchema } from "./node-schema.js";
 
 /**
  * Node serialization format.
@@ -28,7 +29,9 @@ export class NodeData implements NodeJson {
     readonly inputs: NodeJson["inputs"],
     readonly slots: NodeJson["slots"],
     readonly collectionSlotSizes: { readonly [slotName: string]: number }
-  ) {}
+  ) {
+    validateNodeId(id);
+  }
 
   get type(): string {
     return this.schema.name;
