@@ -1,7 +1,7 @@
 import { NodeJson, NodeSchema, SceneDocument } from "@kragle/runtime";
 
 export function useLayout(document: SceneDocument) {
-  return calculateLayout2(document);
+  return calculateLayout(document);
 }
 
 export interface Layout {
@@ -39,66 +39,206 @@ export interface NodeBoxPosition {
   readonly outputOffsets: Readonly<Record<string, number>>;
 }
 
+interface nodeBox0 {
+  readonly ID: string;
+  readonly column: number;
+  readonly parent: string;
+  readonly inputs: Array<string>;
+  readonly outputs: Array<string>;
+  readonly size: number;
+  position?: [Xcoordinate: number, Ycoordinate: number];
+  /**
+   * Stores Tunnels to connect to as tunnelIDs.
+   */
+  connections?: Array<string>;
+}
 function calculateLayout(document: SceneDocument): Layout {
-  let canvasWidth = 0;
-  let canvasHeight = 0;
-  const nodeBoxPositions: Record<string, NodeBoxPosition> = {};
-  const columnHeights = new Map<number, number>();
+  /*
+  let nodeid = document.getRootNodeId()
+  let nodeJson = document.getNode(nodeid!)
+  let childids = Object.values(nodeJson!.slots)
+  let schema = document.nodeDefinitions.get(nodeJson!.type)!.schema
+  let inputNames = Object.keys(schema.inputs)
+  let outputNames = Object.keys(schema.outputs)
+  let binding = nodeJson!.inputs[inputNames[0]]
+  */
 
-  const queue = new Set([{ nodeId: document.getRootNodeId()!, column: 0 }]);
-  for (const { nodeId, column } of queue) {
-    const nodeJson = document.getNode(nodeId)!;
-    const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
-    const innerDimensions = calculateInnerDimensions(schema, nodeJson);
-    const columnHeight = columnHeights.get(column) ?? nodeBoxSizes.canvasOffset;
-    nodeBoxPositions[nodeId] = {
-      offsetLeft: nodeBoxSizes.canvasOffset + column * nodeBoxSizes.columnWidth,
-      offsetTop: columnHeight,
-      ...innerDimensions,
-    };
-
-    const newColumnHeight =
-      columnHeight + innerDimensions.height + nodeBoxSizes.canvasOffset;
-    canvasWidth = Math.max(
-      canvasWidth,
-      2 * nodeBoxSizes.canvasOffset + (column + 1) * nodeBoxSizes.columnWidth
-    );
-    canvasHeight = Math.max(canvasHeight, newColumnHeight);
-    columnHeights.set(column, newColumnHeight);
-
-    for (const slotName of Object.keys(schema.slots)) {
-      if (schema.isCollectionSlot(slotName)) {
-        for (const childId of nodeJson.collectionSlots[slotName]) {
-          queue.add({ nodeId: childId, column: column + 1 });
+  // input unzip
+  let allnodes: Map<string, nodeBox0> = new Map();
+  let root: nodeBox0 = {
+    ID: document.getRootNodeId()!,
+    column: 0,
+    parent: "",
+    inputs: Object.keys(
+      document.nodeDefinitions.get(
+        document.getNode(document.getRootNodeId()!)!.type
+      )!.schema.inputs
+    ),
+    outputs: Object.keys(
+      document.nodeDefinitions.get(
+        document.getNode(document.getRootNodeId()!)!.type
+      )!.schema.outputs
+    ),
+    size: calculateInnerDimensions(
+      document.nodeDefinitions.get(
+        document.getNode(document.getRootNodeId()!)!.type
+      )!.schema,
+      document.getNode(document.getRootNodeId()!)!
+    ).height,
+    position: [0, 0],
+    connections: new Array(),
+  };
+  let columns: Map<number, Set<string>> = new Map();
+  columns.set(0, new Set());
+  columns.get(0)!.add(root.ID);
+  allnodes.set(root.ID, root);
+  let children: Array<[string, Array<string>]> = new Array([
+    root.ID,
+    Object.values(document.getNode(root.ID)!.slots),
+  ]);
+  let grandchildren: Array<[string, Array<string>]> = new Array();
+  let depth: number = 1;
+  do {
+    for (let [p, cs] of children) {
+      for (let c of cs) {
+        let child: nodeBox0 = {
+          ID: c,
+          column: depth,
+          parent: p,
+          inputs: Object.keys(
+            document.nodeDefinitions.get(document.getNode(c)!.type)!.schema
+              .inputs
+          ),
+          outputs: Object.keys(
+            document.nodeDefinitions.get(document.getNode(c!)!.type)!.schema
+              .outputs
+          ),
+          size: calculateInnerDimensions(
+            document.nodeDefinitions.get(document.getNode(c)!.type)!.schema,
+            document.getNode(c)!
+          ).height,
+        };
+        allnodes.set(c, child);
+        if (!columns.has(depth)) {
+          columns.set(depth, new Set());
         }
-      } else {
-        const childId = nodeJson.slots[slotName];
-        if (childId) queue.add({ nodeId: childId, column: column + 1 });
+        columns.get(depth)!.add(c);
+        grandchildren.push([c, Object.values(document.getNode(c)!.slots)]);
+      }
+    }
+    children = new Array();
+    if (grandchildren.length > 0) {
+      children = grandchildren;
+    }
+    grandchildren = new Array();
+    depth += 1;
+  } while (children.length > 0);
+
+  // Parenting
+  /**
+   * Map<column, Map<parentID, Map<childID, size>>>
+   */
+  let superstructur: Map<number, Map<string, Map<string, number>>> = new Map();
+  for (let d = 0; d <= depth; d++) {
+    superstructur.set(d, new Map());
+  }
+  for (let [d, parents] of columns) {
+    for (let p of parents) {
+      superstructur.get(d)!.set(p, new Map());
+    }
+  }
+  for (let n of allnodes.values()) {
+    if (n.column == 0) {
+      continue;
+    }
+    superstructur
+      .get(n.column - 1)!
+      .get(n.parent)!
+      .set(n.ID, n.size);
+  }
+  for (let n of allnodes.values()) {
+    if (n.column - 2 <= 0) {
+      continue;
+    }
+    let bindings = document.getNode(n.ID)!.inputs;
+    for (let i of n.inputs) {
+      let bind = bindings[i];
+      if (!bind) {
+        continue;
+      }
+      if (bind.type !== "node-output") {
+        continue;
+      }
+      if (bind.nodeId == n.parent) {
+        continue;
+      }
+      for (let d = n.column - 1; 0; d--) {
+        if (superstructur.get(d)!.has(bind.nodeId)) {
+          break;
+        }
+        if (!superstructur.get(d)!.has("tunnel")) {
+          superstructur.get(d)!.set("tunnel", new Map());
+        }
+        if (!superstructur.get(d)!.get("tunnel")!.has(bind.nodeId)) {
+          superstructur.get(d)!.get("tunnel")!.set(bind.nodeId, 0);
+        }
+        let tunnelcurrentsize = superstructur
+          .get(d)!
+          .get("tunnel")!
+          .get(bind.nodeId)!;
+        superstructur
+          .get(d)!
+          .get("tunnel")!
+          .set(bind.nodeId, tunnelcurrentsize + 5);
       }
     }
   }
 
-  return { canvasWidth, canvasHeight, nodeBoxPositions };
-}
+  // hmm, size fitting or sorting?
 
-export interface Layout2 {
-  readonly canvasWidth: number;
-  readonly canvasHeight: number;
-  readonly NodeBoxes: Map<string, [number, number]>;
-  /**
-   * Map<NodeID, [Xcoordinate, Ycoordinate, NodeID]>
-   */
-  readonly Paths: Map<
-    string,
-    [XCoordinate: number, YCoodrinate: number, NodeID: string]
-  >;
+  // sample output for debugging and thinking
+  let sampleoutput: Record<string, NodeBoxPosition> = {};
+  let width: number = 0;
+  let maxheight: number = 0;
+  for (let [c, value] of superstructur) {
+    let height: number = 0;
+    for (let [parentID, children] of value) {
+      let parentheight: number = 0;
+      for (let [childID, childheight] of children) {
+        parentheight += childheight;
+      }
+      allnodes.get(parentID)!.position = [width, parentheight];
+      if (parentheight > height) {
+        height = parentheight;
+      }
+    }
+    if (height > maxheight) {
+      maxheight = height;
+    }
+    width += 400;
+  }
+  for (let n of allnodes.values()) {
+    let nodeJson = document.getNode(n.ID);
+    let innerDimensions = calculateInnerDimensions(
+      document.nodeDefinitions.get(nodeJson!.type)!.schema,
+      nodeJson!
+    );
+    sampleoutput[n.ID] = {
+      offsetLeft: n.position![0],
+      offsetTop: n.position![1],
+      ...innerDimensions,
+    };
+  }
+  return {
+    canvasWidth: width,
+    canvasHeight: maxheight,
+    nodeBoxPositions: sampleoutput,
+  };
 }
 
 interface nodesBox {
   readonly column: number;
   row?: [number, number];
-  Xcoordinate?: number;
-  Ycoordinate?: number;
   readonly ID: string;
   readonly inputs: Array<string>;
   /**
@@ -177,7 +317,6 @@ function calculateLayout2(document: SceneDocument): Layout {
   } while (children.length > 0);
 
   // connections find
-  let gap = "-";
   for (let n of allnodes.values()) {
     if (n.inputs.length == 0) {
       continue;
@@ -185,7 +324,7 @@ function calculateLayout2(document: SceneDocument): Layout {
     for (let c of n.inputs) {
       let column_from = allnodes.get(c)!.column;
       let column_too = n.column;
-      let connection = column_from.toString() + gap + column_too.toString();
+      let connection = `${column_from}-${column_too}`;
       if (!n.connections.has(connection)) {
         n.connections.set(connection, new Set());
       }
@@ -210,27 +349,11 @@ function calculateLayout2(document: SceneDocument): Layout {
     }
   }
 
-  // grouping filter
-  /*
-  for (let g in groups)
-  {
-    if (groups.get(g)!.size >= 2)
-    {
-      continue;
-    }
-    groups.delete(g);
-  }
-  */
-
   // grouping clusters
   let groupmaxsize: number = 0;
   for (let g of groups.values()) {
     //finding groupmaxsize for groupweight
-    let s: number = g.size;
-    if (s <= groupmaxsize) {
-      continue;
-    }
-    groupmaxsize = s;
+    groupmaxsize = Math.max(groupmaxsize, g.size);
   }
   /**
    * Map<column, Map<columnfrom-columnto, weight>>
@@ -260,7 +383,7 @@ function calculateLayout2(document: SceneDocument): Layout {
       rowzip.push(e);
     }
     rowzip.sort(function (a, b) {
-      return b[1] - a[1];
+      return a[1] - b[1];
     });
     let row: Array<string> = [];
     rowzip.forEach(function (value) {
@@ -283,22 +406,28 @@ function calculateLayout2(document: SceneDocument): Layout {
   }
 
   // assigning places
-  // doal weight
+  // dual weight
   for (let n of allnodes.values()) {
     let a: number = -1;
+    let b: number = -1;
     if (n.group!.length > 0) {
       a = rowslayout.get(n.column)!.indexOf(n.group![0][0]);
+      b = n.group![0][1];
     }
-    let b: number = -1;
     if (n.group!.length > 1) {
-      n.group![1][1];
+      b = n.group![1][1];
     }
     n.row = [a, b];
   }
 
   // creating layout
   // dual weight
+  /* 2d
+  let outputraw: Array<Array<[string, number]>> = [];
+  */
+  // 1d
   let outputraw: Array<Array<string>> = [];
+  //*/
   for (let d = 0; d <= depth; d++) {
     let columnraw: Array<[string, number, number]> = [];
     for (let n of allnodes.values()) {
@@ -308,18 +437,41 @@ function calculateLayout2(document: SceneDocument): Layout {
       columnraw.push([n.ID, n.row![0], n.row![1]]);
     }
     columnraw.sort(function (a, b) {
-      return a[1] * 10 + a[2] - (b[1] * 10 + b[2]);
+      return b[1] * 10 + b[2] - (a[1] * 10 + a[2]);
     });
+    /* 2d
+    let columnlayout: Array<[string, number]> = [];
+    let alternate: number = 0;
+    let direction: Boolean = true;
+    columnraw.forEach(function (value)
+    {
+      if (alternate != value[1])
+      {
+        alternate = value[1];
+        direction = !direction;
+      }
+      if (direction)
+      {
+        columnlayout.push([value[0], 1]);
+      } else {
+        columnlayout.unshift([value[0], -1]);
+      }
+    })
+    outputraw.push(columnlayout);
+    */
+    //*/ 1d
     let columnlayout: Array<string> = [];
     columnraw.forEach(function (value) {
       columnlayout.push(value[0]);
     });
     outputraw.push(columnlayout);
+    //*/
   }
 
   // compiling layout
   // dual weight
   // no tunnels
+  // 1d
   let output: Record<string, NodeBoxPosition> = {};
   let width: number = 16;
   let maxheight: number = 0;
