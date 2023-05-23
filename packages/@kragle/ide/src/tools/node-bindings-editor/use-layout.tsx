@@ -172,7 +172,7 @@ function calculateLayout(document: SceneDocument): Layout {
       if (bind.nodeId == n.parent) {
         continue;
       }
-      for (let d = n.column - 1; 0; d--) {
+      for (let d = n.column - 1; d >= 0; d--) {
         if (superstructur.get(d)!.has(bind.nodeId)) {
           break;
         }
@@ -196,24 +196,82 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // hmm, size fitting or sorting?
 
+  // largest column
+  let largestcolumnsize: number = 0;
+  let largestcolumnID: number;
+  for (let [column, data] of superstructur) {
+    let columnsize: number = 0;
+    for (let node of data.keys()) {
+      if (node == "tunnel") {
+        for (let tunnel of data.get(node)!.values()) {
+          columnsize += tunnel;
+        }
+        continue;
+      }
+      columnsize += allnodes.get(node)!.size;
+    }
+    if (columnsize >= largestcolumnsize) {
+      largestcolumnsize = columnsize;
+      largestcolumnID = column;
+    }
+  }
+
+  // size sorting
+  let sizedsuper: Map<
+    number,
+    Array<[nodeID: string, size: number]>
+  > = new Map();
+  for (let [column, data] of superstructur) {
+    sizedsuper.set(column, new Array());
+    for (let [parentID, children] of data) {
+      let parentsize: number = 0;
+      for (let [childID, childsize] of children) {
+        parentsize += childsize;
+      }
+      if (parentID !== "tunnel") {
+        if (parentsize < allnodes.get(parentID)!.size) {
+          parentsize = allnodes.get(parentID)!.size;
+        }
+      }
+      sizedsuper.get(column)!.push([parentID, parentsize]);
+    }
+    // sort
+    let sorted = sizedsuper.get(column)!.sort(function (a, b) {
+      return b[1] - a[1];
+    });
+    sizedsuper.set(column, sorted);
+  }
+
   // sample output for debugging and thinking
   let sampleoutput: Record<string, NodeBoxPosition> = {};
   let width: number = 0;
-  let maxheight: number = 0;
-  for (let [c, value] of superstructur) {
-    let height: number = 0;
-    for (let [parentID, children] of value) {
-      let parentheight: number = 0;
-      for (let [childID, childheight] of children) {
-        parentheight += childheight;
+  let maxheight: number = largestcolumnsize * 2;
+  let centerline: number = largestcolumnsize;
+  for (let [column, data] of sizedsuper) {
+    let plus: number = 0;
+    let minus: number = 0;
+    let alternate: Boolean = true;
+    let alternatecheck: string = root.parent;
+    for (let [nodeID, size] of data) {
+      if (alternate) {
+        if (nodeID !== "tunnel") {
+          allnodes.get(nodeID)!.position = [width, centerline + plus];
+          if (alternatecheck !== allnodes.get(nodeID)!.parent) {
+            alternatecheck = allnodes.get(nodeID)!.parent;
+            alternate = false;
+          }
+        }
+        plus += size;
+      } else {
+        if (nodeID !== "tunnel") {
+          allnodes.get(nodeID)!.position = [width, centerline - (minus + size)];
+          if (alternatecheck !== allnodes.get(nodeID)!.parent) {
+            alternatecheck = allnodes.get(nodeID)!.parent;
+            alternate = true;
+          }
+        }
+        minus += size;
       }
-      allnodes.get(parentID)!.position = [width, parentheight];
-      if (parentheight > height) {
-        height = parentheight;
-      }
-    }
-    if (height > maxheight) {
-      maxheight = height;
     }
     width += 400;
   }
