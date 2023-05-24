@@ -12,17 +12,17 @@
     "#scenes/*": "./kragle/scenes/*"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.8",
-    "@emotion/styled": "^11.10.8",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
     "@kragle/ide": "^0.1.0",
     "@kragle/runtime": "^0.1.0",
-    "@mui/material": "^5.12.2",
+    "@mui/material": "^5.13.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.1",
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
     "@vitejs/plugin-react": "^4.0.0",
     "sass": "^1.62.1",
     "vite": "^4.3.3"
