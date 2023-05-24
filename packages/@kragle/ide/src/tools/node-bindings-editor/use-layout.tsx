@@ -46,6 +46,8 @@ interface nodeBox0 {
   readonly inputs: Array<string>;
   readonly outputs: Array<string>;
   readonly size: number;
+  chain: [length: number, size: number];
+  centerline?: number;
   position?: [Xcoordinate: number, Ycoordinate: number];
   /**
    * Stores Tunnels to connect to as tunnelIDs.
@@ -69,6 +71,7 @@ function calculateLayout(document: SceneDocument): Layout {
     ID: document.getRootNodeId()!,
     column: 0,
     parent: "",
+    chain: [0, 0],
     inputs: Object.keys(
       document.nodeDefinitions.get(
         document.getNode(document.getRootNodeId()!)!.type
@@ -105,6 +108,7 @@ function calculateLayout(document: SceneDocument): Layout {
           ID: c,
           column: depth,
           parent: p,
+          chain: [0, 0],
           inputs: Object.keys(
             document.nodeDefinitions.get(document.getNode(c)!.type)!.schema
               .inputs
@@ -123,16 +127,28 @@ function calculateLayout(document: SceneDocument): Layout {
           columns.set(depth, new Set());
         }
         columns.get(depth)!.add(c);
+        if (Object.values(document.getNode(c)!.slots).length == 0) {
+          continue;
+        }
         grandchildren.push([c, Object.values(document.getNode(c)!.slots)]);
       }
     }
     children = new Array();
     if (grandchildren.length > 0) {
       children = grandchildren;
+      depth += 1;
     }
     grandchildren = new Array();
-    depth += 1;
   } while (children.length > 0);
+
+  // Chains
+  for (let d = depth; d > 0; d--) {
+    for (let n of columns.get(d)!.values()) {
+      let node = allnodes.get(n)!;
+      allnodes.get(node.parent)!.chain[0] += node.chain[0] + 1;
+      allnodes.get(node.parent)!.chain[1] += 1;
+    }
+  }
 
   // Parenting
   /**
@@ -194,8 +210,6 @@ function calculateLayout(document: SceneDocument): Layout {
     }
   }
 
-  // hmm, size fitting or sorting?
-
   // largest column
   let largestcolumnsize: number = 0;
   let largestcolumnID: number;
@@ -215,6 +229,107 @@ function calculateLayout(document: SceneDocument): Layout {
       largestcolumnID = column;
     }
   }
+  root.centerline = root.size / 2;
+  root.position = [0, 0];
+
+  // geography
+  let gcolumns: Map<
+    string,
+    [
+      [length: number, size: number],
+      Array<[ID: string, length: number, size: number]>
+    ]
+  > = new Map();
+
+  for (let column of columns.values()) {
+    for (let n of column) {
+      let node = allnodes.get(n)!;
+      if (!gcolumns.has(node.parent)) {
+        gcolumns.set(node.parent, [[0, 0], new Array()]);
+      }
+      let gcx = gcolumns.get(node.parent)![0];
+      gcx[0] = Math.max(gcx[0], node.chain[0]);
+      gcx[1] = Math.max(gcx[1], node.chain[1]);
+      gcolumns
+        .get(node.parent)![1]
+        .push([node.ID, node.chain[0], node.chain[1]]);
+    }
+    console.log(gcolumns);
+    for (let p of gcolumns.values()) {
+      p[1].sort(function (a, b) {
+        return b[1] + b[2] / 10 - (a[1] + a[2] / 10);
+      });
+    }
+  }
+
+  console.log(gcolumns);
+  // 1d
+  for (let [parent, group] of gcolumns) {
+    //let column: number = allnodes.get(parent)!.column;
+    let offset: number = 0;
+    for (let [childID, childlength, childsize] of group[1]) {
+      if (parent !== "") {
+        allnodes.get(childID)!.position = [
+          0,
+          allnodes.get(parent)!.centerline! + offset,
+        ];
+      }
+      offset += allnodes.get(childID)!.size;
+      console.log(offset);
+      allnodes.get(childID)!.centerline =
+        allnodes.get(childID)!.position![1] + allnodes.get(childID)!.size / 2;
+    }
+  }
+
+  // width
+  let maxwidth: number = 400;
+  let maxangle: number = 45;
+  for (let [d, c] of columns) {
+    if (d == 0) {
+      continue;
+    }
+    let parenthight: number = 0;
+    let childrenhight: number = 0;
+    for (let pc of columns.get(d - 1)!) {
+      parenthight += allnodes.get(pc)!.size;
+    }
+    for (let cc of c) {
+      childrenhight += allnodes.get(cc)!.size;
+    }
+    maxwidth += Math.sqrt(
+      Math.pow(parenthight / Math.sin(maxangle), 2) - Math.pow(parenthight, 2)
+    );
+    for (let cc of c) {
+      allnodes.get(cc)!.position![0] = maxwidth;
+    }
+    maxwidth += 400;
+  }
+
+  // search maxhight
+  let maxheight: number = 0;
+  for (let n of allnodes.values()) {
+    maxheight = Math.max(maxheight, n.position![1] + n.size);
+  }
+
+  // sample output 2
+  let sampleoutput2: Record<string, NodeBoxPosition> = {};
+  for (let n of allnodes.values()) {
+    let nodeJson = document.getNode(n.ID);
+    let innerDimensions = calculateInnerDimensions(
+      document.nodeDefinitions.get(nodeJson!.type)!.schema,
+      nodeJson!
+    );
+    sampleoutput2[n.ID] = {
+      offsetLeft: n.position![0],
+      offsetTop: n.position![1],
+      ...innerDimensions,
+    };
+  }
+  return {
+    canvasWidth: maxwidth,
+    canvasHeight: maxheight,
+    nodeBoxPositions: sampleoutput2,
+  };
 
   // size sorting
   let sizedsuper: Map<
@@ -245,8 +360,8 @@ function calculateLayout(document: SceneDocument): Layout {
   // sample output for debugging and thinking
   let sampleoutput: Record<string, NodeBoxPosition> = {};
   let width: number = 0;
-  let maxheight: number = largestcolumnsize * 2;
-  let centerline: number = largestcolumnsize;
+  //let maxheight: number = largestcolumnsize * 2;
+  let centerline: number = largestcolumnsize / 2;
   for (let [column, data] of sizedsuper) {
     let plus: number = 0;
     let minus: number = 0;
