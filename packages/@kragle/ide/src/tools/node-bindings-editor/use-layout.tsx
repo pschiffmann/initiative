@@ -254,7 +254,6 @@ function calculateLayout(document: SceneDocument): Layout {
         .get(node.parent)![1]
         .push([node.ID, node.chain[0], node.chain[1]]);
     }
-    console.log(gcolumns);
     for (let p of gcolumns.values()) {
       p[1].sort(function (a, b) {
         return b[1] + b[2] / 10 - (a[1] + a[2] / 10);
@@ -262,16 +261,19 @@ function calculateLayout(document: SceneDocument): Layout {
     }
   }
 
-  console.log(gcolumns);
-  // 1d
+  // 2d
   for (let [parent, group] of gcolumns) {
-    //let column: number = allnodes.get(parent)!.column;
     let offset: number = 0;
+    let groupoffset: number = 0;
+    for (let childID of group[1]) {
+      groupoffset += allnodes.get(childID[0])!.size;
+    }
+    groupoffset = groupoffset / 2;
     for (let [childID, childlength, childsize] of group[1]) {
       if (parent !== "") {
         allnodes.get(childID)!.position = [
           0,
-          allnodes.get(parent)!.centerline! + offset,
+          allnodes.get(parent)!.centerline! + offset - groupoffset,
         ];
       }
       offset += allnodes.get(childID)!.size;
@@ -283,7 +285,7 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // width
   let maxwidth: number = 400;
-  let maxangle: number = 45;
+  let maxangle: number = 60;
   for (let [d, c] of columns) {
     if (d == 0) {
       continue;
@@ -297,7 +299,8 @@ function calculateLayout(document: SceneDocument): Layout {
       childrenhight += allnodes.get(cc)!.size;
     }
     maxwidth += Math.sqrt(
-      Math.pow(parenthight / Math.sin(maxangle), 2) - Math.pow(parenthight, 2)
+      Math.pow(parenthight / Math.sin(maxangle * (Math.PI / 180)), 2) -
+        Math.pow(parenthight, 2)
     );
     for (let cc of c) {
       allnodes.get(cc)!.position![0] = maxwidth;
@@ -305,10 +308,18 @@ function calculateLayout(document: SceneDocument): Layout {
     maxwidth += 400;
   }
 
-  // search maxhight
+  // search maxheight
   let maxheight: number = 0;
+  let minheight: number = 0;
   for (let n of allnodes.values()) {
     maxheight = Math.max(maxheight, n.position![1] + n.size);
+    minheight = Math.min(minheight, n.position![1]);
+  }
+  maxheight += Math.abs(minheight);
+
+  // correct height
+  for (let n of allnodes.values()) {
+    n.position![1] += Math.abs(minheight);
   }
 
   // sample output 2
