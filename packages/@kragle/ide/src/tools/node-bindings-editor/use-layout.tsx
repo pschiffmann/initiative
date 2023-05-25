@@ -272,9 +272,24 @@ function calculateLayout(document: SceneDocument): Layout {
         .push([node.ID, node.chain[0], node.chain[1]]);
     }
     for (let p of gcolumns.get(d)!.values()) {
-      p[1].sort(function (b, a) {
+      p[1].sort(function (a, b) {
         return b[1] * 100 + b[2] - (a[1] * 100 + a[2]);
       });
+    }
+    for (let p of gcolumns.get(d)!.values()) {
+      if (p[1].length <= 2) {
+        continue;
+      }
+      let raw = new Array();
+      let pyramid: boolean = false;
+      for (let value of p[1]) {
+        if (pyramid) {
+          raw.unshift(value);
+        } else {
+          raw.push(value);
+        }
+      }
+      p[1] = raw;
     }
   }
 
