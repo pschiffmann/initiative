@@ -1,7 +1,8 @@
+import * as $Object from "@pschiffmann/std/object";
 import * as t from "../../type-system/index.js";
 import { NodeSchema } from "../definitions/index.js";
 import { validateNodeId } from "../validate-names.js";
-import { ExpressionJson } from "./expression.js";
+import { Expression, ExpressionJson } from "./expression.js";
 
 /**
  * Node serialization format.
@@ -22,13 +23,20 @@ export interface NodeJson {
   readonly slots: { readonly [slotName: string]: string };
 }
 
-export class NodeData implements NodeJson {
+export interface NodeParent {
+  readonly nodeId: string;
+  readonly slotName: string;
+  readonly index?: number;
+}
+
+export class NodeData {
   private constructor(
     readonly schema: NodeSchema,
     readonly id: string,
-    readonly inputs: NodeJson["inputs"],
+    readonly inputs: { readonly [inputName: string]: Expression },
     readonly slots: NodeJson["slots"],
-    readonly collectionSlotSizes: { readonly [slotName: string]: number }
+    readonly collectionSlotSizes: { readonly [slotName: string]: number },
+    readonly parent: NodeParent
   ) {
     validateNodeId(id);
   }
@@ -50,7 +58,7 @@ export class NodeData implements NodeJson {
    */
   forEachInput<R>(
     callback: (
-      expression: ExpressionJson | null,
+      expression: Expression | null,
       type: t.KragleType,
       inputName: string,
       index?: number
@@ -106,7 +114,7 @@ export class NodeData implements NodeJson {
   }
 
   setInput(
-    expression: ExpressionJson,
+    expression: Expression,
     inputName: string,
     index?: number
   ): NodeData {
@@ -131,9 +139,10 @@ export class NodeData implements NodeJson {
     return new NodeData(
       this.schema,
       this.id,
-      { [inputName]: expression, ...this.inputs },
+      { ...this.inputs, [inputKey]: expression },
       this.slots,
-      this.collectionSlotSizes
+      this.collectionSlotSizes,
+      this.parent
     );
   }
 
@@ -162,7 +171,8 @@ export class NodeData implements NodeJson {
       this.id,
       inputs,
       this.slots,
-      this.collectionSlotSizes
+      this.collectionSlotSizes,
+      this.parent
     );
   }
 
@@ -181,7 +191,8 @@ export class NodeData implements NodeJson {
       this.id,
       this.inputs,
       { ...this.slots, [slotName]: childId },
-      this.collectionSlotSizes
+      this.collectionSlotSizes,
+      this.parent
     );
   }
 
@@ -210,10 +221,14 @@ export class NodeData implements NodeJson {
     }
     slots[`${slotName}::${index}`] = childId;
 
-    return new NodeData(this.schema, this.id, inputs, slots, {
-      ...this.collectionSlotSizes,
-      [slotName]: childCount + 1,
-    });
+    return new NodeData(
+      this.schema,
+      this.id,
+      inputs,
+      slots,
+      { ...this.collectionSlotSizes, [slotName]: childCount + 1 },
+      this.parent
+    );
   }
 
   removeChild(slotName: string, index?: number): NodeData {
@@ -232,7 +247,8 @@ export class NodeData implements NodeJson {
       this.id,
       this.inputs,
       slots,
-      this.collectionSlotSizes
+      this.collectionSlotSizes,
+      this.parent
     );
   }
 
@@ -265,10 +281,14 @@ export class NodeData implements NodeJson {
       delete inputs[`${inputName}::${index}`];
     });
 
-    return new NodeData(this.schema, this.id, inputs, slots, {
-      ...this.collectionSlotSizes,
-      [slotName]: childCount - 1,
-    });
+    return new NodeData(
+      this.schema,
+      this.id,
+      inputs,
+      slots,
+      { ...this.collectionSlotSizes, [slotName]: childCount - 1 },
+      this.parent
+    );
   }
 
   // inferTypeVariables(context: {}): {
@@ -277,18 +297,56 @@ export class NodeData implements NodeJson {
   //   throw new Error("Unimplemented");
   // }
 
-  validate(context: ValidateNodeContext): NodeErrors {
+  validate(context: ValidateNodeContext): NodeErrors | null {
     const inputErrors = new Map<string, string>();
-    this.forEachInput((expression, type, inputName, index) => {});
+    this.forEachInput((expression, type, inputName, index) => {
+      const inputKey =
+        index === undefined ? inputName : `${inputName}::${index}`;
+      if (!expression) {
+        if (!t.undefined().isAssignableTo(type)) {
+          inputErrors.set(inputKey, "This input is required.");
+        }
+      } else if (!expression.isComplete) {
+        inputErrors.set(inputKey, "The input expression is incomplete.");
+      } else if (!expression.type.isAssignableTo(type)) {
+        inputErrors.set(
+          inputKey,
+          `Type '${expression.type}' is not assignable to type '${type}'.`
+        );
+      }
+    });
 
     const missingSlots = new Set<string>();
-    this.forEachSlot((childId, slotName, index) => {});
+    this.forEachSlot((childId, slotName, index) => {
+      if (index === undefined && !childId) missingSlots.add(slotName);
+    });
 
-    throw new Error("Unimplemented");
+    const schemaValidation = this.schema.validate?.(this.toJson()) ?? null;
+
+    return inputErrors.size !== 0 ||
+      missingSlots.size !== 0 ||
+      !!schemaValidation
+      ? { inputErrors, missingSlots, schemaValidation }
+      : null;
   }
 
-  static empty(schema: NodeSchema, id: string): NodeData {
-    return new NodeData(schema, id, {}, {}, {});
+  toJson(): NodeJson {
+    return {
+      type: this.type,
+      inputs: $Object.map(
+        this.inputs,
+        (inputKey, expression) => expression.json
+      ),
+      slots: this.slots,
+    };
+  }
+
+  static empty(schema: NodeSchema, id: string, parent: NodeParent): NodeData {
+    const collectionSlotSizes: { [slotName: string]: number } = {};
+    schema.forEachSlot((slotName, { isCollectionSlot }) => {
+      if (isCollectionSlot) collectionSlotSizes[slotName] = 0;
+    });
+    return new NodeData(schema, id, {}, {}, collectionSlotSizes, parent);
   }
 }
 
@@ -298,36 +356,10 @@ export interface ValidateNodeContext {
 
 export interface NodeErrors {
   readonly inputErrors: ReadonlyMap<string, string>;
-  readonly missingSlots: Set<string>;
+  readonly missingSlots: ReadonlySet<string>;
+
+  /**
+   * The result of `NodeSchema.validate()`.
+   */
+  readonly schemaValidation: string | null;
 }
-
-/**
- * Throws an error if `index` is `undefined`.
- */
-function assertIndexParameter(
-  slotName: string,
-  index: number | undefined
-): asserts index is number {
-  if (typeof index !== "number") {
-    throw new Error(
-      `Parameter 'index' is required because '${slotName}' is a ` +
-        `collection slot.`
-    );
-  }
-}
-
-// export function encodeCollectionName(
-//   inputOrSlotName: string,
-//   index: number
-// ): string {
-//   return `${inputOrSlotName}::${index}`;
-// }
-
-// export function decodeCollectionName(
-//   collectionName: string
-// ): [inputOrSlotName: string, index: number] {
-//   const [, inputOrSlotName, index] = collectionName.match(
-//     /^([a-z][A-Za-z0-9]*)::(\d+)$/
-//   )!;
-//   return [inputOrSlotName, Number.parseInt(index)];
-// }
