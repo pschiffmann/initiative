@@ -234,58 +234,78 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // geography
   let gcolumns: Map<
-    string,
-    [
-      [length: number, size: number],
-      Array<[ID: string, length: number, size: number]>
-    ]
+    number,
+    Map<
+      string,
+      [
+        [length: number, size: number],
+        Array<[ID: string, length: number, size: number]>
+      ]
+    >
   > = new Map();
-
-  for (let column of columns.values()) {
+  for (let [d, column] of columns) {
+    if (!gcolumns.has(d)) {
+      gcolumns.set(d, new Map());
+    }
     for (let n of column) {
       let node = allnodes.get(n)!;
-      if (!gcolumns.has(node.parent)) {
-        gcolumns.set(node.parent, [[0, 0], new Array()]);
+      if (!gcolumns.get(d)!.has(node.parent)) {
+        gcolumns.get(d)!.set(node.parent, [[0, 0], new Array()]);
       }
-      let gcx = gcolumns.get(node.parent)![0];
+      let gcx = gcolumns.get(d)!.get(node.parent)![0];
       gcx[0] = Math.max(gcx[0], node.chain[0]);
       gcx[1] = Math.max(gcx[1], node.chain[1]);
       gcolumns
+        .get(d)!
         .get(node.parent)![1]
         .push([node.ID, node.chain[0], node.chain[1]]);
     }
-    for (let p of gcolumns.values()) {
-      p[1].sort(function (a, b) {
+    for (let p of gcolumns.get(d)!.values()) {
+      p[1].sort(function (b, a) {
         return b[1] + b[2] / 10 - (a[1] + a[2] / 10);
       });
     }
   }
 
   // 2d
-  for (let [parent, group] of gcolumns) {
-    let offset: number = 0;
-    let groupoffset: number = 0;
-    for (let childID of group[1]) {
-      groupoffset += allnodes.get(childID[0])!.size;
-    }
-    groupoffset = groupoffset / 2;
-    for (let [childID, childlength, childsize] of group[1]) {
-      if (parent !== "") {
-        allnodes.get(childID)!.position = [
-          0,
-          allnodes.get(parent)!.centerline! + offset - groupoffset,
-        ];
+  for (let [s, gcolumn] of gcolumns) {
+    let previousgroupmaxposition: number = -99999;
+    //
+    for (let [parent, group] of gcolumn) {
+      let offset: number = 0;
+      let groupoffset: number = 0;
+      for (let childID of group[1]) {
+        groupoffset += allnodes.get(childID[0])!.size;
       }
-      offset += allnodes.get(childID)!.size;
-      console.log(offset);
-      allnodes.get(childID)!.centerline =
-        allnodes.get(childID)!.position![1] + allnodes.get(childID)!.size / 2;
+      groupoffset = groupoffset / 2;
+      if (parent !== "") {
+        if (
+          allnodes.get(parent)!.centerline! - groupoffset <
+          previousgroupmaxposition
+        ) {
+          groupoffset =
+            allnodes.get(parent)!.centerline! - previousgroupmaxposition;
+        }
+      }
+      for (let [childID, childlength, childsize] of group[1]) {
+        let node = allnodes.get(childID)!;
+        if (parent !== "") {
+          node.position = [
+            0,
+            allnodes.get(parent)!.centerline! + offset - groupoffset,
+          ];
+        }
+        offset += allnodes.get(childID)!.size;
+        previousgroupmaxposition =
+          allnodes.get(childID)!.position![1] + allnodes.get(childID)!.size;
+        node.centerline = node.position![1] + node.size / 2;
+      }
     }
   }
 
   // width
   let maxwidth: number = 400;
-  let maxangle: number = 60;
+  let maxangle: number = 75;
   for (let [d, c] of columns) {
     if (d == 0) {
       continue;
@@ -340,83 +360,6 @@ function calculateLayout(document: SceneDocument): Layout {
     canvasWidth: maxwidth,
     canvasHeight: maxheight,
     nodeBoxPositions: sampleoutput2,
-  };
-
-  // size sorting
-  let sizedsuper: Map<
-    number,
-    Array<[nodeID: string, size: number]>
-  > = new Map();
-  for (let [column, data] of superstructur) {
-    sizedsuper.set(column, new Array());
-    for (let [parentID, children] of data) {
-      let parentsize: number = 0;
-      for (let [childID, childsize] of children) {
-        parentsize += childsize;
-      }
-      if (parentID !== "tunnel") {
-        if (parentsize < allnodes.get(parentID)!.size) {
-          parentsize = allnodes.get(parentID)!.size;
-        }
-      }
-      sizedsuper.get(column)!.push([parentID, parentsize]);
-    }
-    // sort
-    let sorted = sizedsuper.get(column)!.sort(function (a, b) {
-      return b[1] - a[1];
-    });
-    sizedsuper.set(column, sorted);
-  }
-
-  // sample output for debugging and thinking
-  let sampleoutput: Record<string, NodeBoxPosition> = {};
-  let width: number = 0;
-  //let maxheight: number = largestcolumnsize * 2;
-  let centerline: number = largestcolumnsize / 2;
-  for (let [column, data] of sizedsuper) {
-    let plus: number = 0;
-    let minus: number = 0;
-    let alternate: Boolean = true;
-    let alternatecheck: string = root.parent;
-    for (let [nodeID, size] of data) {
-      if (alternate) {
-        if (nodeID !== "tunnel") {
-          allnodes.get(nodeID)!.position = [width, centerline + plus];
-          if (alternatecheck !== allnodes.get(nodeID)!.parent) {
-            alternatecheck = allnodes.get(nodeID)!.parent;
-            alternate = false;
-          }
-        }
-        plus += size;
-      } else {
-        if (nodeID !== "tunnel") {
-          allnodes.get(nodeID)!.position = [width, centerline - (minus + size)];
-          if (alternatecheck !== allnodes.get(nodeID)!.parent) {
-            alternatecheck = allnodes.get(nodeID)!.parent;
-            alternate = true;
-          }
-        }
-        minus += size;
-      }
-    }
-    width += 400;
-  }
-  for (let n of allnodes.values()) {
-    let nodeJson = document.getNode(n.ID);
-    let innerDimensions = calculateInnerDimensions(
-      document.nodeDefinitions.get(nodeJson!.type)!.schema,
-      nodeJson!
-    );
-    sampleoutput[n.ID] = {
-      offsetLeft: n.position![0],
-      offsetTop: n.position![1],
-      ...innerDimensions,
-    };
-  }
-  return {
-    canvasWidth: width,
-    canvasHeight: maxheight,
-    nodeBoxPositions: sampleoutput,
   };
 }
 
