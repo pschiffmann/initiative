@@ -3,13 +3,14 @@ import {
   hexFromArgb,
   TonalPalette,
 } from "@material/material-color-utilities";
+import { useRef } from "react";
+import { Button, useColorTheme } from "../src/index.js";
 
 export function App() {
-  return (
-    <button className="kragle-button">
-      <span className="kragle-button__label">Click me</span>
-    </button>
-  );
+  // return <ColorPalette />;
+  const rootRef = useRef(document.body);
+  useColorTheme(rootRef);
+  return <Button label="Btn" />;
 }
 
 function ColorPalette() {

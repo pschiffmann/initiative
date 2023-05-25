@@ -1,0 +1,25 @@
+@use "../styles";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.tonal-palette {
+  height: 48px;
+  margin: 8px;
+  border: 1px solid rgb(0 0 0 / 12%);
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+
+  &__label {
+    width: 80px;
+    align-self: center;
+  }
+
+  &__tone {
+    width: 48px;
+  }
+}

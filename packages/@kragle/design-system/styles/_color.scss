@@ -1,0 +1,35 @@
+@use "sass:list";
+
+@function role($role) {
+  @if not list.index($_color-roles, $role) {
+    @error "Invalid color role: #{$role}";
+  }
+  @return var(--kragle-color-#{$role});
+}
+
+$_color-roles: (
+  "brand",
+  "on-brand",
+  "brand-container",
+  "on-brand-container",
+  "cta",
+  "on-cta",
+  "surface",
+  "on-surface",
+  "surface-elevation-1",
+  "surface-elevation-2",
+  "surface-elevation-3",
+  "surface-elevation-4",
+  "surface-elevation-5",
+  "surface-variant",
+  "on-surface-variant",
+  "inverse-surface",
+  "on-inverse-surface",
+  "inverse-brand",
+  "background",
+  "on-background",
+  "error",
+  "on-error",
+  "outline",
+  // "focus-ring"
+);

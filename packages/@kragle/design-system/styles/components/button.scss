@@ -1,0 +1,40 @@
+@use "../typography";
+@use "../color";
+
+.kragle-button {
+  min-width: 64px;
+  height: 32px;
+  display: grid;
+  grid: "main" 1fr / 1fr;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+
+  border-radius: 8px;
+  background-color: color.role("brand-container");
+  color: color.role("on-brand-container");
+
+  // Reset browser defaults
+  border: none;
+
+  &::before {
+    content: "";
+    grid-area: main;
+    place-self: stretch;
+    opacity: 0;
+    background-color: color.role("on-brand-container");
+  }
+  &:is(:focus-visible, :hover)::before {
+    opacity: 0.04;
+  }
+  &:active::before {
+    opacity: 0.08;
+  }
+
+  &__label {
+    grid-area: main;
+    padding-inline: 16px;
+    @include typography.role("label-large");
+    @include typography.no-wrap();
+  }
+}
