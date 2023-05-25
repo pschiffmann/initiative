@@ -71,7 +71,7 @@ function calculateLayout(document: SceneDocument): Layout {
     ID: document.getRootNodeId()!,
     column: 0,
     parent: "",
-    chain: [0, 0],
+    chain: [15, 0],
     inputs: Object.keys(
       document.nodeDefinitions.get(
         document.getNode(document.getRootNodeId()!)!.type
@@ -250,11 +250,22 @@ function calculateLayout(document: SceneDocument): Layout {
     for (let n of column) {
       let node = allnodes.get(n)!;
       if (!gcolumns.get(d)!.has(node.parent)) {
-        gcolumns.get(d)!.set(node.parent, [[0, 0], new Array()]);
+        gcolumns.get(d)!.set(node.parent, [[-1, -1], new Array()]);
       }
       let gcx = gcolumns.get(d)!.get(node.parent)![0];
+      /*
       gcx[0] = Math.max(gcx[0], node.chain[0]);
       gcx[1] = Math.max(gcx[1], node.chain[1]);
+      */
+      // test
+
+      if (gcx[0] == -1 && gcx[1] == -1 && node.parent !== "") {
+        gcx = allnodes.get(node.parent)!.chain;
+      }
+
+      // test
+      gcolumns.get(d)!.get(node.parent)![0] = gcx;
+
       gcolumns
         .get(d)!
         .get(node.parent)![1]
@@ -262,7 +273,7 @@ function calculateLayout(document: SceneDocument): Layout {
     }
     for (let p of gcolumns.get(d)!.values()) {
       p[1].sort(function (b, a) {
-        return b[1] + b[2] / 10 - (a[1] + a[2] / 10);
+        return b[1] * 100 + b[2] - (a[1] * 100 + a[2]);
       });
     }
   }
@@ -270,8 +281,21 @@ function calculateLayout(document: SceneDocument): Layout {
   // 2d
   for (let [s, gcolumn] of gcolumns) {
     let previousgroupmaxposition: number = -99999;
-    //
+    let sgcolumn: Array<
+      [string, [[number, number], Array<[string, number, number]>]]
+    > = new Array();
     for (let [parent, group] of gcolumn) {
+      sgcolumn.push([parent, group]);
+    }
+    sgcolumn.sort(function (b, a) {
+      return (
+        allnodes.get(b[0])!.centerline! * 100 +
+        b[1][0][0] * 100 +
+        b[1][0][1] -
+        (allnodes.get(a[0])!.centerline! * 100 + a[1][0][0] * 100 + a[1][0][1])
+      );
+    });
+    for (let [parent, group] of sgcolumn) {
       let offset: number = 0;
       let groupoffset: number = 0;
       for (let childID of group[1]) {
@@ -304,7 +328,7 @@ function calculateLayout(document: SceneDocument): Layout {
   }
 
   // width
-  let maxwidth: number = 400;
+  let maxwidth: number = 415;
   let maxangle: number = 75;
   for (let [d, c] of columns) {
     if (d == 0) {
@@ -335,11 +359,11 @@ function calculateLayout(document: SceneDocument): Layout {
     maxheight = Math.max(maxheight, n.position![1] + n.size);
     minheight = Math.min(minheight, n.position![1]);
   }
-  maxheight += Math.abs(minheight);
+  maxheight += Math.abs(minheight) + 15;
 
   // correct height
   for (let n of allnodes.values()) {
-    n.position![1] += Math.abs(minheight);
+    n.position![1] += Math.abs(minheight) + 15;
   }
 
   // sample output 2
@@ -357,8 +381,8 @@ function calculateLayout(document: SceneDocument): Layout {
     };
   }
   return {
-    canvasWidth: maxwidth,
-    canvasHeight: maxheight,
+    canvasWidth: maxwidth + 15,
+    canvasHeight: maxheight + 15,
     nodeBoxPositions: sampleoutput2,
   };
 }
