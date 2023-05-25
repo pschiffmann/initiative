@@ -40,5 +40,28 @@ export abstract class KragleType<T = unknown> {
     return this;
   }
 
+  /**
+   * Returns `true` if this type is, or contains, a type variable.
+   */
+  get isGeneric(): boolean {
+    throw new Error("Unimplemented");
+  }
+
+  /**
+   * Tries to infer the generic types in `this` from `other`. Throws an error if
+   * `other` is not assignable to `this`.
+   */
+  inferTypeVariables(other: KragleType, bindType: BindType): void {
+    throw new Error("Unimplemented");
+  }
+
+  instantiateTypeVariables(
+    types: ReadonlyMap<t.TypeVariable, KragleType>
+  ): KragleType {
+    throw new Error("Unimplemented");
+  }
+
   abstract toString(addBrackets?: boolean): string;
 }
+
+export type BindType = (typeVariable: t.TypeVariable, type: KragleType) => void;

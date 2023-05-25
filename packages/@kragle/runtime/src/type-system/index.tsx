@@ -10,6 +10,7 @@ export * from "./number.js";
 export * from "./resolve-type.js";
 export * from "./string.js";
 export * from "./tuple.js";
+export * from "./type-variable.js";
 export * from "./undefined.js";
 export * from "./union.js";
 export * from "./void.js";
