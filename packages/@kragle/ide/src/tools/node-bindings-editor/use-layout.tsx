@@ -66,12 +66,18 @@ function calculateLayout(document: SceneDocument): Layout {
   */
 
   // input unzip
+  /*
+    needed to extract information from the SceneDocument
+    but not only interaction with it.
+    Creates nodeBox0 for each node in SceneDocument.
+  */
   let allnodes: Map<string, nodeBox0> = new Map();
   let root: nodeBox0 = {
+    // need to create root node seperatly because everything else uses this as a starting point.
     ID: document.getRootNodeId()!,
     column: 0,
     parent: "",
-    chain: [15, 0],
+    chain: [0, 0],
     inputs: Object.keys(
       document.nodeDefinitions.get(
         document.getNode(document.getRootNodeId()!)!.type
@@ -88,7 +94,7 @@ function calculateLayout(document: SceneDocument): Layout {
       )!.schema,
       document.getNode(document.getRootNodeId()!)!
     ).height,
-    position: [0, 0],
+    position: [15, 0], // 15 to create some space from the edge of the canvas
     connections: new Array(),
   };
   let columns: Map<number, Set<string>> = new Map();
@@ -102,6 +108,7 @@ function calculateLayout(document: SceneDocument): Layout {
   let grandchildren: Array<[string, Array<string>]> = new Array();
   let depth: number = 1;
   do {
+    // repeat as long as further children are present.
     for (let [p, cs] of children) {
       for (let c of cs) {
         let child: nodeBox0 = {
@@ -112,11 +119,11 @@ function calculateLayout(document: SceneDocument): Layout {
           inputs: Object.keys(
             document.nodeDefinitions.get(document.getNode(c)!.type)!.schema
               .inputs
-          ),
+          ), // needed for tunnels
           outputs: Object.keys(
             document.nodeDefinitions.get(document.getNode(c!)!.type)!.schema
               .outputs
-          ),
+          ), // needed for tunnels
           size: calculateInnerDimensions(
             document.nodeDefinitions.get(document.getNode(c)!.type)!.schema,
             document.getNode(c)!
@@ -145,12 +152,13 @@ function calculateLayout(document: SceneDocument): Layout {
   for (let d = depth; d > 0; d--) {
     for (let n of columns.get(d)!.values()) {
       let node = allnodes.get(n)!;
-      allnodes.get(node.parent)!.chain[0] += node.chain[0] + 1;
-      allnodes.get(node.parent)!.chain[1] += 1;
+      allnodes.get(node.parent)!.chain[0] += node.chain[0] + 1; // the total length is important
+      allnodes.get(node.parent)!.chain[1] += 1; // only the child size is important because of child sorting
     }
   }
 
   // Parenting
+  // currently unused, needed for tunnels
   /**
    * Map<column, Map<parentID, Map<childID, size>>>
    */
@@ -211,6 +219,8 @@ function calculateLayout(document: SceneDocument): Layout {
   }
 
   // largest column
+  // not needed anymore
+  // might need for tunnels
   let largestcolumnsize: number = 0;
   let largestcolumnID: number;
   for (let [column, data] of superstructur) {
@@ -236,10 +246,10 @@ function calculateLayout(document: SceneDocument): Layout {
   let gcolumns: Map<
     number,
     Map<
-      string,
+      string, // to order nodes behind parents
       [
-        [length: number, size: number],
-        Array<[ID: string, length: number, size: number]>
+        [length: number, size: number], // parents
+        Array<[ID: string, length: number, size: number]> // children
       ]
     >
   > = new Map();
@@ -257,15 +267,10 @@ function calculateLayout(document: SceneDocument): Layout {
       gcx[0] = Math.max(gcx[0], node.chain[0]);
       gcx[1] = Math.max(gcx[1], node.chain[1]);
       */
-      // test
-
       if (gcx[0] == -1 && gcx[1] == -1 && node.parent !== "") {
         gcx = allnodes.get(node.parent)!.chain;
       }
-
-      // test
       gcolumns.get(d)!.get(node.parent)![0] = gcx;
-
       gcolumns
         .get(d)!
         .get(node.parent)![1]
@@ -273,7 +278,7 @@ function calculateLayout(document: SceneDocument): Layout {
     }
     for (let p of gcolumns.get(d)!.values()) {
       p[1].sort(function (a, b) {
-        return b[1] * 100 + b[2] - (a[1] * 100 + a[2]);
+        return b[1] * 100 + b[2] - (a[1] * 100 + a[2]); // nodes have to be sorted by chain length and size for positioning
       });
     }
     for (let p of gcolumns.get(d)!.values()) {
@@ -283,6 +288,7 @@ function calculateLayout(document: SceneDocument): Layout {
       let raw = new Array();
       let pyramid: boolean = false;
       for (let value of p[1]) {
+        // needed to create a pyramid shape with the largest node trees centered
         if (pyramid) {
           raw.unshift(value);
         } else {
@@ -295,7 +301,7 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // 2d
   for (let [s, gcolumn] of gcolumns) {
-    let previousgroupmaxposition: number = -99999;
+    let previousgroupmaxposition: number = Number.NEGATIVE_INFINITY; // needed to allow a new row to start at any Ycooridinate
     let sgcolumn: Array<
       [string, [[number, number], Array<[string, number, number]>]]
     > = new Array();
@@ -304,7 +310,7 @@ function calculateLayout(document: SceneDocument): Layout {
     }
     sgcolumn.sort(function (b, a) {
       return (
-        allnodes.get(b[0])!.centerline! * 100 +
+        allnodes.get(b[0])!.centerline! * 100 + // to always allign nodes to their parents sort by centerline
         b[1][0][0] * 100 +
         b[1][0][1] -
         (allnodes.get(a[0])!.centerline! * 100 + a[1][0][0] * 100 + a[1][0][1])
@@ -323,7 +329,7 @@ function calculateLayout(document: SceneDocument): Layout {
           previousgroupmaxposition
         ) {
           groupoffset =
-            allnodes.get(parent)!.centerline! - previousgroupmaxposition;
+            allnodes.get(parent)!.centerline! - previousgroupmaxposition; // if the next group is centered too high it needs to be adjusted down
         }
       }
       for (let [childID, childlength, childsize] of group[1]) {
@@ -346,6 +352,7 @@ function calculateLayout(document: SceneDocument): Layout {
   let maxwidth: number = 415;
   let maxangle: number = 75;
   for (let [d, c] of columns) {
+    // assigning an Xcoordinate to each node
     if (d == 0) {
       continue;
     }
@@ -357,6 +364,8 @@ function calculateLayout(document: SceneDocument): Layout {
     for (let cc of c) {
       childrenhight += allnodes.get(cc)!.size;
     }
+    // to calculate the distance between columns the pythegoryan formula is used to limit the maximum angle possible for any connection
+    // this needs to be extanded to actually check what connections are present so it can squeeze columns where ever possible
     maxwidth += Math.sqrt(
       Math.pow(parenthight / Math.sin(maxangle * (Math.PI / 180)), 2) -
         Math.pow(parenthight, 2)
@@ -368,17 +377,20 @@ function calculateLayout(document: SceneDocument): Layout {
   }
 
   // search maxheight
+  // since the ouptup needs to be positive only the range of Ycoordinates is checked
+  // this should be integrated in the height setting loop
   let maxheight: number = 0;
   let minheight: number = 0;
   for (let n of allnodes.values()) {
     maxheight = Math.max(maxheight, n.position![1] + n.size);
     minheight = Math.min(minheight, n.position![1]);
   }
-  maxheight += Math.abs(minheight) + 15;
+  maxheight += Math.abs(minheight) + 15; // 15 to add space at the bottom of the canvas
 
   // correct height
+  // height needs to be positive only
   for (let n of allnodes.values()) {
-    n.position![1] += Math.abs(minheight) + 15;
+    n.position![1] += Math.abs(minheight) + 15; // 15 to add space at the top of the canvas
   }
 
   // sample output 2
@@ -386,6 +398,7 @@ function calculateLayout(document: SceneDocument): Layout {
   for (let n of allnodes.values()) {
     let nodeJson = document.getNode(n.ID);
     let innerDimensions = calculateInnerDimensions(
+      // should be done in unzip but done here for testing convinience
       document.nodeDefinitions.get(nodeJson!.type)!.schema,
       nodeJson!
     );
@@ -396,8 +409,8 @@ function calculateLayout(document: SceneDocument): Layout {
     };
   }
   return {
-    canvasWidth: maxwidth + 15,
-    canvasHeight: maxheight + 15,
+    canvasWidth: maxwidth + 15, // 15 to add space on the right side of the canvas
+    canvasHeight: maxheight,
     nodeBoxPositions: sampleoutput2,
   };
 }
