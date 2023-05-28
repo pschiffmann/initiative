@@ -71,8 +71,8 @@ function calculateLayout(document: SceneDocument): Layout {
     but not only interaction with it.
     Creates nodeBox0 for each node in SceneDocument.
   */
-  let allnodes: Map<string, nodeBox0> = new Map();
-  let root: nodeBox0 = {
+  const allnodes: Map<string, nodeBox0> = new Map();
+  const root: nodeBox0 = {
     // need to create root node seperatly because everything else uses this as a starting point.
     ID: document.getRootNodeId()!,
     column: 0,
@@ -97,7 +97,7 @@ function calculateLayout(document: SceneDocument): Layout {
     position: [15, 0], // 15 to create some space from the edge of the canvas
     connections: new Array(),
   };
-  let columns: Map<number, Set<string>> = new Map();
+  const columns: Map<number, Set<string>> = new Map();
   columns.set(0, new Set());
   columns.get(0)!.add(root.ID);
   allnodes.set(root.ID, root);
@@ -109,9 +109,9 @@ function calculateLayout(document: SceneDocument): Layout {
   let depth: number = 1;
   do {
     // repeat as long as further children are present.
-    for (let [p, cs] of children) {
-      for (let c of cs) {
-        let child: nodeBox0 = {
+    for (const [p, cs] of children) {
+      for (const c of cs) {
+        const child: nodeBox0 = {
           ID: c,
           column: depth,
           parent: p,
@@ -150,8 +150,8 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // Chains
   for (let d = depth; d > 0; d--) {
-    for (let n of columns.get(d)!.values()) {
-      let node = allnodes.get(n)!;
+    for (const n of columns.get(d)!.values()) {
+      const node = allnodes.get(n)!;
       allnodes.get(node.parent)!.chain[0] += node.chain[0] + 1; // the total length is important
       allnodes.get(node.parent)!.chain[1] += 1; // only the child size is important because of child sorting
     }
@@ -162,6 +162,7 @@ function calculateLayout(document: SceneDocument): Layout {
   /**
    * Map<column, Map<parentID, Map<childID, size>>>
    */
+  /*
   let superstructur: Map<number, Map<string, Map<string, number>>> = new Map();
   for (let d = 0; d <= depth; d++) {
     superstructur.set(d, new Map());
@@ -241,9 +242,10 @@ function calculateLayout(document: SceneDocument): Layout {
   }
   root.centerline = root.size / 2;
   root.position = [0, 0];
+*/
 
   // geography
-  let gcolumns: Map<
+  const gcolumns: Map<
     number,
     Map<
       string, // to order nodes behind parents
@@ -253,12 +255,12 @@ function calculateLayout(document: SceneDocument): Layout {
       ]
     >
   > = new Map();
-  for (let [d, column] of columns) {
+  for (const [d, column] of columns) {
     if (!gcolumns.has(d)) {
       gcolumns.set(d, new Map());
     }
-    for (let n of column) {
-      let node = allnodes.get(n)!;
+    for (const n of column) {
+      const node = allnodes.get(n)!;
       if (!gcolumns.get(d)!.has(node.parent)) {
         gcolumns.get(d)!.set(node.parent, [[-1, -1], new Array()]);
       }
@@ -276,18 +278,18 @@ function calculateLayout(document: SceneDocument): Layout {
         .get(node.parent)![1]
         .push([node.ID, node.chain[0], node.chain[1]]);
     }
-    for (let p of gcolumns.get(d)!.values()) {
+    for (const p of gcolumns.get(d)!.values()) {
       p[1].sort(function (a, b) {
         return b[1] * 100 + b[2] - (a[1] * 100 + a[2]); // nodes have to be sorted by chain length and size for positioning
       });
     }
-    for (let p of gcolumns.get(d)!.values()) {
+    for (const p of gcolumns.get(d)!.values()) {
       if (p[1].length <= 2) {
         continue;
       }
-      let raw = new Array();
+      const raw = new Array();
       let pyramid: boolean = false;
-      for (let value of p[1]) {
+      for (const value of p[1]) {
         // needed to create a pyramid shape with the largest node trees centered
         if (pyramid) {
           raw.unshift(value);
@@ -300,15 +302,22 @@ function calculateLayout(document: SceneDocument): Layout {
   }
 
   // 2d
-  for (let [s, gcolumn] of gcolumns) {
+  for (const [d, gcolumn] of gcolumns) {
     let previousgroupmaxposition: number = Number.NEGATIVE_INFINITY; // needed to allow a new row to start at any Ycooridinate
-    let sgcolumn: Array<
+    const sgcolumn: Array<
+      //{nodeId: string; group: Array<{childId: string; descendantCount: number; childCount: number }>}
       [string, [[number, number], Array<[string, number, number]>]]
     > = new Array();
-    for (let [parent, group] of gcolumn) {
+    for (const [parent, group] of gcolumn) {
       sgcolumn.push([parent, group]);
     }
     sgcolumn.sort(function (b, a) {
+      if (a[0] !== b[0]) {
+        const parentCenterlineA = allnodes.get(a[0])!.centerline!;
+        const parentCenterlineB = allnodes.get(b[0])!.centerline!;
+        return parentCenterlineB - parentCenterlineA;
+      }
+
       return (
         allnodes.get(b[0])!.centerline! * 100 + // to always allign nodes to their parents sort by centerline
         b[1][0][0] * 100 +
@@ -316,10 +325,10 @@ function calculateLayout(document: SceneDocument): Layout {
         (allnodes.get(a[0])!.centerline! * 100 + a[1][0][0] * 100 + a[1][0][1])
       );
     });
-    for (let [parent, group] of sgcolumn) {
+    for (const [parent, group] of sgcolumn) {
       let offset: number = 0;
       let groupoffset: number = 0;
-      for (let childID of group[1]) {
+      for (const childID of group[1]) {
         groupoffset += allnodes.get(childID[0])!.size;
       }
       groupoffset = groupoffset / 2;
@@ -332,8 +341,8 @@ function calculateLayout(document: SceneDocument): Layout {
             allnodes.get(parent)!.centerline! - previousgroupmaxposition; // if the next group is centered too high it needs to be adjusted down
         }
       }
-      for (let [childID, childlength, childsize] of group[1]) {
-        let node = allnodes.get(childID)!;
+      for (const [childID, childlength, childsize] of group[1]) {
+        const node = allnodes.get(childID)!;
         if (parent !== "") {
           node.position = [
             0,
@@ -350,18 +359,18 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // width
   let maxwidth: number = 415;
-  let maxangle: number = 75;
-  for (let [d, c] of columns) {
+  const maxangle: number = 75;
+  for (const [d, c] of columns) {
     // assigning an Xcoordinate to each node
     if (d == 0) {
       continue;
     }
     let parenthight: number = 0;
     let childrenhight: number = 0;
-    for (let pc of columns.get(d - 1)!) {
+    for (const pc of columns.get(d - 1)!) {
       parenthight += allnodes.get(pc)!.size;
     }
-    for (let cc of c) {
+    for (const cc of c) {
       childrenhight += allnodes.get(cc)!.size;
     }
     // to calculate the distance between columns the pythegoryan formula is used to limit the maximum angle possible for any connection
@@ -370,7 +379,7 @@ function calculateLayout(document: SceneDocument): Layout {
       Math.pow(parenthight / Math.sin(maxangle * (Math.PI / 180)), 2) -
         Math.pow(parenthight, 2)
     );
-    for (let cc of c) {
+    for (const cc of c) {
       allnodes.get(cc)!.position![0] = maxwidth;
     }
     maxwidth += 400;
@@ -381,7 +390,7 @@ function calculateLayout(document: SceneDocument): Layout {
   // this should be integrated in the height setting loop
   let maxheight: number = 0;
   let minheight: number = 0;
-  for (let n of allnodes.values()) {
+  for (const n of allnodes.values()) {
     maxheight = Math.max(maxheight, n.position![1] + n.size);
     minheight = Math.min(minheight, n.position![1]);
   }
@@ -389,15 +398,15 @@ function calculateLayout(document: SceneDocument): Layout {
 
   // correct height
   // height needs to be positive only
-  for (let n of allnodes.values()) {
+  for (const n of allnodes.values()) {
     n.position![1] += Math.abs(minheight) + 15; // 15 to add space at the top of the canvas
   }
 
   // sample output 2
-  let sampleoutput2: Record<string, NodeBoxPosition> = {};
-  for (let n of allnodes.values()) {
-    let nodeJson = document.getNode(n.ID);
-    let innerDimensions = calculateInnerDimensions(
+  const sampleoutput2: Record<string, NodeBoxPosition> = {};
+  for (const n of allnodes.values()) {
+    const nodeJson = document.getNode(n.ID);
+    const innerDimensions = calculateInnerDimensions(
       // should be done in unzip but done here for testing convinience
       document.nodeDefinitions.get(nodeJson!.type)!.schema,
       nodeJson!
