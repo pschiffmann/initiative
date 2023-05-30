@@ -180,21 +180,18 @@ export class NodeData {
     childId: string,
     slotName: string,
     index?: number
-  ): [self: NodeData, movedChildren: Iterable<[string, NodeParent]>] {
+  ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
     if (this.schema.getCollectionInputSlot(slotName) === null) {
       const self = this.#addRegularChild(childId, slotName);
-      return [self, [[childId, { nodeId: this.id, slotName }]]];
+      return [self, { [childId]: { nodeId: this.id, slotName } }];
     } else {
       const self = this.#addCollectionChild(childId, slotName, index);
-      return [
-        self,
-        new Array(self.collectionSlotSizes[slotName])
-          .fill(null)
-          .map((i) => [
-            self.slots[`${slotName}::${i}`],
-            { nodeId: self.id, slotName, index: i },
-          ]),
-      ];
+      const movedChildren: Record<string, NodeParent> = {};
+      for (let i = index!; i < self.collectionSlotSizes[slotName]; i++) {
+        const parent: NodeParent = { nodeId: self.id, slotName, index: i };
+        movedChildren[self.slots[`${slotName}::${i}`]] = parent;
+      }
+      return [self, movedChildren];
     }
   }
 
@@ -250,21 +247,18 @@ export class NodeData {
   removeChild(
     slotName: string,
     index?: number
-  ): [self: NodeData, movedChildren: Iterable<[string, NodeParent]>] {
+  ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
     if (this.schema.getCollectionInputSlot(slotName) === null) {
       const self = this.#removeRegularChild(slotName);
-      return [self, []];
+      return [self, {}];
     } else {
       const self = this.#removeCollectionChild(slotName, index);
-      return [
-        self,
-        new Array(self.collectionSlotSizes[slotName])
-          .fill(null)
-          .map((i) => [
-            self.slots[`${slotName}::${i}`],
-            { nodeId: self.id, slotName, index: i },
-          ]),
-      ];
+      const movedChildren: Record<string, NodeParent> = {};
+      for (let i = index!; i < self.collectionSlotSizes[slotName]; i++) {
+        const parent: NodeParent = { nodeId: self.id, slotName, index: i };
+        movedChildren[self.slots[`${slotName}::${i}`]] = parent;
+      }
+      return [self, movedChildren];
     }
   }
 
