@@ -29,6 +29,16 @@ export interface NodeParent {
   readonly index?: number;
 }
 
+export interface NodeErrors {
+  readonly invalidInputs: ReadonlySet<string>;
+  readonly missingSlots: ReadonlySet<string>;
+
+  /**
+   * The result of `NodeSchema.validate()`.
+   */
+  readonly custom: string | null;
+}
+
 export class NodeData {
   private constructor(
     readonly schema: NodeSchema,
@@ -36,14 +46,29 @@ export class NodeData {
     readonly inputs: { readonly [inputName: string]: Expression },
     readonly slots: NodeJson["slots"],
     readonly collectionSlotSizes: { readonly [slotName: string]: number },
-    readonly parent: NodeParent
+    readonly parent: NodeParent | null
   ) {
-    validateNodeId(id);
+    const invalidInputs = new Set<string>(
+      Object.entries(inputs)
+        .filter(([inputKey, expression]) => expression.errors.size > 0)
+        .map(([inputKey]) => inputKey)
+    );
+    const missingSlots = new Set<string>();
+    schema.forEachSlot((slotName, { isCollectionSlot }) => {
+      if (!isCollectionSlot && !slots[slotName]) missingSlots.add(slotName);
+    });
+    const custom = schema.validate?.(this.toJson()) ?? null;
+    this.errors =
+      invalidInputs.size > 0 || missingSlots.size > 0 || !!custom
+        ? { invalidInputs, missingSlots, custom }
+        : null;
   }
 
   get type(): string {
     return this.schema.name;
   }
+
+  readonly errors: NodeErrors | null;
 
   /**
    * Calls `callback` for each input defined in the node schema.
@@ -52,9 +77,9 @@ export class NodeData {
    * instead.
    *
    * If `inputName` is a collection input, `callback` is called once for each
-   * child in that collection slot, even if not some inputs don't have
-   * expressions. If the collection is empty, `callback` is called once and with
-   * -1 passed as `index`.
+   * child in that collection slot, even if some inputs don't have expressions.
+   * If the collection is empty, `callback` is called once and with -1 passed as
+   * `index`.
    */
   forEachInput<R>(
     callback: (
@@ -114,7 +139,7 @@ export class NodeData {
   }
 
   setInput(
-    expression: Expression,
+    expression: Expression | null,
     inputName: string,
     index?: number
   ): NodeData {
@@ -133,39 +158,14 @@ export class NodeData {
     } else {
       inputKey = inputName;
     }
-    if (this.inputs[inputKey]) {
-      throw new Error(`Input '${inputKey}' is not empty.`);
-    }
-    return new NodeData(
-      this.schema,
-      this.id,
-      { ...this.inputs, [inputKey]: expression },
-      this.slots,
-      this.collectionSlotSizes,
-      this.parent
-    );
-  }
 
-  unsetInput(inputName: string, index?: number): NodeData {
-    let inputKey: string;
-    const collectionSlot = this.schema.getCollectionInputSlot(inputName);
-    if (collectionSlot) {
-      if (
-        typeof index !== "number" ||
-        !Number.isInteger(index) ||
-        index < 0 ||
-        index >= this.collectionSlotSizes[collectionSlot]
-      ) {
-        throw new Error(`Invalid index '${index}' for input '${inputName}'.`);
-      }
-      inputKey = `${inputName}::${index}`;
+    const inputs = { ...this.inputs };
+    if (expression) {
+      inputs[inputKey] = expression;
     } else {
-      inputKey = inputName;
+      delete inputs[inputKey];
     }
-    if (!this.inputs[inputKey]) {
-      throw new Error(`Input '${inputKey}' is empty.`);
-    }
-    const { [inputKey]: _, ...inputs } = this.inputs;
+
     return new NodeData(
       this.schema,
       this.id,
@@ -176,10 +176,26 @@ export class NodeData {
     );
   }
 
-  addChild(childId: string, slotName: string, index?: number): NodeData {
-    return this.schema.getCollectionInputSlot(slotName) === null
-      ? this.#addRegularChild(childId, slotName)
-      : this.#addCollectionChild(childId, slotName, index);
+  addChild(
+    childId: string,
+    slotName: string,
+    index?: number
+  ): [self: NodeData, movedChildren: Iterable<[string, NodeParent]>] {
+    if (this.schema.getCollectionInputSlot(slotName) === null) {
+      const self = this.#addRegularChild(childId, slotName);
+      return [self, [[childId, { nodeId: this.id, slotName }]]];
+    } else {
+      const self = this.#addCollectionChild(childId, slotName, index);
+      return [
+        self,
+        new Array(self.collectionSlotSizes[slotName])
+          .fill(null)
+          .map((i) => [
+            self.slots[`${slotName}::${i}`],
+            { nodeId: self.id, slotName, index: i },
+          ]),
+      ];
+    }
   }
 
   #addRegularChild(childId: string, slotName: string): NodeData {
@@ -231,10 +247,25 @@ export class NodeData {
     );
   }
 
-  removeChild(slotName: string, index?: number): NodeData {
-    return this.schema.getCollectionInputSlot(slotName) === null
-      ? this.#removeRegularChild(slotName)
-      : this.#removeCollectionChild(slotName, index);
+  removeChild(
+    slotName: string,
+    index?: number
+  ): [self: NodeData, movedChildren: Iterable<[string, NodeParent]>] {
+    if (this.schema.getCollectionInputSlot(slotName) === null) {
+      const self = this.#removeRegularChild(slotName);
+      return [self, []];
+    } else {
+      const self = this.#removeCollectionChild(slotName, index);
+      return [
+        self,
+        new Array(self.collectionSlotSizes[slotName])
+          .fill(null)
+          .map((i) => [
+            self.slots[`${slotName}::${i}`],
+            { nodeId: self.id, slotName, index: i },
+          ]),
+      ];
+    }
   }
 
   #removeRegularChild(slotName: string): NodeData {
@@ -297,37 +328,35 @@ export class NodeData {
   //   throw new Error("Unimplemented");
   // }
 
-  validate(context: ValidateNodeContext): NodeErrors | null {
-    const inputErrors = new Map<string, string>();
-    this.forEachInput((expression, type, inputName, index) => {
-      const inputKey =
-        index === undefined ? inputName : `${inputName}::${index}`;
-      if (!expression) {
-        if (!t.undefined().isAssignableTo(type)) {
-          inputErrors.set(inputKey, "This input is required.");
-        }
-      } else if (!expression.isComplete) {
-        inputErrors.set(inputKey, "The input expression is incomplete.");
-      } else if (!expression.type.isAssignableTo(type)) {
-        inputErrors.set(
-          inputKey,
-          `Type '${expression.type}' is not assignable to type '${type}'.`
-        );
-      }
+  rename(
+    id: string
+  ): [self: NodeData, movedChildren: Iterable<[string, NodeParent]>] {
+    validateNodeId(id);
+    const self = new NodeData(
+      this.schema,
+      id,
+      this.inputs,
+      this.slots,
+      this.collectionSlotSizes,
+      this.parent
+    );
+    const movedChildren: [string, NodeParent][] = [];
+    self.forEachSlot((childId, slotName, index) => {
+      if (!childId) return;
+      movedChildren.push([childId, { nodeId: id, slotName, index }]);
     });
+    return [self, movedChildren];
+  }
 
-    const missingSlots = new Set<string>();
-    this.forEachSlot((childId, slotName, index) => {
-      if (index === undefined && !childId) missingSlots.add(slotName);
-    });
-
-    const schemaValidation = this.schema.validate?.(this.toJson()) ?? null;
-
-    return inputErrors.size !== 0 ||
-      missingSlots.size !== 0 ||
-      !!schemaValidation
-      ? { inputErrors, missingSlots, schemaValidation }
-      : null;
+  move(parent: NodeParent): NodeData {
+    return new NodeData(
+      this.schema,
+      this.id,
+      this.inputs,
+      this.slots,
+      this.collectionSlotSizes,
+      parent
+    );
   }
 
   toJson(): NodeJson {
@@ -341,25 +370,16 @@ export class NodeData {
     };
   }
 
-  static empty(schema: NodeSchema, id: string, parent: NodeParent): NodeData {
+  static empty(
+    schema: NodeSchema,
+    id: string,
+    parent: NodeParent | null
+  ): NodeData {
+    validateNodeId(id);
     const collectionSlotSizes: { [slotName: string]: number } = {};
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
       if (isCollectionSlot) collectionSlotSizes[slotName] = 0;
     });
     return new NodeData(schema, id, {}, {}, collectionSlotSizes, parent);
   }
-}
-
-export interface ValidateNodeContext {
-  getNode(nodeId: string): NodeData;
-}
-
-export interface NodeErrors {
-  readonly inputErrors: ReadonlyMap<string, string>;
-  readonly missingSlots: ReadonlySet<string>;
-
-  /**
-   * The result of `NodeSchema.validate()`.
-   */
-  readonly schemaValidation: string | null;
 }

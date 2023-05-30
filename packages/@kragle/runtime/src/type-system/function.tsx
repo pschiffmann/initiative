@@ -37,7 +37,7 @@ class KragleFunction<
   }
 
   // Workaround for: https://github.com/microsoft/TypeScript/issues/17473
-  static is(t: KragleType): t is KragleFunction {
+  static is(t: any): t is KragleFunction {
     return t instanceof KragleFunction;
   }
 }
