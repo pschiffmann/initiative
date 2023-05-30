@@ -1,4 +1,3 @@
-import * as $Array from "@pschiffmann/std/array";
 import { t } from "../../index.js";
 
 /**
@@ -9,9 +8,9 @@ export type ExpressionJson =
   | NumberLiteralExpressionJson
   | BooleanLiteralExpressionJson
   | EntityLiteralExpressionJson
-  | NodeOutputExpressionJson
-  | SceneInputExpressionJson
   | LibraryExportExpressionJson
+  | SceneInputExpressionJson
+  | NodeOutputExpressionJson
   | FunctionCallExpressionJson;
 
 export interface StringLiteralExpressionJson {
@@ -44,10 +43,10 @@ export interface EntityLiteralExpressionJson {
   readonly value: unknown;
 }
 
-export interface NodeOutputExpressionJson {
-  readonly type: "node-output";
-  readonly nodeId: string;
-  readonly outputName: string;
+export interface LibraryExportExpressionJson {
+  readonly type: "library-export";
+  readonly libraryName: string;
+  readonly exportName: string;
 }
 
 export interface SceneInputExpressionJson {
@@ -55,10 +54,10 @@ export interface SceneInputExpressionJson {
   readonly inputName: string;
 }
 
-export interface LibraryExportExpressionJson {
-  readonly type: "library-export";
-  readonly libraryName: string;
-  readonly exportName: string;
+export interface NodeOutputExpressionJson {
+  readonly type: "node-output";
+  readonly nodeId: string;
+  readonly outputName: string;
 }
 
 export interface FunctionCallExpressionJson {
@@ -68,106 +67,168 @@ export interface FunctionCallExpressionJson {
 }
 
 export class Expression {
-  private constructor(
-    readonly json: ExpressionJson,
-    readonly isComplete: boolean,
-    readonly type: t.KragleType
-  ) {}
+  constructor(
+    json: ExpressionJson,
+    expectedType: t.KragleType,
+    ctx: ExpressionValidationContext
+  ) {
+    this.json = json = trimFunctionCallArguments(json);
+    this.types = resolveTypes(json, ctx);
+    this.errors = resolveErrors(json, this.types, expectedType);
+  }
+
+  readonly json: ExpressionJson;
 
   /**
-   * Returns a copy of `this` with the function argument at `path` set to
-   * `argument`.
-   *
-   * Throws an error if `path` doesn't point to a `function-call` argument
-   * index.
+   * Contains a key for every sub-expression of `json`. The value is `null` if
+   * an expression type can't be resolved (e.g. `library-export` expressions
+   * that use non-existent libraries).
    */
-  setFunctionArgument(
-    argument: ExpressionJson | null,
-    path: readonly number[],
-    ctx: ExpressionValidationContext
-  ): Expression | null {
+  readonly types: ReadonlyMap<ExpressionPath, t.KragleType | null>;
+
+  /**
+   * Contains a key for every erroneous sub-expression of `json`. The value is
+   * the error message.
+   */
+  readonly errors: ReadonlyMap<ExpressionPath, string>;
+
+  /**
+   * Returns a copy of `json` with the expression at `path` set to `expression`.
+   */
+  set(
+    path: ExpressionPath,
+    expression: ExpressionJson | null
+  ): ExpressionJson | null {
     function rebuild(
       json: ExpressionJson,
-      path: readonly number[]
+      path: readonly ExpressionPathSegment[]
     ): ExpressionJson | null {
-      if (path.length === 0) return argument;
-      const [index, ...rest] = path;
-      if (
-        json.type !== "function-call" ||
-        !$Array.isValidIndexFor(json.arguments, index)
-      ) {
-        throw new Error(`Invalid 'path'.`);
+      if (path.length === 0) return expression;
+      if (json.type !== "function-call") throw new Error(`Invalid 'path'.`);
+      const [segment, ...rest] = path;
+      switch (segment.type) {
+        case "fn": {
+          const fn = rebuild(json.function, rest);
+          return fn && { ...json, function: fn };
+        }
+        case "arg": {
+          const oldArg = json.arguments[segment.index];
+          const args = [...json.arguments];
+          if (oldArg) {
+            args[segment.index] = rebuild(oldArg, rest);
+          } else if (rest.length === 0) {
+            args[segment.index] = expression;
+          } else {
+            throw new Error("Invalid path.");
+          }
+          return { ...json, arguments: args };
+        }
       }
-      const args = [...json.arguments];
-      args[index] = rebuild(json.arguments[index]!, rest);
-      return { ...json, arguments: args };
     }
 
-    const json = rebuild(this.json, path);
-    return json && Expression.fromJson(json, ctx);
+    return rebuild(this.json, parseExpressionPath(path));
   }
 
   /**
    * Returns a copy of `this` with the expression at `path` wrapped in a
    * `function-call` expression.
-   *
-   * Throws an error if `path` doesn't point to a `function-call` argument
-   * index, or if the resolved type of the expression at `path` is not a
-   * `t.Function`.
    */
-  callFunction(
-    path: readonly number[],
-    ctx: ExpressionValidationContext
-  ): Expression {
+  callFunction(path: ExpressionPath): ExpressionJson {
     function rebuild(
       json: ExpressionJson,
-      path: readonly number[]
+      path: readonly ExpressionPathSegment[]
     ): ExpressionJson {
       if (path.length === 0) {
-        const calleeType = assertIsCallable(json, ctx);
-        return {
-          type: "function-call",
-          function: json,
-          arguments: calleeType.parameters.map(() => null),
-        };
+        return { type: "function-call", function: json, arguments: [] };
       }
-      const [index, ...rest] = path;
-      if (
-        json.type !== "function-call" ||
-        !$Array.isValidIndexFor(json.arguments, index)
-      ) {
-        throw new Error(`Invalid 'path'.`);
+      if (json.type !== "function-call") throw new Error(`Invalid 'path'.`);
+      const [segment, ...rest] = path;
+      switch (segment.type) {
+        case "fn":
+          return { ...json, function: rebuild(json.function, rest) };
+        case "arg": {
+          const oldArg = json.arguments[segment.index];
+          if (!oldArg) throw new Error("Invalid path.");
+          const args = [...json.arguments];
+          args[segment.index] = rebuild(oldArg, rest);
+          return { ...json, arguments: args };
+        }
       }
-      const args = [...json.arguments];
-      args[index] = rebuild(json.arguments[index]!, rest);
-      return { ...json, arguments: args };
     }
 
-    return Expression.fromJson(rebuild(this.json, path), ctx);
+    return rebuild(this.json, parseExpressionPath(path));
   }
 
-  format(ctx: Pick<ExpressionValidationContext, "getEntity">): string {
-    return format(this.json, ctx);
+  /**
+   * Returns a copy of `json` where each expression is replaced by the result of
+   * calling `callback()` with that expression.
+   */
+  map(
+    callback: (json: ExpressionJson) => ExpressionJson | null
+  ): ExpressionJson | null {
+    function rebuild(json: ExpressionJson): ExpressionJson | null {
+      const result = callback(json);
+      if (result?.type === "function-call") {
+        const functionJson = rebuild(result.function);
+        return (
+          functionJson && {
+            type: "function-call",
+            function: functionJson,
+            arguments: result.arguments.map((arg) => arg && rebuild(arg)),
+          }
+        );
+      }
+      return result;
+    }
+
+    return rebuild(this.json);
   }
 
-  static fromJson(
-    json: ExpressionJson,
-    ctx: ExpressionValidationContext
-  ): Expression {
-    return new Expression(json, ...validate(json, ctx));
+  format(): string {
+    const types = this.types;
+
+    function fmt(json: ExpressionJson): string {
+      switch (json.type) {
+        case "string-literal":
+        case "number-literal":
+        case "boolean-literal":
+          return JSON.stringify(json.value);
+        case "entity-literal": {
+          const entity = types.get(json.entityName) as t.Entity | null;
+          return entity?.literal?.format(json) ?? json.entityName;
+        }
+        case "node-output":
+          return `${json.nodeId}::${json.outputName}`;
+        case "scene-input":
+          return `Scene::${json.inputName}`;
+        case "library-export":
+          return `${json.libraryName}::${json.exportName}`;
+        case "function-call": {
+          const parameters = json.arguments
+            .map((p) => (p ? fmt(p) : "null"))
+            .join(", ");
+          return `${fmt(json.function)}(${parameters})`;
+        }
+      }
+    }
+
+    return fmt(this.json);
   }
 }
 
 export interface ExpressionValidationContext {
-  /**
-   * Throws an error if no entity with name `entityName` is defined.
-   */
-  getEntity(entityName: string): t.Entity;
+  getEntity(entityName: string): t.Entity | null;
+
+  getLibraryExportType(
+    libraryName: string,
+    exportName: string
+  ): t.KragleType | null;
 
   /**
    * Throws an error if `nodeId` is not an ancestor of the node this
-   * expression belongs to, or if `nodeId` doesn't have an output with name
-   * `outputName`.
+   * expression belongs to; or if `nodeId` doesn't have an output with name
+   * `outputName`; or if `outputName` is a scoped output and `nodeId` is not
+   * a descendant of that slot.
    */
   getNodeOutputType(nodeId: string, outputName: string): t.KragleType;
 
@@ -175,175 +236,199 @@ export interface ExpressionValidationContext {
    * Throws an error if `scene` doesn't have an input with name `inputName`.
    */
   getSceneInputType(inputName: string): t.KragleType;
-
-  /**
-   * Throws an error if `libraryName` is not defined, or if the library has
-   * no export with name `exportName`.
-   */
-  getLibraryExportType(libraryName: string, exportName: string): t.KragleType;
 }
 
 /**
- * This function deviates from the general rule to only perform runtime
- * validation for things that can't be caught by TypeScript. In particular, it
- * performs a `typeof json.value` check for `string-literal`, `number-literal`
- * and `boolean-literal` expressions. That's because the `json` values are not
- * always created in TypeScript, this function also processes raw values read
- * from scene JSON files.
+ * Resolves the types of all sub-expressions in `json`.
  */
-function validate(
+function resolveTypes(
   json: ExpressionJson,
   ctx: ExpressionValidationContext
-): [isComplete: boolean, type: t.KragleType] {
-  switch (json.type) {
-    case "string-literal":
-      if (typeof json.value !== "string") {
-        throw new Error(
-          `Invalid string literal expression '${JSON.stringify(json)}': ` +
-            `'value' must be of type string.`
-        );
-      }
-      return [true, t.string(json.value)];
+): ReadonlyMap<ExpressionPath, t.KragleType | null> {
+  const types = new Map<ExpressionPath, t.KragleType | null>();
 
-    case "number-literal":
-      if (typeof json.value !== "number") {
-        throw new Error(
-          `Invalid number literal expression '${JSON.stringify(json)}': ` +
-            `'value' must be of type number.`
-        );
-      }
-      return [true, t.number(json.value)];
+  function resolveType(
+    json: ExpressionJson,
+    path: ExpressionPath = ""
+  ): t.KragleType | null {
+    switch (json.type) {
+      case "string-literal":
+        return t.string(json.value);
+      case "number-literal":
+        return t.number(json.value);
+      case "boolean-literal":
+        return t.boolean(json.value);
+      case "entity-literal":
+        return ctx.getEntity(json.entityName);
+      case "node-output":
+        return ctx.getNodeOutputType(json.nodeId, json.outputName);
+      case "scene-input":
+        return ctx.getSceneInputType(json.inputName);
+      case "library-export":
+        return ctx.getLibraryExportType(json.libraryName, json.exportName);
+      case "function-call": {
+        const functionPath = `${path}/fn`;
+        const functionType = resolveType(json.function, functionPath);
+        types.set(functionPath, functionType);
 
-    case "boolean-literal":
-      if (typeof json.value !== "boolean") {
-        throw new Error(
-          `Invalid boolean literal expression '${JSON.stringify(json)}': ` +
-            `'value' must be of type boolean.`
-        );
-      }
-      return [true, t.boolean(json.value)];
-
-    case "entity-literal": {
-      const entity = ctx.getEntity(json.entityName);
-      if (!entity.literal) {
-        throw new Error(
-          `Can't create entity literal expressions for '${entity.name}' ` +
-            `because the entity definition has no 'validate()' function.`
-        );
-      }
-      const error = entity.literal.validate(json.value);
-      if (error) {
-        throw new Error(
-          `Invalid entity literal expression '${JSON.stringify(json)}': ` +
-            error
-        );
-      }
-      return [true, entity];
-    }
-
-    case "node-output":
-      return [true, ctx.getNodeOutputType(json.nodeId, json.outputName)];
-
-    case "scene-input":
-      return [true, ctx.getSceneInputType(json.inputName)];
-
-    case "library-export":
-      return [
-        true,
-        ctx.getLibraryExportType(json.libraryName, json.exportName),
-      ];
-
-    case "function-call": {
-      const [calleeComplete, calleeType] = validate(json.function, ctx);
-      if (!t.Function.is(calleeType)) {
-        throw new Error(
-          `Expression '${format(json.function, ctx)}' is not callable.`
-        );
-      }
-      if (calleeType.parameters.length !== json.arguments.length) {
-        throw new Error(
-          `Calling expression '${format(json.function, ctx)}' requires ` +
-            `${calleeType.parameters.length} arguments, but ` +
-            `${json.arguments.length} were provided.`
-        );
-      }
-
-      let isComplete = calleeComplete;
-      for (const [i, parameterType] of calleeType.parameters.entries()) {
-        const argument = json.arguments[i];
-        if (!argument) {
-          isComplete &&= t.undefined().isAssignableTo(parameterType);
-          continue;
+        for (const [i, arg] of json.arguments.entries()) {
+          const argPath = `${path}/arg(${i})`;
+          const argType = arg && resolveType(arg);
+          types.set(argPath, argType);
         }
-        const [argumentComplete, argumentType] = validate(argument, ctx);
-        if (!argumentType.isAssignableTo(parameterType)) {
-          throw new Error(
-            `Argument '${format(argument, ctx)}' of type '${argumentType}' ` +
-              `is not assignable to parameter type '${parameterType}' of ` +
-              `function '${format(json.function, ctx)}'.`
+
+        return functionType && t.Function.is(functionType)
+          ? functionType.returns
+          : null;
+      }
+    }
+  }
+
+  types.set("/", resolveType(json));
+  return types;
+}
+
+function resolveErrors(
+  json: ExpressionJson,
+  types: Expression["types"],
+  expectedType: t.KragleType
+): ReadonlyMap<ExpressionPath, string> {
+  const errors = new Map<ExpressionPath, string>();
+
+  function resolveError(
+    json: ExpressionJson,
+    expectedType: t.KragleType,
+    path: ExpressionPath = ""
+  ): string | null {
+    const type = types.get(path || "/");
+    switch (json.type) {
+      case "entity-literal":
+        if (!type) {
+          return `Entity '${json.entityName}' not found.`;
+        } else if (!(type as t.Entity).literal) {
+          return (
+            `Entity '${json.entityName}' doesn't support literal ` +
+            `expressions.`
           );
         }
-        isComplete &&= argumentComplete;
+        break;
+      case "library-export":
+        if (!type) {
+          return (
+            `Library export '${json.libraryName}::${json.exportName}' not ` +
+            `found.`
+          );
+        }
+        break;
+      case "function-call": {
+        const functionPath = `${path}/fn`;
+        const functionError = resolveError(
+          json.function,
+          t.any(),
+          functionPath
+        );
+        if (functionError) errors.set(functionPath, functionError);
+        const functionType = types.get(functionPath);
+
+        if (functionType && t.Function.is(functionType)) {
+          for (const [i, paramType] of functionType.parameters.entries()) {
+            const argPath = `${path}/arg(${i})`;
+            const argJson = json.arguments[i];
+            if (argJson) {
+              const argError = resolveError(argJson, paramType, argPath);
+              if (argError) errors.set(argPath, argError);
+            } else if (!t.undefined().isAssignableTo(paramType)) {
+              errors.set(argPath, `This parameter is required.`);
+            }
+          }
+          for (
+            let i = functionType.parameters.length;
+            i < json.arguments.length;
+            i++
+          ) {
+            const argPath = `${path}/arg(${i})`;
+            const argJson = json.arguments[i];
+            if (argJson) {
+              const argError = resolveError(argJson, t.any(), argPath);
+              if (argError) errors.set(argPath, argError);
+            }
+          }
+          if (json.arguments.length > functionType.parameters.length) {
+            return (
+              `Expected ${functionType.parameters.length} arguments, got ` +
+              `${json.arguments.length}.`
+            );
+          }
+        } else {
+          for (const [i, argJson] of json.arguments.entries()) {
+            if (!argJson) continue;
+            const argPath = `${path}/arg(${i})`;
+            const argError = resolveError(argJson, t.any(), argPath);
+            if (argError) errors.set(argPath, argError);
+          }
+          return "This expression is not callable.";
+        }
       }
-      return [isComplete, calleeType.returns];
     }
-
-    default:
-      throw new Error("Unimplemented");
+    return type?.isAssignableTo(expectedType)
+      ? null
+      : `Type '${type}' is not assignable to type '${expectedType}'.`;
   }
+
+  const rootError = resolveError(json, expectedType);
+  if (rootError) errors.set("/", rootError);
+  return errors;
 }
 
-function format(
-  json: ExpressionJson,
-  ctx: Pick<ExpressionValidationContext, "getEntity">
-  // , indent = false
-): string {
-  switch (json.type) {
-    case "string-literal":
-    case "number-literal":
-    case "boolean-literal":
-      return JSON.stringify(json.value);
-    case "entity-literal": {
-      const entity = ctx.getEntity(json.entityName);
-      return entity.literal!.format(json);
-    }
-    case "node-output":
-      return `${json.nodeId}::${json.outputName}`;
-    case "scene-input":
-      return `Scene::${json.inputName}`;
-    case "library-export":
-      return `${json.libraryName}::${json.exportName}`;
-    case "function-call": {
-      const parameters = json.arguments
-        .map((p) => (p ? format(p, ctx) : "?"))
-        .join(", ");
-      return `${format(json.function, ctx)}(${parameters})`;
-    }
-    default:
-      throw new Error("Unimplemented");
-  }
+/**
+ * Removes trailing `null`s from `"function-call"` arguments arrays.
+ */
+function trimFunctionCallArguments(json: ExpressionJson): ExpressionJson {
+  if (json.type !== "function-call") return json;
+  const fn = trimFunctionCallArguments(json.function);
+  const args = json.arguments.map(
+    (arg) => arg && trimFunctionCallArguments(arg)
+  );
+  const lastNonNullIndex = args.findLastIndex((json) => !!json);
+  return {
+    type: "function-call",
+    function: fn,
+    arguments: args.slice(0, lastNonNullIndex + 1),
+  };
 }
 
-function assertIsCallable(
-  json: ExpressionJson,
-  ctx: ExpressionValidationContext
-): t.Function {
-  let type: t.KragleType | undefined;
-  switch (json.type) {
-    case "node-output":
-      type = ctx.getNodeOutputType(json.nodeId, json.outputName);
-      break;
-    case "scene-input":
-      type = ctx.getSceneInputType(json.inputName);
-      break;
+//
+// ExpressionPath
+//
 
-    case "library-export":
-      type = ctx.getLibraryExportType(json.libraryName, json.exportName);
-      break;
-    case "function-call":
-      type = assertIsCallable(json.function, ctx);
-      break;
+/**
+ * An expression path points to a nested sub-expression in the expression tree.
+ * - Path `/` points to the root expression.
+ * - `/fn` points to the `function` property of a `function-call` expression.
+ * - `/arg(0)` points to index 0 of the `arguments` property of a
+ *   `function-call` expression.
+ * - A path can have multiple segments, e.g. `/arg(2)/fn/arg(1)`.
+ */
+export type ExpressionPath = string;
+
+type ExpressionPathSegment =
+  | { readonly type: "fn" }
+  | { readonly type: "arg"; readonly index: number };
+
+function parseExpressionPath(path: string): ExpressionPathSegment[] {
+  if (!path.startsWith("/")) {
+    throw new Error(`Invalid expression path '${path}'.`);
   }
-  if (type && t.Function.is(type)) return type;
-  throw new Error(`Expression '${format(json, ctx)}' is not callable.`);
+  if (path === "/") return [];
+  return path
+    .substring(1)
+    .split("/")
+    .map((segment) => {
+      if (segment === "fn") return { type: "fn" };
+      const match = segment.match(argPathSegmentPattern);
+      if (match) return { type: "arg", index: Number.parseInt(match[1]) };
+      throw new Error(`Invalid expression path '${path}'.`);
+    });
 }
+
+const argPathSegmentPattern = /^arg\((\d+)\)$/;
