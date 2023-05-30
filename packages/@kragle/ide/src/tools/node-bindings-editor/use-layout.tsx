@@ -229,7 +229,7 @@ export const nodeBoxSizes = {
   canvasOffset: 16,
 
   boxWidth: 320,
-  columnWidth: 400,
+  columnWidth: 480,
 
   /**
    * Top padding (between NodeBox top edge and header) and bottom padding
