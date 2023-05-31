@@ -316,6 +316,22 @@ export class NodeData {
     );
   }
 
+  renameChild(childId: string, slotName: string, index?: number): NodeData {
+    const slotKey =
+      this.schema.getScopedOutputSlot(slotName) === null
+        ? slotName
+        : `${slotName}::${index}`;
+    if (!this.slots[slotKey]) throw new Error(`Slot '${slotKey}' is empty.`);
+    return new NodeData(
+      this.schema,
+      this.id,
+      this.inputs,
+      { ...this.slots, [slotKey]: childId },
+      this.collectionSlotSizes,
+      this.parent
+    );
+  }
+
   // inferTypeVariables(context: {}): {
   //   readonly [typeVariable: string]: t.KragleType;
   // } {

@@ -20,8 +20,8 @@ export interface LibraryDefinition {
 export class Definitions {
   constructor(
     readonly entities: ReadonlyMap<string, t.Entity>,
-    readonly nodeDefinitions: ReadonlyMap<string, NodeDefinition>,
-    readonly libraryDefinitions: ReadonlyMap<string, LibraryDefinition>
+    readonly nodes: ReadonlyMap<string, NodeDefinition>,
+    readonly libraries: ReadonlyMap<string, LibraryDefinition>
   ) {}
 
   getEntity(entityName: string): t.Entity {
@@ -31,13 +31,13 @@ export class Definitions {
   }
 
   getNode(nodeName: string): NodeDefinition {
-    const nodeDefinition = this.nodeDefinitions.get(nodeName);
+    const nodeDefinition = this.nodes.get(nodeName);
     if (nodeDefinition) return nodeDefinition;
     throw new Error(`NodeSchema '${nodeName}' not found.`);
   }
 
   getLibrary(libraryName: string): LibraryDefinition {
-    const libraryDefinition = this.libraryDefinitions.get(libraryName);
+    const libraryDefinition = this.libraries.get(libraryName);
     if (libraryDefinition) return libraryDefinition;
     throw new Error(`LibrarySchema '${libraryName}' not found.`);
   }

@@ -8,7 +8,7 @@ export type ExpressionJson =
   | NumberLiteralExpressionJson
   | BooleanLiteralExpressionJson
   | EntityLiteralExpressionJson
-  | LibraryExportExpressionJson
+  | LibraryMemberExpressionJson
   | SceneInputExpressionJson
   | NodeOutputExpressionJson
   | FunctionCallExpressionJson;
@@ -43,10 +43,10 @@ export interface EntityLiteralExpressionJson {
   readonly value: unknown;
 }
 
-export interface LibraryExportExpressionJson {
-  readonly type: "library-export";
+export interface LibraryMemberExpressionJson {
+  readonly type: "library-member";
   readonly libraryName: string;
-  readonly exportName: string;
+  readonly memberName: string;
 }
 
 export interface SceneInputExpressionJson {
@@ -62,8 +62,8 @@ export interface NodeOutputExpressionJson {
 
 export interface FunctionCallExpressionJson {
   readonly type: "function-call";
-  readonly function: ExpressionJson;
-  readonly arguments: readonly (ExpressionJson | null)[];
+  readonly fn: ExpressionJson;
+  readonly args: readonly (ExpressionJson | null)[];
 }
 
 export class Expression {
@@ -108,12 +108,12 @@ export class Expression {
       const [segment, ...rest] = path;
       switch (segment.type) {
         case "fn": {
-          const fn = rebuild(json.function, rest);
-          return fn && { ...json, function: fn };
+          const fn = rebuild(json.fn, rest);
+          return fn && { ...json, fn };
         }
         case "arg": {
-          const oldArg = json.arguments[segment.index];
-          const args = [...json.arguments];
+          const oldArg = json.args[segment.index];
+          const args = [...json.args];
           if (oldArg) {
             args[segment.index] = rebuild(oldArg, rest);
           } else if (rest.length === 0) {
@@ -121,7 +121,7 @@ export class Expression {
           } else {
             throw new Error("Invalid path.");
           }
-          return { ...json, arguments: args };
+          return { ...json, args: args };
         }
       }
     }
@@ -139,19 +139,19 @@ export class Expression {
       path: readonly ExpressionPathSegment[]
     ): ExpressionJson {
       if (path.length === 0) {
-        return { type: "function-call", function: json, arguments: [] };
+        return { type: "function-call", fn: json, args: [] };
       }
       if (json.type !== "function-call") throw new Error(`Invalid 'path'.`);
       const [segment, ...rest] = path;
       switch (segment.type) {
         case "fn":
-          return { ...json, function: rebuild(json.function, rest) };
+          return { ...json, fn: rebuild(json.fn, rest) };
         case "arg": {
-          const oldArg = json.arguments[segment.index];
+          const oldArg = json.args[segment.index];
           if (!oldArg) throw new Error("Invalid path.");
-          const args = [...json.arguments];
+          const args = [...json.args];
           args[segment.index] = rebuild(oldArg, rest);
-          return { ...json, arguments: args };
+          return { ...json, args: args };
         }
       }
     }
@@ -162,23 +162,24 @@ export class Expression {
   /**
    * Returns a copy of `json` where each expression is replaced by the result of
    * calling `callback()` with that expression.
+   *
+   * If `callback` doesn't replace any expressions, returns a reference to
+   * `json` (`Object.is(expr.json, expr.map(...))` returns true).
    */
   map(
     callback: (json: ExpressionJson) => ExpressionJson | null
   ): ExpressionJson | null {
     function rebuild(json: ExpressionJson): ExpressionJson | null {
       const result = callback(json);
-      if (result?.type === "function-call") {
-        const functionJson = rebuild(result.function);
-        return (
-          functionJson && {
-            type: "function-call",
-            function: functionJson,
-            arguments: result.arguments.map((arg) => arg && rebuild(arg)),
-          }
-        );
-      }
-      return result;
+      if (result?.type !== "function-call") return result;
+
+      const fn = rebuild(result.fn);
+      if (!fn) return null;
+
+      const args = result.args.map((arg) => arg && rebuild(arg));
+      return fn === result.fn && args.every((arg, i) => arg === result.args[i])
+        ? result
+        : { type: "function-call", fn, args };
     }
 
     return rebuild(this.json);
@@ -201,13 +202,13 @@ export class Expression {
           return `${json.nodeId}::${json.outputName}`;
         case "scene-input":
           return `Scene::${json.inputName}`;
-        case "library-export":
-          return `${json.libraryName}::${json.exportName}`;
+        case "library-member":
+          return `${json.libraryName}::${json.memberName}`;
         case "function-call": {
-          const parameters = json.arguments
+          const parameters = json.args
             .map((p) => (p ? fmt(p) : "null"))
             .join(", ");
-          return `${fmt(json.function)}(${parameters})`;
+          return `${fmt(json.fn)}(${parameters})`;
         }
       }
     }
@@ -219,9 +220,9 @@ export class Expression {
 export interface ExpressionValidationContext {
   getEntity(entityName: string): t.Entity | null;
 
-  getLibraryExportType(
+  getLibraryMemberType(
     libraryName: string,
-    exportName: string
+    memberName: string
   ): t.KragleType | null;
 
   /**
@@ -264,14 +265,14 @@ function resolveTypes(
         return ctx.getNodeOutputType(json.nodeId, json.outputName);
       case "scene-input":
         return ctx.getSceneInputType(json.inputName);
-      case "library-export":
-        return ctx.getLibraryExportType(json.libraryName, json.exportName);
+      case "library-member":
+        return ctx.getLibraryMemberType(json.libraryName, json.memberName);
       case "function-call": {
         const functionPath = `${path}/fn`;
-        const functionType = resolveType(json.function, functionPath);
+        const functionType = resolveType(json.fn, functionPath);
         types.set(functionPath, functionType);
 
-        for (const [i, arg] of json.arguments.entries()) {
+        for (const [i, arg] of json.args.entries()) {
           const argPath = `${path}/arg(${i})`;
           const argType = arg && resolveType(arg);
           types.set(argPath, argType);
@@ -312,28 +313,24 @@ function resolveErrors(
           );
         }
         break;
-      case "library-export":
+      case "library-member":
         if (!type) {
           return (
-            `Library export '${json.libraryName}::${json.exportName}' not ` +
+            `Library export '${json.libraryName}::${json.memberName}' not ` +
             `found.`
           );
         }
         break;
       case "function-call": {
         const functionPath = `${path}/fn`;
-        const functionError = resolveError(
-          json.function,
-          t.any(),
-          functionPath
-        );
+        const functionError = resolveError(json.fn, t.any(), functionPath);
         if (functionError) errors.set(functionPath, functionError);
         const functionType = types.get(functionPath);
 
         if (functionType && t.Function.is(functionType)) {
           for (const [i, paramType] of functionType.parameters.entries()) {
             const argPath = `${path}/arg(${i})`;
-            const argJson = json.arguments[i];
+            const argJson = json.args[i];
             if (argJson) {
               const argError = resolveError(argJson, paramType, argPath);
               if (argError) errors.set(argPath, argError);
@@ -343,24 +340,24 @@ function resolveErrors(
           }
           for (
             let i = functionType.parameters.length;
-            i < json.arguments.length;
+            i < json.args.length;
             i++
           ) {
             const argPath = `${path}/arg(${i})`;
-            const argJson = json.arguments[i];
+            const argJson = json.args[i];
             if (argJson) {
               const argError = resolveError(argJson, t.any(), argPath);
               if (argError) errors.set(argPath, argError);
             }
           }
-          if (json.arguments.length > functionType.parameters.length) {
+          if (json.args.length > functionType.parameters.length) {
             return (
               `Expected ${functionType.parameters.length} arguments, got ` +
-              `${json.arguments.length}.`
+              `${json.args.length}.`
             );
           }
         } else {
-          for (const [i, argJson] of json.arguments.entries()) {
+          for (const [i, argJson] of json.args.entries()) {
             if (!argJson) continue;
             const argPath = `${path}/arg(${i})`;
             const argError = resolveError(argJson, t.any(), argPath);
@@ -385,15 +382,13 @@ function resolveErrors(
  */
 function trimFunctionCallArguments(json: ExpressionJson): ExpressionJson {
   if (json.type !== "function-call") return json;
-  const fn = trimFunctionCallArguments(json.function);
-  const args = json.arguments.map(
-    (arg) => arg && trimFunctionCallArguments(arg)
-  );
+  const fn = trimFunctionCallArguments(json.fn);
+  const args = json.args.map((arg) => arg && trimFunctionCallArguments(arg));
   const lastNonNullIndex = args.findLastIndex((json) => !!json);
   return {
     type: "function-call",
-    function: fn,
-    arguments: args.slice(0, lastNonNullIndex + 1),
+    fn,
+    args: args.slice(0, lastNonNullIndex + 1),
   };
 }
 
