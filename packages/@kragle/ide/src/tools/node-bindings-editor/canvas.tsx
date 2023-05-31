@@ -83,7 +83,8 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
               <path
                 key={childId}
                 className={cls.element("child-line")}
-                d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                // d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                d={`M ${x1} ${y1} L ${x2} ${y2}`}
               />
             );
           }
@@ -141,7 +142,9 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
                 <path
                   key={`${targetId}/${inputName}`}
                   className={cls.element("connection-line")}
+                  //d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
                   d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                  //d={`M ${x1} ${y1} L ${x2} ${y2}`}
                 />
               );
             }

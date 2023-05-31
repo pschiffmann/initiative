@@ -1,6 +1,7 @@
 import { NodeJson, NodeSchema, SceneDocument } from "@kragle/runtime";
 
 export function useLayout(document: SceneDocument) {
+  //return calculateLayout2(document);
   return calculateLayout(document);
 }
 
@@ -52,7 +53,7 @@ interface nodeBox0 {
   /**
    * Stores Tunnels to connect to as tunnelIDs.
    */
-  connections?: Array<string>;
+  connections: Array<string>;
 }
 function calculateLayout(document: SceneDocument): Layout {
   /*
@@ -128,6 +129,7 @@ function calculateLayout(document: SceneDocument): Layout {
             document.nodeDefinitions.get(document.getNode(c)!.type)!.schema,
             document.getNode(c)!
           ).height,
+          connections: new Array(),
         };
         allnodes.set(c, child);
         if (!columns.has(depth)) {
@@ -157,93 +159,6 @@ function calculateLayout(document: SceneDocument): Layout {
     }
   }
 
-  // Parenting
-  // currently unused, needed for tunnels
-  /**
-   * Map<column, Map<parentID, Map<childID, size>>>
-   */
-  /*
-  let superstructur: Map<number, Map<string, Map<string, number>>> = new Map();
-  for (let d = 0; d <= depth; d++) {
-    superstructur.set(d, new Map());
-  }
-  for (let [d, parents] of columns) {
-    for (let p of parents) {
-      superstructur.get(d)!.set(p, new Map());
-    }
-  }
-  for (let n of allnodes.values()) {
-    if (n.column == 0) {
-      continue;
-    }
-    superstructur
-      .get(n.column - 1)!
-      .get(n.parent)!
-      .set(n.ID, n.size);
-  }
-  for (let n of allnodes.values()) {
-    if (n.column - 2 <= 0) {
-      continue;
-    }
-    let bindings = document.getNode(n.ID)!.inputs;
-    for (let i of n.inputs) {
-      let bind = bindings[i];
-      if (!bind) {
-        continue;
-      }
-      if (bind.type !== "node-output") {
-        continue;
-      }
-      if (bind.nodeId == n.parent) {
-        continue;
-      }
-      for (let d = n.column - 1; d >= 0; d--) {
-        if (superstructur.get(d)!.has(bind.nodeId)) {
-          break;
-        }
-        if (!superstructur.get(d)!.has("tunnel")) {
-          superstructur.get(d)!.set("tunnel", new Map());
-        }
-        if (!superstructur.get(d)!.get("tunnel")!.has(bind.nodeId)) {
-          superstructur.get(d)!.get("tunnel")!.set(bind.nodeId, 0);
-        }
-        let tunnelcurrentsize = superstructur
-          .get(d)!
-          .get("tunnel")!
-          .get(bind.nodeId)!;
-        superstructur
-          .get(d)!
-          .get("tunnel")!
-          .set(bind.nodeId, tunnelcurrentsize + 5);
-      }
-    }
-  }
-
-  // largest column
-  // not needed anymore
-  // might need for tunnels
-  let largestcolumnsize: number = 0;
-  let largestcolumnID: number;
-  for (let [column, data] of superstructur) {
-    let columnsize: number = 0;
-    for (let node of data.keys()) {
-      if (node == "tunnel") {
-        for (let tunnel of data.get(node)!.values()) {
-          columnsize += tunnel;
-        }
-        continue;
-      }
-      columnsize += allnodes.get(node)!.size;
-    }
-    if (columnsize >= largestcolumnsize) {
-      largestcolumnsize = columnsize;
-      largestcolumnID = column;
-    }
-  }
-  root.centerline = root.size / 2;
-  root.position = [0, 0];
-*/
-
   // geography
   const gcolumns: Map<
     number,
@@ -265,10 +180,6 @@ function calculateLayout(document: SceneDocument): Layout {
         gcolumns.get(d)!.set(node.parent, [[-1, -1], new Array()]);
       }
       let gcx = gcolumns.get(d)!.get(node.parent)![0];
-      /*
-      gcx[0] = Math.max(gcx[0], node.chain[0]);
-      gcx[1] = Math.max(gcx[1], node.chain[1]);
-      */
       if (gcx[0] == -1 && gcx[1] == -1 && node.parent !== "") {
         gcx = allnodes.get(node.parent)!.chain;
       }
@@ -301,7 +212,7 @@ function calculateLayout(document: SceneDocument): Layout {
     }
   }
 
-  // 2d
+  // 1d
   for (const [d, gcolumn] of gcolumns) {
     let previousgroupmaxposition: number = Number.NEGATIVE_INFINITY; // needed to allow a new row to start at any Ycooridinate
     const sgcolumn: Array<
@@ -319,10 +230,8 @@ function calculateLayout(document: SceneDocument): Layout {
       }
 
       return (
-        allnodes.get(b[0])!.centerline! * 100 + // to always allign nodes to their parents sort by centerline
-        b[1][0][0] * 100 +
-        b[1][0][1] -
-        (allnodes.get(a[0])!.centerline! * 100 + a[1][0][0] * 100 + a[1][0][1])
+        allnodes.get(b[0])!.centerline! - // to always allign nodes to their parents sort by centerline
+        allnodes.get(a[0])!.centerline!
       );
     });
     for (const [parent, group] of sgcolumn) {
@@ -357,7 +266,62 @@ function calculateLayout(document: SceneDocument): Layout {
     }
   }
 
-  // width
+  // create metro
+  const metroplan: Map<
+    string,
+    [outputs: Array<string>, inputs: Array<string>]
+  > = new Map();
+  for (const node of allnodes.values()) {
+    const nodeJson = document.getNode(node.ID);
+    for (const input of node.inputs) {
+      const binding = nodeJson!.inputs[input];
+      if (binding == undefined) {
+        continue;
+      }
+      if (binding.type !== "node-output") {
+        continue;
+      }
+      const origin = allnodes.get(binding.nodeId)!;
+      if (node.column - origin.column <= 1) {
+        continue;
+      }
+      const tunnel: string = origin.column + "-" + node.column;
+      if (!metroplan.has(tunnel)) {
+        metroplan.set(tunnel, [new Array(), new Array()]);
+      }
+      metroplan.get(tunnel)![0].push(origin.ID);
+      metroplan.get(tunnel)![1].push(node.ID);
+      node.connections.push(tunnel + node.ID);
+    }
+  }
+
+  // chart geology
+  const soillayout: Array<
+    [
+      column_start: number,
+      column_end: number,
+      size: number,
+      Ycoordinate: number
+    ]
+  > = new Array();
+  for (const [tunnel, data] of metroplan) {
+    const start: number = parseInt(tunnel.slice(0, tunnel.indexOf("-")));
+    const end: number = parseInt(tunnel.slice(tunnel.indexOf("-")));
+    soillayout.push([start, end, data[0].length, 0]);
+  }
+  soillayout.sort(function (a, b) {
+    return (
+      a[1] -
+      a[0] +
+      (1 - 1 / a[2]) * 10 +
+      (1 - 1 / b[0]) -
+      ((b[1] - b[0] + (1 - 1 / b[2])) * 10 + (1 - 1 / a[0]))
+    );
+  });
+  // todo
+  // insert tunnels
+
+  // 2d
   let maxwidth: number = 415;
   const maxangle: number = 75;
   for (const [d, c] of columns) {
@@ -424,270 +388,209 @@ function calculateLayout(document: SceneDocument): Layout {
   };
 }
 
-interface nodesBox {
-  readonly column: number;
-  row?: [number, number];
+interface nodeBox {
   readonly ID: string;
+  readonly parentID: string;
+  readonly dimensions: any;
+  readonly column: number;
   readonly inputs: Array<string>;
-  /**
-   * Map<columnfrom-columnto,  Set<nodeIDs>>
-   */
-  readonly connections: Map<string, Set<string>>;
-  /**
-   * Array<[strength_of_group, groupID]>
-   */
-  group?: Array<[string, number]>;
+  readonly outputs: Array<string>;
+  readonly children: Array<string>;
+  readonly chain: [length: number, size: number];
+  position: [Xcoordinate: number, Ycoordinate: number];
 }
 
 function calculateLayout2(document: SceneDocument): Layout {
-  /*
-  let nodeid = document.getRootNodeId()
-  let nodeJson = document.getNode(nodeid!)
-  let childids = Object.values(nodeJson!.slots)
-  let schema = document.nodeDefinitions.get(nodeJson!.type)!.schema
-  let inputNames = Object.keys(schema.inputs)
-  let outputNames = Object.keys(schema.outputs)
-  let binding = nodeJson!.inputs[inputNames[0]]
-  */
+  const allnodeS: Map<string, nodeBox> = new Map();
+  const allcolumnS: Map<number, Array<string>> = new Map();
+  const parentsizeS: Map<string, number> = new Map();
 
-  // input initiating
-  let allnodes: Map<string, nodesBox> = new Map();
-  let root: nodesBox = {
-    column: 0,
-    row: [0, -1],
-    ID: document.getRootNodeId()!,
-    inputs: new Array(),
-    connections: new Map(),
-  };
-  allnodes.set(document.getRootNodeId()!, root);
-
-  // input unzip
-  let children: Array<string> = Object.values(document.getNode(root.ID)!.slots);
-  let grandchildren: Array<string> = [];
-  let depth: number = 1;
-  do {
-    for (let c of children) {
-      let nodeJson = document.getNode(c);
-      let inputNames = Object.keys(
-        document.nodeDefinitions.get(nodeJson!.type)!.schema.inputs
-      );
-      let inputIDs: Array<string> = new Array();
-      for (let i of inputNames) {
-        let binding = nodeJson!.inputs[i];
-        if (!binding) {
-          continue;
-        }
-        if (binding.type !== "node-output") {
-          continue;
-        }
-        inputIDs.push(binding.nodeId);
+  function unzip(nodeID: string, nodeparent: string, column: number): number {
+    const nodeJson = document.getNode(nodeID)!;
+    const schema = document.nodeDefinitions.get(nodeJson!.type)!.schema;
+    const childIDs = Object.values(nodeJson!.slots);
+    const chainraw: [number, number] = [0, childIDs.length];
+    if (chainraw[1] > 0) {
+      for (const child of childIDs) {
+        chainraw[0] += unzip(child, nodeID, column + 1);
       }
-      let child: nodesBox = {
-        column: depth,
-        row: [-1, -1],
-        ID: c,
-        inputs: inputIDs,
-        connections: new Map(),
-      };
-      allnodes.set(c, child);
-      let grandchildrencheck = Object.values(nodeJson!.slots);
-      if (grandchildrencheck.length == 0) {
-        continue;
-      }
-      grandchildren = grandchildren.concat(grandchildrencheck);
     }
-    children = [];
-    if (grandchildren.length > 0) {
-      children = grandchildren;
-      grandchildren = new Array();
-      depth += 1;
+    const node: nodeBox = {
+      ID: nodeID,
+      parentID: nodeparent,
+      dimensions: calculateInnerDimensions(schema, nodeJson),
+      column: column,
+      inputs: Object.keys(schema.inputs),
+      outputs: Object.keys(schema.outputs),
+      children: childIDs,
+      chain: chainraw,
+      position: [0, 0],
+    };
+    allnodeS.set(nodeID, node);
+    if (!allcolumnS.has(column)) {
+      allcolumnS.set(column, new Array());
     }
-  } while (children.length > 0);
+    allcolumnS.get(column)!.push(nodeID);
+    if (!parentsizeS.has(nodeparent)) {
+      parentsizeS.set(nodeparent, 0);
+    }
+    parentsizeS.set(
+      nodeparent,
+      parentsizeS.get(nodeparent) + node.dimensions.height
+    );
+    return chainraw[0] + 1;
+  }
+  unzip(document.getRootNodeId()!, "", 0);
 
-  // connections find
-  for (let n of allnodes.values()) {
-    if (n.inputs.length == 0) {
-      continue;
-    }
-    for (let c of n.inputs) {
-      let column_from = allnodes.get(c)!.column;
-      let column_too = n.column;
-      let connection = `${column_from}-${column_too}`;
-      if (!n.connections.has(connection)) {
-        n.connections.set(connection, new Set());
-      }
-      n.connections.get(connection)!.add(c);
-    }
-  }
-
-  // grouping sort initiating
-  /**
-   * Map<columnfrom-columnto, Set<nodeID>>
-   */
-  let groups: Map<string, Set<string>> = new Map();
-  for (let n of allnodes.values()) {
-    if (n.connections.size == 0) {
-      continue;
-    }
-    for (let c of n.connections) {
-      if (!groups.has(c[0])) {
-        groups.set(c[0], new Set());
-      }
-      groups.get(c[0])?.add(n.ID);
-    }
-  }
-
-  // grouping clusters
-  let groupmaxsize: number = 0;
-  for (let g of groups.values()) {
-    //finding groupmaxsize for groupweight
-    groupmaxsize = Math.max(groupmaxsize, g.size);
-  }
-  /**
-   * Map<column, Map<columnfrom-columnto, weight>>
-   */
-  let clusters: Map<number, Map<string, number>> = new Map();
-  for (let i = 0; i <= depth; i++) {
-    //filling clusters to match depth of tree
-    clusters.set(i, new Map());
-  }
-  for (let g of groups) {
-    //sorting connections into columns
-    let columnfrom: number = parseInt(g[0].slice(0, g[0].indexOf("-")));
-    let columnto: number = parseInt(g[0].slice(g[0].indexOf("-") + 1));
-    let groupweight: number = g[1].size / groupmaxsize;
-    let stretch: number = 1 - (columnto - columnfrom) / depth;
-    clusters.get(columnto)!.set(g[0], (groupweight + stretch) / 2);
-  }
-
-  // sorting groups in rows
-  /**
-   * Map<column, Array<sortet columnfrom-columnto>>
-   */
-  let rowslayout: Map<number, Array<string>> = new Map();
-  for (let c of clusters.entries()) {
-    let rowzip: Array<[string, number]> = [];
-    for (let e of c[1].entries()) {
-      rowzip.push(e);
-    }
-    rowzip.sort(function (a, b) {
-      return a[1] - b[1];
-    });
-    let row: Array<string> = [];
-    rowzip.forEach(function (value) {
-      row.push(value[0]);
-    });
-    rowslayout.set(c[0], row);
-  }
-
-  // weight arrays
-  for (let n of allnodes.values()) {
-    let weightarray: Array<[string, number]> = [];
-    for (let c of n.connections) {
-      weightarray.push([c[0], clusters.get(n.column)!.get(c[0])! * c[1].size]);
-    }
-    // sort weight array
-    weightarray.sort(function (a, b) {
-      return b[1] - a[1];
-    });
-    n.group = weightarray;
-  }
-
-  // assigning places
-  // dual weight
-  for (let n of allnodes.values()) {
-    let a: number = -1;
-    let b: number = -1;
-    if (n.group!.length > 0) {
-      a = rowslayout.get(n.column)!.indexOf(n.group![0][0]);
-      b = n.group![0][1];
-    }
-    if (n.group!.length > 1) {
-      b = n.group![1][1];
-    }
-    n.row = [a, b];
-  }
-
-  // creating layout
-  // dual weight
-  /* 2d
-  let outputraw: Array<Array<[string, number]>> = [];
-  */
-  // 1d
-  let outputraw: Array<Array<string>> = [];
-  //*/
-  for (let d = 0; d <= depth; d++) {
-    let columnraw: Array<[string, number, number]> = [];
-    for (let n of allnodes.values()) {
-      if (n.column != d) {
-        continue;
-      }
-      columnraw.push([n.ID, n.row![0], n.row![1]]);
-    }
-    columnraw.sort(function (a, b) {
-      return b[1] * 10 + b[2] - (a[1] * 10 + a[2]);
-    });
-    /* 2d
-    let columnlayout: Array<[string, number]> = [];
-    let alternate: number = 0;
-    let direction: Boolean = true;
-    columnraw.forEach(function (value)
-    {
-      if (alternate != value[1])
-      {
-        alternate = value[1];
-        direction = !direction;
-      }
-      if (direction)
-      {
-        columnlayout.push([value[0], 1]);
+  function pyramid(ramparray: Array<string>): Array<string> {
+    const output: Array<any> = new Array();
+    let alternate: boolean = true;
+    for (const element of ramparray) {
+      if (alternate) {
+        output.push(element);
       } else {
-        columnlayout.unshift([value[0], -1]);
+        output.unshift(element);
       }
-    })
-    outputraw.push(columnlayout);
-    */
-    //*/ 1d
-    let columnlayout: Array<string> = [];
-    columnraw.forEach(function (value) {
-      columnlayout.push(value[0]);
-    });
-    outputraw.push(columnlayout);
-    //*/
+      alternate != alternate;
+    }
+    return output;
   }
 
-  // compiling layout
-  // dual weight
-  // no tunnels
-  // 1d
-  let output: Record<string, NodeBoxPosition> = {};
-  let width: number = 16;
-  let maxheight: number = 0;
-  for (let c of outputraw) {
-    width = width + 400;
-    let height: number = 0;
-    for (let r of c) {
-      let offsetLeft: number = 16 + 400 * allnodes.get(r)!.column;
-      let nodeJson = document.getNode(r);
-      let innerDimensions = calculateInnerDimensions(
-        document.nodeDefinitions.get(nodeJson!.type)!.schema,
-        nodeJson!
-      );
-      output[r] = {
-        offsetLeft: offsetLeft,
-        offsetTop: height + 16,
-        ...innerDimensions,
-      };
-      height = height + 16 + innerDimensions.height;
-      if (maxheight < height) {
-        maxheight = height;
+  // sorting
+  for (let column = 0; column < allcolumnS.size; column++) {
+    // recursions are stupid, everything is out of order
+    let nodeS = allcolumnS.get(column)!;
+    if (column === 0) {
+      continue;
+    }
+    const subdevidedsortetcolumnS: Map<string, Array<string>> = new Map();
+    for (const nodeID of nodeS) {
+      const node = allnodeS.get(nodeID)!;
+      if (!subdevidedsortetcolumnS.has(node.parentID)) {
+        subdevidedsortetcolumnS.set(node.parentID, new Array());
       }
+      subdevidedsortetcolumnS.get(node.parentID)!.push(node.ID);
+    }
+    const sortedcolumnS: Array<Array<string>> = new Array();
+    for (const [parent, sdscolumn] of subdevidedsortetcolumnS) {
+      sdscolumn.sort(function (a, b) {
+        const nodeA = allnodeS.get(a)!;
+        const nodeB = allnodeS.get(b)!;
+        return (
+          nodeA.chain[0] +
+          (1 - 1 / (nodeA.chain[1] + (1 - 1 / nodeA.dimensions.height))) -
+          nodeB.chain[0] +
+          (1 - 1 / (nodeB.chain[1] + (1 - 1 / nodeB.dimensions.height)))
+        );
+      });
+      sortedcolumnS.push(pyramid(sdscolumn));
+    }
+    sortedcolumnS.sort(function (a, b) {
+      const parentA = allnodeS.get(a[0])!.parentID;
+      const parentB = allnodeS.get(b[0])!.parentID;
+      return (
+        allcolumnS.get(column - 1)!.indexOf(parentA) -
+        allcolumnS.get(column - 1)!.indexOf(parentB)
+      );
+    });
+    nodeS = new Array();
+    for (const scolumn of sortedcolumnS) {
+      nodeS = nodeS.concat(scolumn);
+    }
+    allcolumnS.set(column, nodeS);
+  }
+
+  function collision(list: Array<string>, target: number): number {
+    const node = allnodeS.get(list.pop()!)!;
+    if (node.position[1] + node.dimensions.height <= target) {
+      return target;
+    }
+    if (list.length === 0) {
+      node.position[1] +=
+        (node.position[1] + node.dimensions.height - target) / 2;
+      return node.position[1] + node.dimensions.height;
+    }
+    node.position[1] = collision(
+      list,
+      node.position[1] - (node.position[1] + node.dimensions.height - target)
+    );
+    return node.position[1] + node.dimensions.height;
+  }
+
+  // assigning first position
+  for (let column = 0; column < allcolumnS.size; column++) {
+    // recursions are stupid, everything is out of order
+    const nodeS = allcolumnS.get(column)!;
+    if (column === 0) {
+      continue;
+    }
+    let offset: number = 0;
+    let previousparentID: string = "";
+    for (let i = 0; i < nodeS.length; i++) {
+      const node = allnodeS.get(nodeS[i])!;
+      const parent = allnodeS.get(node.parentID)!;
+      if (previousparentID != node.parentID) {
+        offset = 0;
+        previousparentID = node.parentID;
+      }
+      if (i == 0) {
+        node.position[1] =
+          parent.position[1] +
+          parent.dimensions.height / 2 -
+          parentsizeS.get(node.parentID)! / 2 -
+          node.dimensions.height / 2 +
+          offset;
+        offset += node.dimensions.height;
+        continue;
+      }
+      node.position[1] = collision(
+        nodeS.slice(0, i),
+        parent.position[1] +
+          parent.dimensions.height / 2 -
+          parentsizeS.get(node.parentID)! / 2 -
+          node.dimensions.height / 2 +
+          offset
+      );
+      offset += node.dimensions.height;
     }
   }
 
+  let maxwidth: number = 0;
+  // assign width
+  for (const node of allnodeS.values()) {
+    node.position[0] = node.column * 400 + 15;
+    maxwidth = Math.max(maxwidth, node.position[0] + 400);
+  }
+
+  let minheight: number = 0;
+  let maxheight: number = 0;
+  // find bounds
+  for (const node of allnodeS.values()) {
+    minheight = Math.min(minheight, node.position[1] + 15);
+    maxheight = Math.max(
+      maxheight,
+      node.position[1] + node.dimensions.height + 15
+    );
+  }
+
+  // adjust
+  for (const node of allnodeS.values()) {
+    node.position[1] += Math.abs(minheight + 15);
+  }
+  maxheight += Math.abs(minheight);
+
+  // output generation
+  const output: Record<string, NodeBoxPosition> = {};
+  for (const node of allnodeS.values()) {
+    output[node.ID] = {
+      offsetLeft: node.position[0],
+      offsetTop: node.position[1],
+      ...node.dimensions,
+    };
+  }
   return {
-    canvasWidth: width,
-    canvasHeight: maxheight,
+    canvasWidth: maxwidth + 15,
+    canvasHeight: maxheight + 15,
     nodeBoxPositions: output,
   };
 }
