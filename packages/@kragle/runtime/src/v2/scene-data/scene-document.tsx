@@ -59,6 +59,21 @@ export class SceneDocument {
   }
 
   /**
+   * Returns all node ids in this document, in breadth-first iteration order.
+   */
+  keys(): string[] {
+    if (!this.#rootNodeId) return [];
+
+    const result = [this.#rootNodeId];
+    for (const nodeId of result) {
+      this.#nodes.get(nodeId)!.forEachSlot((childId) => {
+        if (childId) result.push(childId);
+      });
+    }
+    return result;
+  }
+
+  /**
    * Returns a node id that doesn't exist in this repository.
    */
   #generateNodeId(schema: NodeSchema): string {
