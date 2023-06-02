@@ -342,3 +342,92 @@ export const nodeBoxSizes = {
   connectorOffsetX: 8,
   connectorOffsetY: 24,
 };
+
+// function calculateLayout2(document: SceneDocument): Layout {
+//   // Node ids by column.
+//   const columns: string[][] = [];
+
+//   const queue: [string, number][] = [[document.getRootNodeId()!, 0]];
+//   for (const [nodeId, column] of queue) {
+//     (columns[column] ??= []).push(nodeId);
+//     const nodeJson = document.getNode(nodeId)!;
+//     const { schema } = document.nodeDefinitions.get(nodeJson.type)!;
+//     for (const slotName of Object.keys(schema.slots)) {
+//       if (schema.isCollectionSlot(slotName)) {
+//         for (const childId of nodeJson.collectionSlots[slotName]) {
+//           queue.push([childId, column + 1]);
+//         }
+//       } else {
+//         const childId = nodeJson.slots[slotName];
+//         if (!childId) continue;
+//         queue.push([childId, column + 1]);
+//       }
+//     }
+//   }
+
+//   throw new Error();
+// }
+
+/**
+ *
+ *
+ * layout 2
+ *
+ *
+ */
+
+function calculateLayout2(document: SceneDocument): Layout {
+  const tunnelPositions = new Map<string, number>();
+
+  throw new Error();
+}
+
+interface NodeExpando {
+  readonly ancestors: readonly string[];
+  readonly children: readonly string[];
+  readonly descendantCount: number;
+  readonly innerDimensions: NodeBoxDimensions;
+  readonly tunnelHeight: number;
+}
+
+/**
+ * Fills `tunnelPositions` in-place. Returns the ordered list of nodes +
+ * descendants.
+ */
+function resolveTunnelPosition(
+  expandos: ReadonlyMap<string, NodeExpando>,
+  nodeId: string,
+  tunnelPositions: Map<string, number>
+): string[] {
+  const expando = expandos.get(nodeId)!;
+
+  const descendants = expando.children.flatMap((childId) =>
+    resolveTunnelPosition(expandos, childId, tunnelPositions)
+  );
+
+  let bestPosition = Math.trunc(Math.random() * descendants.length + 1);
+  // let bestPosition = 0;
+  // let bestScore = Number.POSITIVE_INFINITY;
+  // for (let i = 0; i <= descendants.length; i++) {}
+
+  tunnelPositions.set(nodeId, bestPosition);
+  descendants.splice(bestPosition, 0, nodeId);
+  return descendants;
+}
+
+function calculateTunnelScoreAfter(
+  expandos: ReadonlyMap<string, NodeExpando>,
+  nodeId: string,
+  tunnelPositions: Map<string, number>,
+  tunnelPosition: number
+): number {
+  const expando = expandos.get(nodeId)!;
+  let score = 0;
+
+  // Handle "after" descendants top to bottom
+  for (let i = tunnelPosition; i < expando.descendantCount; i++) {}
+
+  return score;
+}
+
+function resolveNodeBoxPosition() {}
