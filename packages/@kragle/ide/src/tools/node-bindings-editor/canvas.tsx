@@ -83,7 +83,7 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
               <path
                 key={childId}
                 className={cls.element("child-line")}
-                d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                d={`M ${x1} ${y1} C ${x2} ${y1} ${x1} ${y2} ${x2} ${y2}`}
               />
             );
           }
@@ -122,6 +122,7 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
               const sourceOutputOffset =
                 sourcePosition.outputOffsets[binding.outputName];
 
+              // Source box output position
               const x1 =
                 sourcePosition.offsetLeft +
                 nodeBoxSizes.boxWidth +
@@ -130,18 +131,24 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
                 sourcePosition.offsetTop +
                 sourceOutputOffset +
                 nodeBoxSizes.connectorOffsetY;
+              // Column gap before target box
               const x2 =
+                targetPosition.offsetLeft -
+                (nodeBoxSizes.columnWidth - nodeBoxSizes.boxWidth);
+              const y2 = y1;
+              // Target box input position
+              const x3 =
                 targetPosition.offsetLeft - nodeBoxSizes.connectorOffsetX;
-              const y2 =
+              const y3 =
                 targetPosition.offsetTop +
                 targetInputOffset +
                 nodeBoxSizes.connectorOffsetY;
-              const center = (x1 + x2) / 2;
+              const center = (x2 + x3) / 2;
               lines.push(
                 <path
                   key={`${targetId}/${inputName}`}
                   className={cls.element("connection-line")}
-                  d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                  d={`M ${x1} ${y1} L ${x2} ${y2} C ${center} ${y2} ${center} ${y3} ${x3} ${y3}`}
                 />
               );
             }

@@ -52,14 +52,9 @@ function calculateLayout(document: SceneDocument): Layout {
   );
 
   const nodeBoxPositions: Record<string, NodeBoxPosition> = {};
-  calculateNodeBoxPosition(
-    nodeBoxPositions,
-    dimensionsMap,
-    treeHeightsMap,
-    document,
-    document.getRootNodeId()!,
-    0
-  );
+  for (const [nodeId, dimensions] of dimensionsMap) {
+    nodeBoxPositions[nodeId] = { ...dimensions, ...positions[nodeId] };
+  }
 
   let canvasWidth = 0;
   let canvasHeight = 0;
@@ -76,6 +71,95 @@ function calculateLayout(document: SceneDocument): Layout {
 
   return { canvasWidth, canvasHeight, nodeBoxPositions };
 }
+
+const positions: Record<
+  string,
+  {
+    offsetLeft: number;
+    offsetTop: number;
+  }
+> = {
+  ArticlcesRepository: {
+    offsetLeft: 0,
+    offsetTop: 1336,
+  },
+  PageLayout: {
+    offsetLeft: 480,
+    offsetTop: 1090,
+  },
+  PageTitle: {
+    offsetLeft: 960,
+    offsetTop: 8,
+  },
+  NewArticleDialog: {
+    offsetLeft: 960,
+    offsetTop: 312,
+  },
+  NewArticleButton: {
+    offsetLeft: 1440,
+    offsetTop: 208,
+  },
+  NewArticleBloc: {
+    offsetLeft: 1440,
+    offsetTop: 552,
+  },
+  ArticlesTable: {
+    offsetLeft: 960,
+    offsetTop: 818,
+  },
+  IdColumn: {
+    offsetLeft: 1440,
+    offsetTop: 784,
+  },
+  IdColumnText: {
+    offsetLeft: 1920,
+    offsetTop: 784,
+  },
+  NameColumn: {
+    offsetLeft: 1440,
+    offsetTop: 1056,
+  },
+  NameColumnText: {
+    offsetLeft: 1920,
+    offsetTop: 1056,
+  },
+  PriceColumn: {
+    offsetLeft: 1440,
+    offsetTop: 1664,
+  },
+  PriceColumnText: {
+    offsetLeft: 1920,
+    offsetTop: 1664,
+  },
+  EditColumn: {
+    offsetLeft: 1440,
+    offsetTop: 2392,
+  },
+  EditArticleButton: {
+    offsetLeft: 1920,
+    offsetTop: 1936,
+  },
+  EditArticleBloc: {
+    offsetLeft: 1920,
+    offsetTop: 2500,
+  },
+  EditArticleFormLayout: {
+    offsetLeft: 2400,
+    offsetTop: 2368,
+  },
+  EditArticleNameTextField: {
+    offsetLeft: 2880,
+    offsetTop: 2278,
+  },
+  EditArticlePriceTextField: {
+    offsetLeft: 2880,
+    offsetTop: 2528,
+  },
+  UpdateArticleButton: {
+    offsetLeft: 2880,
+    offsetTop: 2776,
+  },
+};
 
 /**
  * Fills `innerDimensionsMap`, `treeHeightsMap` and `columnsMap` in-place.
