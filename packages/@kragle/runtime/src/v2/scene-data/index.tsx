@@ -8,3 +8,4 @@ export {
   type SceneDocumentPatch,
   type SetNodeInputPatch,
 } from "./scene-document.js";
+export * from "./serialization.js";
