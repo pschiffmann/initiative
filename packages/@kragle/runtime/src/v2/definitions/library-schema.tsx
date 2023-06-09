@@ -8,16 +8,16 @@ export class LibrarySchema<M extends t.KragleTypeRecord = {}> {
   constructor(readonly name: string, members: M) {
     validateLibraryName(name);
 
-    const canonicalizedExports: Record<string, t.KragleType> = {};
-    for (const [exportName, type] of Object.entries(members)) {
-      validateLibraryExportName(name, exportName);
-      canonicalizedExports[exportName] = type.canonicalize();
+    const canonicalizedMembers: Record<string, t.KragleType> = {};
+    for (const [memberName, type] of Object.entries(members)) {
+      validateLibraryExportName(name, memberName);
+      canonicalizedMembers[memberName] = type.canonicalize();
     }
-    this.exports = canonicalizedExports;
+    this.members = canonicalizedMembers;
   }
 
-  readonly exports: t.KragleTypeRecord;
+  readonly members: t.KragleTypeRecord;
 }
 
-export type InferNamespaceMembers<L extends LibrarySchema> =
+export type InferLibraryMembers<L extends LibrarySchema> =
   L extends LibrarySchema<infer M> ? t.UnwrapRecord<M> : {};

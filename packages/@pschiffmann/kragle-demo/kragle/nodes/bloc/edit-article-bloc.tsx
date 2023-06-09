@@ -1,9 +1,8 @@
 import { useState } from "react";
 import {
-  Article,
-  formatArticlePrice,
-  parseArticlePrice,
-} from "./article-repository.js";
+  Article$getFormattedPrice,
+  Article$parseFormattedPrice,
+} from "../../libraries/article.js";
 import { EditArticleBlocProps } from "./edit-article-bloc.schema.js";
 
 export function EditArticleBloc({
@@ -12,8 +11,8 @@ export function EditArticleBloc({
   slots,
   OutputsProvider,
 }: EditArticleBlocProps) {
-  const [name, setName] = useState((article as Article).name);
-  const [price, setPrice] = useState(formatArticlePrice(article as Article));
+  const [name, setName] = useState(article.name);
+  const [price, setPrice] = useState(Article$getFormattedPrice(article));
 
   function save() {
     if (!name) {
@@ -22,13 +21,11 @@ export function EditArticleBloc({
     }
     let parsedPrice: number;
     try {
-      parsedPrice = parseArticlePrice(price);
+      parsedPrice = Article$parseFormattedPrice(price);
+      updateArticle({ ...article, name, price: parsedPrice });
     } catch (e) {
       alert(e);
-      return;
     }
-    updateArticle({ ...article, name, parsedPrice });
-    alert("Saved!");
   }
 
   return (

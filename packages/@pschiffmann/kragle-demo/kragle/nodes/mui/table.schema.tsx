@@ -1,7 +1,8 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { t } from "@kragle/runtime";
+import { InferProps, NodeSchema } from "@kragle/runtime/v2";
 
 export const MuiTableSchema = new NodeSchema(
-  "@pschiffmann/kragle-demo/MuiTable",
+  "@pschiffmann/kragle-demo::MuiTable",
   {
     inputs: {
       rows: t.array(t.any()),

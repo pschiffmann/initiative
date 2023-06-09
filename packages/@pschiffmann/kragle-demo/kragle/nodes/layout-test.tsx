@@ -1,4 +1,5 @@
-import { NodeSchema, t } from "@kragle/runtime";
+import { t } from "@kragle/runtime";
+import { NodeSchema } from "@kragle/runtime/v2";
 import { ComponentType } from "react";
 
 function createNodeSchema(
@@ -9,7 +10,7 @@ function createNodeSchema(
   return [
     () => null,
     new NodeSchema(
-      `@pschiffmann/kragle-demo/LayoutTest${inputs}i${outputs}o${slots}s`,
+      `@pschiffmann/kragle-demo::LayoutTest${inputs}i${outputs}o${slots}s`,
       {
         inputs: Object.fromEntries(
           new Array(inputs).fill(null).map((_, i) => [`i${i + 1}`, t.any()])
@@ -18,7 +19,7 @@ function createNodeSchema(
           new Array(outputs).fill(null).map((_, i) => [`o${i + 1}`, t.any()])
         ),
         slots: Object.fromEntries(
-          new Array(slots).fill(null).map((_, i) => [`${i + 1}`, {}])
+          new Array(slots).fill(null).map((_, i) => [`s${i + 1}`, {}])
         ),
       }
     ),

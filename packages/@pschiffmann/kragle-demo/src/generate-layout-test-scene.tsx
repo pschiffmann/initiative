@@ -1,9 +1,9 @@
 import {
-  InputBindingJson,
+  ExpressionJson,
   NodeJson,
   NodeSchema,
   SceneJson,
-} from "@kragle/runtime";
+} from "@kragle/runtime/v2";
 import fs from "fs";
 import {
   LayoutTest0i2o1sSchema,
@@ -65,19 +65,19 @@ main();
 
 function generateNode(
   nodes: Record<string, NodeJson>,
-  ancestorOutputs: readonly InputBindingJson[],
+  ancestorOutputs: readonly ExpressionJson[],
   nodeId: string,
   maxDepth: number
 ) {
   const schema = schemas[randomInt(schemas.length)];
-  const inputs: Record<string, InputBindingJson> = {};
-  for (const inputName of Object.keys(schema.inputs)) {
+  const inputs: Record<string, ExpressionJson> = {};
+  for (const inputName of Object.keys(schema.inputTypes)) {
     if (ancestorOutputs.length !== 0 && Math.random() < inputProbablity) {
       inputs[inputName] = randomElement(ancestorOutputs);
     }
   }
   const slots: Record<string, string> = {};
-  for (const [i, slotName] of Object.keys(schema.slots).entries()) {
+  for (const [i, slotName] of Object.keys(schema.slotAttributes).entries()) {
     if (maxDepth > 0 && Math.random() < childProbablity) {
       slots[slotName] = `${nodeId}x${i + 1}`;
     }
@@ -85,14 +85,12 @@ function generateNode(
   const nodeJson = (nodes[nodeId] = {
     type: schema.name,
     inputs,
-    collectionInputs: {},
     slots,
-    collectionSlots: {},
   });
 
   const nextAncestorOutputs = [
     ...ancestorOutputs,
-    ...Object.keys(schema.outputs).map<InputBindingJson>((outputName) => ({
+    ...Object.keys(schema.outputTypes).map<ExpressionJson>((outputName) => ({
       type: "node-output",
       nodeId,
       outputName,

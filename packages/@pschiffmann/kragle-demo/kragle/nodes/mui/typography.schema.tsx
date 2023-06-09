@@ -1,7 +1,8 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { t } from "@kragle/runtime";
+import { InferProps, NodeSchema } from "@kragle/runtime/v2";
 
 export const MuiTypographySchema = new NodeSchema(
-  "@pschiffmann/kragle-demo/MuiTypography",
+  "@pschiffmann/kragle-demo::MuiTypography",
   {
     inputs: {
       text: t.string(),

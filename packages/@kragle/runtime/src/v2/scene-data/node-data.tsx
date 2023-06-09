@@ -179,9 +179,9 @@ export class NodeData {
   addChild(
     childId: string,
     slotName: string,
-    index?: number
+    index = this.collectionSlotSizes[slotName]
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
-    if (this.schema.getCollectionInputSlot(slotName) === null) {
+    if (!this.schema.isCollectionSlot(slotName)) {
       const self = this.#addRegularChild(childId, slotName);
       return [self, { [childId]: { nodeId: this.id, slotName } }];
     } else {
@@ -212,7 +212,7 @@ export class NodeData {
   #addCollectionChild(
     childId: string,
     slotName: string,
-    index = this.collectionSlotSizes[slotName]
+    index: number
   ): NodeData {
     const childCount = this.collectionSlotSizes[slotName];
     if (!Number.isInteger(index) || index < 0 || index > childCount) {
@@ -248,7 +248,7 @@ export class NodeData {
     slotName: string,
     index?: number
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
-    if (this.schema.getCollectionInputSlot(slotName) === null) {
+    if (!this.schema.isCollectionSlot(slotName)) {
       const self = this.#removeRegularChild(slotName);
       return [self, {}];
     } else {

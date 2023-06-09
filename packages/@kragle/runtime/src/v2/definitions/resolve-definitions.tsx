@@ -185,7 +185,7 @@ function resolveLibraryDefinition(
     schemaExportName.length - "Schema".length
   );
   const members: Record<string, any> = {};
-  for (const memberName of Object.keys(schema.exports)) {
+  for (const memberName of Object.keys(schema.members)) {
     const memberExportName = `${exportNamePrefix}$${memberName}`;
     const member = otherExports.get(memberExportName);
     otherExports.delete(memberExportName);
@@ -199,7 +199,7 @@ function resolveLibraryDefinition(
       );
     }
   }
-  return Object.keys(members).length === Object.keys(schema.exports).length
+  return Object.keys(members).length === Object.keys(schema.members).length
     ? { moduleName, exportNamePrefix, schema, members }
     : null;
 }

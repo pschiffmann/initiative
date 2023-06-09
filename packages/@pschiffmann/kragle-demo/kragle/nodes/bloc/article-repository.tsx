@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { Article } from "../../libraries/article.schema.js";
 import { ArticleRepositoryProps } from "./article-repository.schema.js";
 
 export function ArticleRepository({
@@ -18,45 +19,11 @@ export function ArticleRepository({
   );
 
   return (
-    <OutputsProvider
-      articles={articles}
-      getArticleId={getArticleId}
-      getArticleName={getArticleName}
-      getArticlePrice={formatArticlePrice}
-      updateArticle={updateArticle}
-    >
-      {slots.child.element()}
+    <OutputsProvider articles={articles} updateArticle={updateArticle}>
+      <slots.child />
     </OutputsProvider>
   );
 }
-
-export interface Article {
-  id: number;
-  name: string;
-  price: number;
-}
-
-function getArticleId(article: Article): string {
-  return `${article.id}`;
-}
-
-function getArticleName(article: Article): string {
-  return article.name;
-}
-
-export function formatArticlePrice(article: Article): string {
-  const euros = Math.trunc(article.price / 100);
-  const cents = Math.trunc(article.price % 100);
-  return `${euros},${cents.toString().padEnd(2, "0")}€`;
-}
-
-export function parseArticlePrice(input: string): number {
-  const match = input.match(articlePriceFormat);
-  if (!match) throw new Error(`Invalid price format.`);
-  return Number.parseInt(match[1]) * 100 + Number.parseInt(match[2]);
-}
-
-const articlePriceFormat = /^(\d+),|(d{2})€$/;
 
 function createArticles(): readonly Article[] {
   return [

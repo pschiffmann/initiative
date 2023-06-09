@@ -128,4 +128,4 @@ export function validateLibraryExportName(
 
 const namespacePattern = /^[A-Z][A-Za-z0-9]*$/;
 const memberPattern = /^[a-z][A-Za-z0-9]*$/;
-const outputPattern = /^[a-z][A-Za-z0-9]*(?:\$[a-z][A-Za-z0-9]*)$/;
+const outputPattern = /^[a-z][A-Za-z0-9]*(?:\$[a-z][A-Za-z0-9]*)?$/;

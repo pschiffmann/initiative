@@ -1,3 +1,4 @@
+import { ComponentType, PropsWithChildren } from "react";
 import * as t from "../../type-system/index.js";
 import { NodeJson } from "../scene-data/node-data.js";
 import {
@@ -94,14 +95,15 @@ export class NodeSchema<
     const collectionInputSlots: Record<string, string> = {};
     const scopedOutputSlots: Record<string, string> = {};
     for (const [slotName, slotSchema] of Object.entries(init.slots ?? {})) {
+      const { inputs = {}, outputs = {} } = slotSchema;
       validateNodeSlotName(name, slotName);
       slotAttributes[slotName] = {
         isCollectionSlot: !!slotSchema.inputs,
-        inputNames: Object.keys(slotSchema.inputs ?? {}),
-        outputNames: Object.keys(slotSchema.outputs ?? {}),
+        inputNames: Object.keys(inputs),
+        outputNames: Object.keys(outputs),
       };
 
-      for (const [inputName, type] of Object.entries(init.inputs ?? {})) {
+      for (const [inputName, type] of Object.entries(inputs)) {
         validateNodeInputName(name, inputName);
         if (canonicalizedInputTypes[inputName]) {
           throw new Error(
@@ -113,7 +115,7 @@ export class NodeSchema<
         canonicalizedInputTypes[inputName] = type.canonicalize();
       }
 
-      for (const [outputName, type] of Object.entries(init.outputs ?? {})) {
+      for (const [outputName, type] of Object.entries(outputs)) {
         validateNodeOutputName(name, outputName);
         if (canonicalizedOutputTypes[outputName]) {
           throw new Error(
@@ -218,6 +220,16 @@ export class NodeSchema<
     );
   }
 
+  isCollectionSlot(slotName: string): boolean {
+    const slotAttributes = this.slotAttributes[slotName];
+    if (!slotAttributes) {
+      throw new Error(
+        `Slot '${slotName}' doesn't exist on schema '${this.name}'.`
+      );
+    }
+    return slotAttributes.isCollectionSlot;
+  }
+
   forEachSlot<R>(
     callback: (slotName: string, slotAttributes: SlotAttributes) => R
   ): R[] {
@@ -240,3 +252,68 @@ export interface SlotAttributes {
   readonly inputNames: readonly string[];
   readonly outputNames: readonly string[];
 }
+
+//
+// Type inference
+//
+
+type UnwrapAllSlotInputs<S extends SlotSchemas> = {
+  readonly [k in keyof S]: UnwrapSingleSlotInputs<S[k]["inputs"]>;
+};
+type UnwrapSingleSlotInputs<I extends t.KragleTypeRecord | undefined> =
+  I extends t.KragleTypeRecord
+    ? { readonly [k in keyof I]: readonly t.Unwrap<I[k]>[] }
+    : {};
+
+type NestedKeys<T extends {}> = {
+  [k in keyof T]: keyof T[k] & string;
+}[keyof T];
+type Flatten<T extends Record<string, {}>> = {
+  readonly [k in NestedKeys<T>]: T[keyof T][k];
+};
+
+type AddKeys<T extends {}, K extends string> = {
+  [k in K]: k extends keyof T ? T[k] : never;
+};
+type AddNestedKeys<T extends Record<string, {}>, K extends string> = {
+  [k in keyof T]: AddKeys<T[k], K>;
+};
+
+// TODO: Explain this magic
+type FlattenSlotInputs<S extends SlotSchemas> = Flatten<
+  AddNestedKeys<UnwrapAllSlotInputs<S>, NestedKeys<UnwrapAllSlotInputs<S>>>
+>;
+
+//
+// React component props
+//
+
+export type InferProps<N extends NodeSchema> = N extends NodeSchema<
+  infer I,
+  infer O,
+  infer S
+>
+  ? t.UnwrapRecord<I> &
+      FlattenSlotInputs<S> &
+      SlotPropMixin<S> &
+      OutputsProviderPropMixin<O>
+  : {};
+
+type SlotPropMixin<S extends SlotSchemas> = keyof S extends never
+  ? {}
+  : {
+      readonly slots: {
+        readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
+          ? readonly SlotPropValue<S[slotName]>[]
+          : SlotPropValue<S[slotName]>;
+      };
+    };
+
+type SlotPropValue<S extends SlotSchema> = S["outputs"] extends {}
+  ? ComponentType<t.UnwrapRecord<S["outputs"]>>
+  : ComponentType;
+
+type OutputsProviderPropMixin<O extends t.KragleTypeRecord> =
+  keyof O extends never
+    ? {}
+    : { OutputsProvider: ComponentType<PropsWithChildren<t.UnwrapRecord<O>>> };

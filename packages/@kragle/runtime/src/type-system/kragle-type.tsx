@@ -1,5 +1,6 @@
 import * as t from "./index.js";
 
+// TODO: export { KragleType as Type };
 export abstract class KragleType<T = unknown> {
   /**
    * **Warning:** This property is only used by `Unwrap` for type inference. It

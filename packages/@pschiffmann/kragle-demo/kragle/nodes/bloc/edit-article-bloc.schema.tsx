@@ -1,11 +1,13 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { t } from "@kragle/runtime";
+import { InferProps, NodeSchema } from "@kragle/runtime/v2";
+import { articleType } from "../../libraries/article.schema.js";
 
 export const EditArticleBlocSchema = new NodeSchema(
-  "@pschiffmann/kragle-demo/EditArticleBloc",
+  "@pschiffmann/kragle-demo::EditArticleBloc",
   {
     inputs: {
-      article: t.any(),
-      updateArticle: t.function(t.any())(),
+      article: articleType,
+      updateArticle: t.function(articleType)(),
     },
     outputs: {
       name: t.string(),

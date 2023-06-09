@@ -1,7 +1,8 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { t } from "@kragle/runtime";
+import { InferProps, NodeSchema } from "@kragle/runtime/v2";
 
-export const FlexContainerSchema = new NodeSchema(
-  "@pschiffmann/kragle-demo/FlexContainer",
+export const StackSchema = new NodeSchema(
+  "@pschiffmann/kragle-demo::MuiStack",
   {
     inputs: {
       flexDirection: t.union(t.string("column"), t.string("row")),
@@ -24,4 +25,4 @@ export const FlexContainerSchema = new NodeSchema(
   }
 );
 
-export type FlexContainerProps = InferProps<typeof FlexContainerSchema>;
+export type StackProps = InferProps<typeof StackSchema>;

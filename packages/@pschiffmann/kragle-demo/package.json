@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "imports": {
+    "#nodes/*": "./kragle/nodes/*",
     "#scenes/*": "./kragle/scenes/*"
   },
   "dependencies": {

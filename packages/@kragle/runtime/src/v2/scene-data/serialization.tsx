@@ -41,6 +41,7 @@ export function sceneDocumentFromJson(
         type: "create-node",
         nodeType: nodeJson.type,
         parent,
+        nodeId,
       });
       queue.push(nodeId);
       return true;
@@ -53,7 +54,7 @@ export function sceneDocumentFromJson(
   }
 
   function processNode(nodeId: string): void {
-    const { inputs = {}, slots = {} } = sceneJson.nodes[nodeId];
+    const { inputs, slots } = sceneJson.nodes[nodeId];
     for (const [slotKey, childId] of Object.entries(slots)) {
       const { slotName } = parseSlotKey(nodeId, slotKey, errors);
       if (!slotName || !discoverNode(childId, { nodeId, slotName })) return;
@@ -220,6 +221,9 @@ function isObject<S extends ObjectSchema>(
       continue;
     }
     const value = (json as any)[expectedKey];
+    if (expectedType === "array" && Array.isArray(value)) {
+      continue;
+    }
     if (typeof value !== expectedType) {
       errors.push(
         `${prefix} must contain a key '${expectedKey}' with type ` +
@@ -304,4 +308,4 @@ function parseSlotKey(
   return { slotName, index: index ? Number.parseInt(index) : undefined };
 }
 
-const nodePropPattern = /^[a-z][A-Za-z0-9]*(?:::\d+)$/;
+const nodePropPattern = /^[a-z][A-Za-z0-9]*(?:::\d+)?$/;
