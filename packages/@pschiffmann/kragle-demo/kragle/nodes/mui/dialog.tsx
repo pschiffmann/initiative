@@ -21,10 +21,12 @@ export function MuiDialog({ title, slots, OutputsProvider }: MuiDialogProps) {
 
   return (
     <OutputsProvider isOpen={isOpen} open={open} close={close} toggle={toggle}>
-      {slots.trigger.element()}
+      <slots.trigger.Component />
       <Dialog open={isOpen} onClose={close}>
         <DialogTitle>{title}</DialogTitle>
-        <DialogContent>{slots.content.element()}</DialogContent>
+        <DialogContent>
+          <slots.content.Component />
+        </DialogContent>
       </Dialog>
     </OutputsProvider>
   );

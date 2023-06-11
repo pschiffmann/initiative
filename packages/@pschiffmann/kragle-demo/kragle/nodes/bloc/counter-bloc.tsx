@@ -21,7 +21,7 @@ export function CounterBloc({ slots, OutputsProvider }: CounterBlocProps) {
 
   return (
     <OutputsProvider label={`count: ${n}`} {...actions}>
-      {slots.child.element()}
+      <slots.child.Component />
     </OutputsProvider>
   );
 }

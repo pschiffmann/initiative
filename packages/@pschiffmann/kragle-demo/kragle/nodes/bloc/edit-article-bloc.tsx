@@ -36,7 +36,7 @@ export function EditArticleBloc({
       updatePrice={setPrice}
       save={save}
     >
-      {slots.child.element()}
+      <slots.child.Component />
     </OutputsProvider>
   );
 }

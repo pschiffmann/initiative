@@ -304,14 +304,27 @@ type SlotPropMixin<S extends SlotSchemas> = keyof S extends never
   : {
       readonly slots: {
         readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
-          ? readonly SlotPropValue<S[slotName]>[]
-          : SlotPropValue<S[slotName]>;
+          ? {
+              readonly length: number;
+              readonly Component: ComponentType<
+                SlotWithInputsComponentPropsMixin<S[slotName]> &
+                  SlotWithOutputsComponentPropsMixin<S[slotName]>
+              >;
+            }
+          : {
+              readonly Component: ComponentType<
+                SlotWithInputsComponentPropsMixin<S[slotName]> &
+                  SlotWithOutputsComponentPropsMixin<S[slotName]>
+              >;
+            };
       };
     };
 
-type SlotPropValue<S extends SlotSchema> = S["outputs"] extends {}
-  ? ComponentType<t.UnwrapRecord<S["outputs"]>>
-  : ComponentType;
+type SlotWithInputsComponentPropsMixin<S extends SlotSchema> =
+  S["inputs"] extends {} ? { readonly index: number } : {};
+
+type SlotWithOutputsComponentPropsMixin<S extends SlotSchema> =
+  S["outputs"] extends {} ? t.UnwrapRecord<S["outputs"]> : {};
 
 type OutputsProviderPropMixin<O extends t.KragleTypeRecord> =
   keyof O extends never

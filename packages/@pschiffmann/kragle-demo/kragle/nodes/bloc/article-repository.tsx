@@ -20,7 +20,7 @@ export function ArticleRepository({
 
   return (
     <OutputsProvider articles={articles} updateArticle={updateArticle}>
-      <slots.child />
+      <slots.child.Component />
     </OutputsProvider>
   );
 }

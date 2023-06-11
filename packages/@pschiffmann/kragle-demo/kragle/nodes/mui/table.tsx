@@ -14,12 +14,13 @@ export function MuiTable({
   align,
   slots,
 }: MuiTableProps) {
+  const columns = new Array(slots.column.length).fill(0);
   return (
     <Table>
       <TableHead>
         <TableRow>
-          {slots.column.map((column, i) => (
-            <TableCell key={column.nodeId} align={align[i]}>
+          {columns.map((_, i) => (
+            <TableCell key={i} align={align[i]}>
               {header[i]}
             </TableCell>
           ))}
@@ -28,9 +29,9 @@ export function MuiTable({
       <TableBody>
         {rows.map((row) => (
           <TableRow key={getRowKey(row)}>
-            {slots.column.map((column, i) => (
-              <TableCell key={column.nodeId} align={align[i]}>
-                {column.element({ row })}
+            {columns.map((_, i) => (
+              <TableCell key={i} align={align[i]}>
+                <slots.column.Component index={i} row={row} />
               </TableCell>
             ))}
           </TableRow>
