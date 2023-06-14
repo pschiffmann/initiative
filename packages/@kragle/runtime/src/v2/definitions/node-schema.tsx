@@ -245,6 +245,17 @@ export class NodeSchema<
       callback(type, outputName, this.scopedOutputSlots[outputName])
     );
   }
+
+  hasSlots(): boolean {
+    return Object.keys(this.slotAttributes).length !== 0;
+  }
+
+  hasRegularOutputs(): boolean {
+    return (
+      Object.keys(this.outputTypes).length >
+      Object.keys(this.scopedOutputSlots).length
+    );
+  }
 }
 
 export interface SlotAttributes {
@@ -305,7 +316,7 @@ type SlotPropMixin<S extends SlotSchemas> = keyof S extends never
       readonly slots: {
         readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
           ? {
-              readonly length: number;
+              readonly size: number;
               readonly Component: ComponentType<
                 SlotWithInputsComponentPropsMixin<S[slotName]> &
                   SlotWithOutputsComponentPropsMixin<S[slotName]>

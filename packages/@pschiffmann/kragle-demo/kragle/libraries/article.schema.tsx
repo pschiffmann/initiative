@@ -11,7 +11,7 @@ export const articleType = t.entity<Article>(
   "@pschiffmann/kragle-demo::Article"
 );
 
-export const ArticleLibrary = new LibrarySchema(
+export const ArticleLibrarySchema = new LibrarySchema(
   "@pschiffmann/kragle-demo::Article",
   {
     getId: t.function(articleType)(t.string()),
@@ -21,4 +21,6 @@ export const ArticleLibrary = new LibrarySchema(
   }
 );
 
-export type ArticleLibraryMembers = InferLibraryMembers<typeof ArticleLibrary>;
+export type ArticleLibraryMembers = InferLibraryMembers<
+  typeof ArticleLibrarySchema
+>;

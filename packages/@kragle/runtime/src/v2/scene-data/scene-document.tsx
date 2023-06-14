@@ -49,6 +49,10 @@ export class SceneDocument {
     return this.#rootNodeId;
   }
 
+  hasNode(nodeId: string): boolean {
+    return this.#nodes.has(nodeId);
+  }
+
   /**
    * Throws an error if `nodeId` cannot be found.
    */
@@ -289,8 +293,9 @@ export class SceneDocument {
       },
       getLibraryMemberType: (libraryName, memberName) => {
         return (
-          this.definitions.libraries.get(libraryName)?.members[memberName] ??
-          null
+          this.definitions.libraries.get(libraryName)?.schema.members[
+            memberName
+          ] ?? null
         );
       },
       getNodeOutputType: (nodeId, outputName) => {

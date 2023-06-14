@@ -14,7 +14,7 @@ export function MuiTable({
   align,
   slots,
 }: MuiTableProps) {
-  const columns = new Array(slots.column.length).fill(0);
+  const columns = new Array(slots.column.size).fill(0);
   return (
     <Table>
       <TableHead>

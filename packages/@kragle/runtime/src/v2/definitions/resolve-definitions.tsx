@@ -42,8 +42,39 @@ export class Definitions {
     throw new Error(`LibrarySchema '${libraryName}' not found.`);
   }
 
-  merge(other: Definitions): Definitions {
-    throw new Error("Unimplemented");
+  merge(other: Definitions): [hasErrors: boolean, definitions: Definitions] {
+    let hasErrors = false;
+    const entities = new Map(this.entities);
+    for (const [entityName, entityType] of other.entities) {
+      if (entities.has(entityName)) {
+        hasErrors = true;
+        console.error(``);
+      } else {
+        entities.set(entityName, entityType);
+      }
+    }
+
+    const nodes = new Map(this.nodes);
+    for (const [nodeName, nodeSchema] of other.nodes) {
+      if (nodes.has(nodeName)) {
+        hasErrors = true;
+        console.error(``);
+      } else {
+        nodes.set(nodeName, nodeSchema);
+      }
+    }
+
+    const libraries = new Map(this.libraries);
+    for (const [libraryName, librarySchema] of other.libraries) {
+      if (libraries.has(libraryName)) {
+        hasErrors = true;
+        console.error(``);
+      } else {
+        libraries.set(libraryName, librarySchema);
+      }
+    }
+
+    return [hasErrors, new Definitions(entities, nodes, libraries)];
   }
 }
 
@@ -51,8 +82,16 @@ export type ModuleRef = [moduleName: string, module: Object];
 
 export function resolveDefinitions(
   moduleRefs: readonly ModuleRef[]
-): Definitions {
-  return processModule(moduleRefs[0])[1];
+): [hasErrors: boolean, definitions: Definitions] {
+  if (moduleRefs.length === 0) {
+    throw new Error(`'moduleRefs' must not be empty.`);
+  }
+  return moduleRefs
+    .map((moduleRef) => processModule(moduleRef))
+    .reduce(([errors1, definitions1], [errors2, definitions2]) => {
+      const [mergeErrors, mergedDefinitions] = definitions1.merge(definitions2);
+      return [errors1 || errors2 || mergeErrors, mergedDefinitions];
+    });
 }
 
 function processModule([moduleName, module]: ModuleRef): [
@@ -68,6 +107,7 @@ function processModule([moduleName, module]: ModuleRef): [
   for (const [exportName, value] of Object.entries(module)) {
     if (value instanceof t.Entity) {
       if (entities.has(value.name) && entities.get(value.name) !== value) {
+        hasErrors = true;
         console.error(
           `Module '${moduleName}' exports multiple 't.entity()' types with ` +
             `name '${value.name}'. Do create entity types only once, then ` +

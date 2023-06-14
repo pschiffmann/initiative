@@ -1,20 +1,21 @@
-// import sceneJson from "#scenes/counter-button-dialog.json";
-import sceneJson from "#scenes/article-management.json";
+import sceneJson from "#kragle/scenes/article-management.json";
 import {
   Scene,
-  SceneDocument,
   SceneRuntime,
-  parseSceneJson,
-  resolveNodeDefinitions,
-} from "@kragle/runtime";
-import * as nodes from "../kragle/nodes/index.js";
+  resolveDefinitions,
+  sceneDocumentFromJson,
+} from "@kragle/runtime/v2";
 
-const { sceneDocument, errors } = parseSceneJson(
-  new SceneDocument(resolveNodeDefinitions(nodes)),
+const [, definitions] = resolveDefinitions([
+  ["#kragle/libraries/index.js", await import("#kragle/libraries/index.js")],
+  ["#kragle/nodes/index.js", await import("#kragle/nodes/index.js")],
+]);
+const { document, errors } = sceneDocumentFromJson(
+  definitions,
   sceneJson as any
 );
-if (errors) console.log(errors);
-const runtime = new SceneRuntime(sceneDocument);
+console.log({ definitions, document, errors });
+const runtime = new SceneRuntime(document!);
 
 export function App() {
   return <Scene runtime={runtime} />;

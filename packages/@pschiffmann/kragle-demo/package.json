@@ -9,8 +9,7 @@
     "preview": "vite preview"
   },
   "imports": {
-    "#nodes/*": "./kragle/nodes/*",
-    "#scenes/*": "./kragle/scenes/*"
+    "#kragle/*": "./kragle/*"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",
