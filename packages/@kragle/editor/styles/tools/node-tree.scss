@@ -1,0 +1,6 @@
+@use "@kragle/design-system/styles/color";
+
+.kragle-node-tree {
+  background-color: color.role("surface-container");
+  border-radius: 8px;
+}

@@ -1,0 +1,42 @@
+@use "../typography";
+@use "../color";
+
+.kragle-icon-button {
+  // Public
+  --kragle-icon-button-color: #{color.role("on-surface")};
+
+  // Private
+  --kragle-icon-button-state-layer-opacity: 0%;
+
+  width: 24px;
+  height: 24px;
+  display: grid;
+  grid: "main" 1fr / 1fr;
+  place-items: center;
+  overflow: hidden;
+
+  border-radius: 16px;
+  background-color: color-mix(
+    in srgb,
+    transparent,
+    var(--kragle-icon-button-color)
+      var(--kragle-icon-button-state-layer-opacity)
+  );
+  color: var(--kragle-icon-button-color);
+
+  // Reset browser defaults
+  padding: 0;
+  border: none;
+
+  &:is(:focus-visible, :hover) {
+    --kragle-icon-button-state-layer-opacity: 8%;
+  }
+  &:active {
+    --kragle-icon-button-state-layer-opacity: 12%;
+  }
+
+  &__icon {
+    grid-area: main;
+    font-size: 16px;
+  }
+}

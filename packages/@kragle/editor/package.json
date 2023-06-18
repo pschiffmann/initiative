@@ -1,0 +1,26 @@
+{
+  "name": "@kragle/editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sass": "sass styles/main.scss dist/editor/styles.css -w -I ../../"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./styles.css": "./dist/editor/styles.css"
+  },
+  "dependencies": {
+    "@kragle/design-system": "^0.1.0",
+    "@kragle/runtime": "^0.1.0",
+    "idb-keyval": "^6.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
+    "@types/wicg-file-system-access": "^2020.9.6",
+    "sass": "^1.62.1"
+  }
+}

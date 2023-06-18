@@ -1,0 +1,7 @@
+@use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
+
+.kragle-license-status {
+  @include typography.role("label-small");
+  color: color.role("on-surface-deemphasized");
+}

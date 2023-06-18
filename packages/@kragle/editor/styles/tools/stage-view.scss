@@ -1,0 +1,6 @@
+@use "@kragle/design-system/styles/color";
+
+.kragle-stage-view {
+  background-color: color.role("surface-container");
+  border-radius: 8px;
+}
