@@ -1,5 +1,6 @@
 {
   "extends": "@pschiffmann/std/tsconfig-base.json",
+  "references": [{ "path": "../react-command" }],
   "include": ["src/**/*"],
   "compilerOptions": {
     "rootDir": "src/",

@@ -1,4 +1,6 @@
-import { IconButton, bemClasses } from "@kragle/design-system";
+import { Dialog, IconButton, bemClasses } from "@kragle/design-system";
+import { CommandController } from "@kragle/react-command";
+import { useState } from "react";
 
 const cls = bemClasses("kragle-scene-manager");
 
@@ -7,6 +9,10 @@ export interface SceneManagerProps {
 }
 
 export function SceneManager({ className }: SceneManagerProps) {
+  const [openCreateDialogController] = useState(
+    () => new CommandController<boolean>()
+  );
+
   return (
     <div className={cls.block(className)}>
       <div className={cls.element("header")}>
@@ -15,6 +21,7 @@ export function SceneManager({ className }: SceneManagerProps) {
           className={cls.element("button")}
           icon="note_add"
           label="New Scene"
+          onPress={() => openCreateDialogController.send(true)}
         />
         <IconButton
           className={cls.element("button")}
@@ -29,6 +36,10 @@ export function SceneManager({ className }: SceneManagerProps) {
       </div>
 
       <ul className={cls.element("list")}></ul>
+
+      <Dialog setOpenCommandStream={openCreateDialogController}>
+        Hello world
+      </Dialog>
     </div>
   );
 }
