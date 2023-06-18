@@ -40,6 +40,139 @@ export interface NodeBoxPosition {
   readonly outputOffsets: Readonly<Record<string, number>>;
 }
 
+interface box {
+  readonly id: string;
+  readonly column: number;
+  readonly parent: string;
+  readonly size: number;
+  readonly innerD: any;
+  readonly chain: [length: number, size: number];
+  position: [xCoordinate: number, yCoordinate: number];
+  readonly inputs: Array<string>;
+}
+
+function calculateLayout3(document: SceneDocument) {
+  const allNodes: Map<string, box> = new Map();
+  /**
+   * Will unpack all nodes from the Scenedocument into allNodes Map.
+   * Recursive!
+   * @param nodeID Unique node name
+   * @param nodeparent Node Id of parent node to establish parent child connections
+   * @param column depth level of the node in the scene document ancestry
+   * @returns chain length value needed to sort nodes
+   */
+  function unzip(nodeID: string, nodeparent: string, column: number): number {
+    const nodeJson = document.getNode(nodeID)!;
+    const schema = document.nodeDefinitions.get(nodeJson!.type)!.schema;
+    const childIDs = Object.values(nodeJson!.slots);
+    const chainraw: [number, number] = [0, childIDs.length];
+    if (chainraw[1] > 0) {
+      for (const child of childIDs) {
+        chainraw[0] += unzip(child, nodeID, column + 1);
+      }
+    }
+    const dimensions = calculateInnerDimensions(schema, nodeJson);
+    let inputs: Array<string> = new Array();
+    const rawinputs = Object.keys(schema.inputs);
+    for (const raw of rawinputs) {
+      const binding = nodeJson!.inputs[raw];
+      if (binding == undefined) continue;
+      if (binding.type !== "node-output") continue;
+      inputs.push(binding.nodeId);
+    }
+    const node: box = {
+      id: nodeID,
+      column: column,
+      parent: nodeparent,
+      size: dimensions.height,
+      innerD: dimensions,
+      chain: chainraw,
+      position: [0, 0],
+      inputs: inputs,
+    };
+    allNodes.set(nodeID, node);
+    return chainraw[0] + 1;
+  }
+
+  unzip(document.getRootNodeId()!, "", 0);
+
+  const allColumns: Map<number, Set<string>> = new Map();
+  for (const node of allNodes.values()) {
+    if (!allColumns.has(node.column)) allColumns.set(node.column, new Set());
+    allColumns.get(node.column)!.add(node.id);
+  }
+
+  const allConnections: Map<number, Map<number, number>> = new Map();
+  for (const node of allNodes.values()) {
+    const to = node.column;
+    for (const connection of node.inputs) {
+      const from = allNodes.get(connection)!.column;
+      if (!allConnections.has(from)) allConnections.set(from, new Map());
+      if (!allConnections.get(from)!.has(to))
+        allConnections.get(from)!.set(to, 0);
+      allConnections.get(from)!.set(to, allConnections.get(from)!.get(to)! + 1);
+    }
+  }
+
+  /**
+   * To change a list from a slope to a pyramid.
+   * @param list sorted list high->low | low->high
+   * @returns list low->high->low | high->low->high
+   */
+  function pyramid(list: Array<string>): Array<string> {
+    const output: Array<string> = new Array();
+    let alternate: Boolean = true;
+    for (const item of list) {
+      if (alternate) {
+        output.push(item);
+        alternate = false;
+      } else {
+        output.unshift(item);
+        alternate = true;
+      }
+    }
+    return output;
+  }
+
+  const maxdepth: number = allColumns.size - 1;
+  const geographyFirstSort: Map<number, Array<string>> = new Map();
+  // needed to establish original node positions to find optimal tunnel placement
+  // sorts all nodes by their chains, behind their parents
+  for (let depth = 0; depth <= maxdepth; depth++) {
+    geographyFirstSort.set(depth, new Array());
+    if (depth === 0) {
+      for (const nodeId of allColumns.get(depth)!.values()) {
+        geographyFirstSort.get(depth)!.push(nodeId);
+      }
+      continue;
+    }
+    const columnNodes: Map<string, Array<string>> = new Map();
+    for (const nodeId of allColumns.get(depth)!.values()) {
+      const node = allNodes.get(nodeId)!;
+      if (!columnNodes.has(node.parent))
+        columnNodes.set(node.parent, new Array());
+      columnNodes.get(node.parent)!.push(node.id);
+    }
+    for (const [parent, nodes] of columnNodes) {
+      let unsortedList: Array<[string, number, number]> = new Array();
+      for (const nodeId of nodes) {
+        const node = allNodes.get(nodeId)!;
+        unsortedList.push([node.id, node.chain[0], node.chain[1]]);
+      }
+      unsortedList.sort(function (a, b) {
+        return a[1] * 100 + a[2] - (b[1] * 100 + b[2]);
+      });
+      let sortedList: Array<string> = new Array();
+      unsortedList.forEach(function (a) {
+        return a[0];
+      });
+      sortedList = pyramid(sortedList);
+      columnNodes.set(parent, sortedList);
+    }
+    
+  }
+}
+
 interface nodeBox0 {
   readonly ID: string;
   readonly column: number;
