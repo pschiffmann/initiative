@@ -1,5 +1,11 @@
 import validate from "validate-npm-package-name";
 
+export function validateSceneName(name: string): void {
+  if (!name.match(sceneNamePattern)) {
+    throw new Error(`Invalid scene name '${name}'.`);
+  }
+}
+
 export function validateNodeSchemaName(name: string): void {
   const parts = name.split("::");
   if (parts.length !== 2) {
@@ -126,6 +132,7 @@ export function validateLibraryExportName(
   }
 }
 
+const sceneNamePattern = /^[A-Za-z][\w-]*$/;
 const namespacePattern = /^[A-Z][A-Za-z0-9]*$/;
 const memberPattern = /^[a-z][A-Za-z0-9]*$/;
 const outputPattern = /^[a-z][A-Za-z0-9]*(?:\$[a-z][A-Za-z0-9]*)?$/;

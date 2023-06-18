@@ -12,6 +12,9 @@ export const articleType = t.entity<Article>(
 );
 
 export const ArticleLibrarySchema = new LibrarySchema(
+  // TODO: Change library name to `@pschiffmann/kragle-demo/Article`, because
+  // it allows us to use the `::` separator for library members, like
+  // `@pschiffmann/kragle-demo/Article::getId`.
   "@pschiffmann/kragle-demo::Article",
   {
     getId: t.function(articleType)(t.string()),
