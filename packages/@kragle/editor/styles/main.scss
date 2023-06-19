@@ -1,12 +1,10 @@
 @use "global-styles";
 
-@use "@kragle/design-system/styles/components/dialog";
-@use "@kragle/design-system/styles/components/icon-button";
+@use "@kragle/design-system/styles";
 
 @use "app";
-
 @use "tools/license-status";
 @use "tools/node-properties";
 @use "tools/node-tree";
-@use "tools/scene-manager";
+@use "tools/workspace-manager";
 @use "tools/stage-view";

@@ -1,13 +1,13 @@
 @use "../color";
 
 .kragle-dialog {
-  padding: 8px;
   border-radius: 8px;
   background-color: color.role("surface");
   color: color.role("on-surface");
 
   // Reset browser defaults
   border: none;
+  padding: 0;
 
   &::backdrop {
     background-color: rgba(0 0 0 / 50%);

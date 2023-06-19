@@ -1,5 +1,5 @@
 export * from "./expression.js";
-export { type Unsubscribe } from "./listeners.js";
+export * from "./listeners.js";
 export * from "./node-data.js";
 export {
   SceneDocument,

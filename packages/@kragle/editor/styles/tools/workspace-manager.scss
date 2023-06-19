@@ -1,0 +1,89 @@
+@use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
+
+.kragle-workspace-manager {
+  height: 250px;
+  background-color: color.role("surface-container");
+  border-radius: 8px;
+
+  display: grid;
+  grid:
+    "header" auto
+    "body" minmax(0, 1fr)
+    / 1fr;
+
+  &__header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    padding: 4px 4px 4px 8px;
+  }
+
+  &__title {
+    flex: 1 0 0;
+    @include typography.role("title-medium");
+  }
+
+  &__empty-state {
+    grid-area: body;
+    place-self: center;
+    padding: 16px;
+    color: color.role("on-surface-deemphasized");
+    @include typography.role("body-medium");
+    text-align: center;
+  }
+
+  &__error-state {
+    grid-area: body;
+    place-self: center;
+    padding: 16px;
+    color: color.role("error");
+    @include typography.role("body-medium");
+    text-align: center;
+  }
+
+  &__permission-prompt-container {
+    grid-area: body;
+    place-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-inline: 64px;
+    text-align: center;
+  }
+
+  &__permission-prompt-button {
+    --kragle-button-fill-color: #{color.role("brand")};
+    --kragle-button-stroke-color: #{color.role("on-brand")};
+  }
+
+  &__scenes {
+    grid-area: body;
+    margin: 0;
+    padding: 8px;
+    overflow: auto;
+  }
+
+  &__scene {
+    padding: 4px 8px;
+    list-style: none;
+    cursor: pointer;
+    color: color.role("on-surface");
+    @include typography.role("body-medium");
+
+    &:is(:hover) {
+      background-color: color-mix(
+        in srgb,
+        transparent,
+        color.role("on-surface") 12%
+      );
+    }
+  }
+}
+
+.kragle-open-workspace-dialog {
+  &__open-directory-button {
+    --kragle-button-fill-color: #{color.role("brand")};
+    --kragle-button-stroke-color: #{color.role("on-brand")};
+  }
+}

@@ -1,8 +1,9 @@
 @use "sass:list";
 @use "sass:math";
+@use "sass:string";
 
 @mixin role($role) {
-  @if not list.index($_typography-roles, $role) {
+  @if not list.index($typography-roles, $role) {
     @error "Invalid typography role '#{$role}'.";
   }
   font-family: var(--kragle-typography-#{$role}-font-family);
@@ -23,7 +24,11 @@
 }
 
 @mixin _define-role($name, $line-height, $size, $tracking, $weight) {
-  --kragle-typography-#{$name}-font-family: "Roboto Condensed", sans-serif;
+  @if string.index($name, "code") {
+    --kragle-typography-#{$name}-font-family: "Roboto Mono", monospace;
+  } @else {
+    --kragle-typography-#{$name}-font-family: "Roboto Condensed", sans-serif;
+  }
   --kragle-typography-#{$name}-font-size: #{_px-to-rem($size)};
   --kragle-typography-#{$name}-line-height: #{_px-to-rem($line-height)};
   --kragle-typography-#{$name}-letter-spacing: #{math.div($tracking, $size) *
@@ -31,7 +36,7 @@
   --kragle-typography-#{$name}-font-weight: #{$weight};
 }
 
-$_typography-roles: (
+$typography-roles: (
   // "display-large",
   // "display-medium",
   // "display-small",
@@ -46,7 +51,10 @@ $_typography-roles: (
   "label-small",
   "body-large",
   "body-medium",
-  "body-small"
+  "body-small",
+  "code-large",
+  "code-medium",
+  "code-small"
 );
 
 :root {
@@ -62,4 +70,7 @@ $_typography-roles: (
   @include _define-role("body-large", 24, 16, 0.5, 400);
   @include _define-role("body-medium", 20, 14, 0.25, 400);
   @include _define-role("body-small", 16, 12, 0.4, 400);
+  @include _define-role("code-large", 24, 16, 0.5, 400);
+  @include _define-role("code-medium", 20, 14, 0.25, 400);
+  @include _define-role("code-small", 16, 12, 0.4, 400);
 }

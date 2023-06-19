@@ -1,4 +1,4 @@
-import sceneJson from "#kragle/scenes/article-management.json";
+import sceneJson from "#kragle/scenes/article-management/scene.json";
 import {
   Scene,
   SceneRuntime,
@@ -12,6 +12,7 @@ const [, definitions] = resolveDefinitions([
 ]);
 const { document, errors } = sceneDocumentFromJson(
   definitions,
+  "article-management",
   sceneJson as any
 );
 console.log({ definitions, document, errors });

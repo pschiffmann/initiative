@@ -1,3 +1,4 @@
+// TODO: Move somewhere else – maybe @pschiffmann/std?
 export class Listeners<T> {
   add(listener: Listener<T>): Unsubscribe {
     if (this.#listeners.has(listener)) {

@@ -13,10 +13,11 @@ export interface SceneJson {
 
 export function sceneDocumentFromJson(
   definitions: Definitions,
+  name: string,
   sceneJson: SceneJson
 ): { errors?: string[]; document?: SceneDocument } {
   const errors: string[] = [];
-  const document = new SceneDocument(definitions);
+  const document = new SceneDocument(name, definitions);
 
   if (!isObject(sceneJson, sceneJsonSchema, `'scene.json'`, errors)) {
     return { errors };

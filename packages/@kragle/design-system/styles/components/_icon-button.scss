@@ -7,6 +7,12 @@
 
   // Private
   --kragle-icon-button-state-layer-opacity: 0%;
+  &:not([disabled]):is(:focus-visible, :hover) {
+    --kragle-icon-button-state-layer-opacity: 8%;
+  }
+  &:not([disabled]):active {
+    --kragle-icon-button-state-layer-opacity: 12%;
+  }
 
   width: 24px;
   height: 24px;
@@ -15,7 +21,7 @@
   place-items: center;
   overflow: hidden;
 
-  border-radius: 16px;
+  border-radius: 4px;
   background-color: color-mix(
     in srgb,
     transparent,
@@ -23,16 +29,15 @@
       var(--kragle-icon-button-state-layer-opacity)
   );
   color: var(--kragle-icon-button-color);
+  user-select: none;
 
   // Reset browser defaults
   padding: 0;
   border: none;
+  outline: none;
 
-  &:is(:focus-visible, :hover) {
-    --kragle-icon-button-state-layer-opacity: 8%;
-  }
-  &:active {
-    --kragle-icon-button-state-layer-opacity: 12%;
+  &:is([disabled]) {
+    opacity: 0.38;
   }
 
   &__icon {

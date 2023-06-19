@@ -6,17 +6,17 @@
 
   display: grid;
   grid:
-    "scene-manager  stage-view     node-properties" auto
-    "node-tree      stage-view     node-properties" minmax(0, 1fr)
-    "license-status license-status license-status " auto
+    "workspace-manager  stage-view     node-properties" auto
+    "node-tree          stage-view     node-properties" minmax(0, 1fr)
+    "license-status     license-status license-status " auto
     / 300px minmax(0, 1fr) 300px;
   gap: 8px;
   padding: 8px;
 
   background-color: color.role("background");
 
-  &__scene-manager {
-    grid-area: scene-manager;
+  &__workspace-manager {
+    grid-area: workspace-manager;
   }
   &__node-tree {
     grid-area: node-tree;

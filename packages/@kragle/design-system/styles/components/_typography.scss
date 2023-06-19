@@ -1,0 +1,13 @@
+@use "../typography";
+
+.kragle-typography {
+  @each $role in typography.$typography-roles {
+    &--#{$role} {
+      @include typography.role($role);
+    }
+  }
+
+  &--no-wrap {
+    @include typography.no-wrap();
+  }
+}

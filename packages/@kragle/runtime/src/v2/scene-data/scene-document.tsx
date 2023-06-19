@@ -40,7 +40,7 @@ export interface SetNodeInputPatch {
 }
 
 export class SceneDocument {
-  constructor(readonly definitions: Definitions) {}
+  constructor(readonly name: string, readonly definitions: Definitions) {}
 
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();

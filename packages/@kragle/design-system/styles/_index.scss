@@ -1,3 +1,7 @@
-@use "typography";
+@use "typography" as typography-mixins;
 
+@use "components/alert-dialog-content";
 @use "components/button";
+@use "components/dialog";
+@use "components/icon-button";
+@use "components/typography";

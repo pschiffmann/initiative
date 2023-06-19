@@ -2,38 +2,43 @@
 @use "../color";
 
 .kragle-button {
+  // Public
+  --kragle-button-fill-color: #{color.role("surface")};
+  --kragle-button-stroke-color: #{color.role("on-surface")};
+
+  // Private
+  --kragle-button-state-layer-opacity: 0%;
+  &:is(:focus-visible, :hover) {
+    --kragle-button-state-layer-opacity: 8%;
+  }
+  &:active {
+    --kragle-button-state-layer-opacity: 12%;
+  }
+
   min-width: 64px;
   height: 32px;
   display: grid;
   grid: "main" 1fr / 1fr;
   place-items: center;
-  padding: 0;
   overflow: hidden;
 
-  border-radius: 8px;
-  background-color: color.role("brand-container");
-  color: color.role("on-brand-container");
+  border-radius: 4px;
+  background-color: color-mix(
+    in srgb,
+    var(--kragle-button-fill-color),
+    var(--kragle-button-stroke-color) var(--kragle-button-state-layer-opacity)
+  );
+  color: var(--kragle-button-stroke-color);
+  user-select: none;
 
   // Reset browser defaults
+  padding: 0;
   border: none;
-
-  &::before {
-    content: "";
-    grid-area: main;
-    place-self: stretch;
-    opacity: 0;
-    background-color: color.role("on-brand-container");
-  }
-  &:is(:focus-visible, :hover)::before {
-    opacity: 0.04;
-  }
-  &:active::before {
-    opacity: 0.08;
-  }
+  outline: none;
 
   &__label {
     grid-area: main;
-    padding-inline: 16px;
+    padding-inline: 12px;
     @include typography.role("label-large");
     @include typography.no-wrap();
   }
