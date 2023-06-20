@@ -81,12 +81,13 @@ export class Workspace {
     await this.#initialize();
   }
 
-  async open(name: string): Promise<string> {
-    const fileHandle = await this.rootDirectory.getFileHandle(
-      `${name}/scene.json`
-    );
-    const file = await fileHandle.getFile();
-    return file.text();
+  readSceneJson(name: string): Promise<string> {
+    return this.rootDirectory
+      .getDirectoryHandle("scenes")
+      .then((d) => d.getDirectoryHandle(name))
+      .then((d) => d.getFileHandle("scene.json"))
+      .then((f) => f.getFile())
+      .then((f) => f.text());
   }
 
   async save(document: SceneDocument): Promise<void> {

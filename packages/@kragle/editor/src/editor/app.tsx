@@ -23,11 +23,12 @@ export function App({ definitions }: AppProps) {
     <div ref={rootRef} className={cls.block()}>
       <WorkspaceManager
         className={cls.element("workspace-manager")}
+        definitions={definitions}
         document={document}
         onDocumentChange={setDocument}
       />
       <NodeTree className={cls.element("node-tree")} />
-      <StageView className={cls.element("stage-view")} />
+      <StageView className={cls.element("stage-view")} document={document} />
       <NodeProperties className={cls.element("node-properties")} />
       <LicenseStatus className={cls.element("license-status")} />
     </div>

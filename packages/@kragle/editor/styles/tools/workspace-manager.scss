@@ -71,12 +71,16 @@
     color: color.role("on-surface");
     @include typography.role("body-medium");
 
-    &:is(:hover) {
+    &:not(&--disabled):is(:hover) {
       background-color: color-mix(
         in srgb,
         transparent,
         color.role("on-surface") 12%
       );
+    }
+
+    &--disabled {
+      opacity: 0.38;
     }
   }
 }
