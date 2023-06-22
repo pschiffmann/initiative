@@ -5,4 +5,4 @@ To run locally:
 - `cd packages/@pschiffmann/kragle-demo`
 - `npm run tsc`
 - `npm run dev`
-- Visit http://localhost:5137/kragle/ide.html
+- Visit http://localhost:5173/kragle/ide.html

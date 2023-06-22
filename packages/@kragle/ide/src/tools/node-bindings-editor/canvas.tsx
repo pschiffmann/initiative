@@ -83,8 +83,8 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
               <path
                 key={childId}
                 className={cls.element("child-line")}
-                // d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
-                d={`M ${x1} ${y1} L ${x2} ${y2}`}
+                d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                //d={`M ${x1} ${y1} L ${x2} ${y2}`}
               />
             );
           }
@@ -137,16 +137,35 @@ function ConnectionLines({ document, layout }: ConnectionLinesProps) {
                 targetPosition.offsetTop +
                 targetInputOffset +
                 nodeBoxSizes.connectorOffsetY;
-              const center = (x1 + x2) / 2;
-              lines.push(
-                <path
-                  key={`${targetId}/${inputName}`}
-                  className={cls.element("connection-line")}
-                  //d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
-                  d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
-                  //d={`M ${x1} ${y1} L ${x2} ${y2}`}
-                />
-              );
+              // adding tunnel functionality
+              if (!targetPosition.tunnels.has(binding.nodeId)) {
+                const center = (x1 + x2) / 2;
+                lines.push(
+                  <path
+                    key={`${targetId}/${inputName}`}
+                    className={cls.element("connection-line")}
+                    d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                    //d={`M ${x1} ${y1} C ${}`}
+                  />
+                );
+              } else {
+                const tunnel = targetPosition.tunnels.get(binding.nodeId)!;
+                const center1 = (x1 + tunnel[0]) / 2;
+                const center2 = (tunnel[2] + x2) / 2;
+                lines.push(
+                  <path
+                    key={`${targetId}/${inputName}`}
+                    className={cls.element("connection-line")}
+                    //d={`M ${x1} ${y1} C ${center} ${y1} ${center} ${y2} ${x2} ${y2}`}
+                    d={`M ${x1} ${y1} C ${center1} ${y1} ${center1} ${tunnel[1]} ${tunnel[0]} ${tunnel[1]} L ${tunnel[2]} ${tunnel[3]} C ${center2} ${tunnel[3]} ${center2} ${y2} ${x2} ${y2} `}
+                    /*
+                    d={`M ${x1} ${y1} L ${tunnel[0]} ${tunnel[1]} L ${
+                      tunnel![2]
+                    } ${tunnel![3]} L ${x2} ${y2}`}
+                    */
+                  />
+                );
+              }
             }
           }
 

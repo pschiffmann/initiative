@@ -1,8 +1,9 @@
 import { NodeJson, NodeSchema, SceneDocument } from "@kragle/runtime";
 
 export function useLayout(document: SceneDocument) {
+  return calculateLayout3(document);
   //return calculateLayout2(document);
-  return calculateLayout(document);
+  //return calculateLayout(document);
 }
 
 export interface Layout {
@@ -28,6 +29,14 @@ export interface NodeBoxPosition {
   readonly height: number;
 
   /**
+   * tunnel positions in px filed under destination id.
+   */
+  readonly tunnels: Map<
+    string,
+    [entranceX: number, entranceY: number, exitX: number, exitY: number]
+  >;
+
+  /**
    * Map from input name to input row distance from the NodeBox top edge in px.
    *
    * Array inputs are stored as `<input name>/<index>` keys.
@@ -51,8 +60,10 @@ interface box {
   readonly inputs: Array<string>;
 }
 
-function calculateLayout3(document: SceneDocument) {
+function calculateLayout3(document: SceneDocument): Layout {
   const allNodes: Map<string, box> = new Map();
+
+  let minimumtunnelseperation: number = Number.NEGATIVE_INFINITY;
   /**
    * Will unpack all nodes from the Scenedocument into allNodes Map.
    * Recursive!
@@ -91,6 +102,8 @@ function calculateLayout3(document: SceneDocument) {
       inputs: inputs,
     };
     allNodes.set(nodeID, node);
+    if (node.column != 0)
+      minimumtunnelseperation = Math.max(minimumtunnelseperation, node.size);
     return chainraw[0] + 1;
   }
 
@@ -102,15 +115,20 @@ function calculateLayout3(document: SceneDocument) {
     allColumns.get(node.column)!.add(node.id);
   }
 
-  const allConnections: Map<number, Map<number, number>> = new Map();
+  const allConnectionsFrom: Map<string, Set<string>> = new Map();
+  const allConnectionsTo: Map<string, Set<string>> = new Map();
   for (const node of allNodes.values()) {
-    const to = node.column;
     for (const connection of node.inputs) {
-      const from = allNodes.get(connection)!.column;
-      if (!allConnections.has(from)) allConnections.set(from, new Map());
-      if (!allConnections.get(from)!.has(to))
-        allConnections.get(from)!.set(to, 0);
-      allConnections.get(from)!.set(to, allConnections.get(from)!.get(to)! + 1);
+      const fromnode = allNodes.get(connection)!;
+      if (node.column - fromnode.column <= 1) continue;
+      if (!allConnectionsFrom.has(fromnode.id)) {
+        allConnectionsFrom.set(fromnode.id, new Set());
+      }
+      if (!allConnectionsTo.has(node.id)) {
+        allConnectionsTo.set(node.id, new Set());
+      }
+      allConnectionsFrom.get(fromnode.id)!.add(node.id);
+      allConnectionsTo.get(node.id)!.add(fromnode.id);
     }
   }
 
@@ -140,6 +158,7 @@ function calculateLayout3(document: SceneDocument) {
   // sorts all nodes by their chains, behind their parents
   for (let depth = 0; depth <= maxdepth; depth++) {
     geographyFirstSort.set(depth, new Array());
+    // root node skip
     if (depth === 0) {
       for (const nodeId of allColumns.get(depth)!.values()) {
         geographyFirstSort.get(depth)!.push(nodeId);
@@ -147,30 +166,407 @@ function calculateLayout3(document: SceneDocument) {
       continue;
     }
     const columnNodes: Map<string, Array<string>> = new Map();
+    // sorting into parent groups
     for (const nodeId of allColumns.get(depth)!.values()) {
       const node = allNodes.get(nodeId)!;
       if (!columnNodes.has(node.parent))
         columnNodes.set(node.parent, new Array());
       columnNodes.get(node.parent)!.push(node.id);
     }
-    for (const [parent, nodes] of columnNodes) {
+    // sorting individual nodes
+    for (const [parent, group] of columnNodes) {
       let unsortedList: Array<[string, number, number]> = new Array();
-      for (const nodeId of nodes) {
+      for (const nodeId of group) {
         const node = allNodes.get(nodeId)!;
         unsortedList.push([node.id, node.chain[0], node.chain[1]]);
       }
-      unsortedList.sort(function (a, b) {
+      unsortedList.sort(function (b, a) {
         return a[1] * 100 + a[2] - (b[1] * 100 + b[2]);
       });
       let sortedList: Array<string> = new Array();
       unsortedList.forEach(function (a) {
-        return a[0];
+        sortedList.push(a[0]);
       });
       sortedList = pyramid(sortedList);
       columnNodes.set(parent, sortedList);
     }
-    
+    // sorting parent groups
+    const unsortedparentlist: Array<[string, Array<string>]> = new Array();
+    for (const [parent, group] of columnNodes) {
+      unsortedparentlist.push([parent, group]);
+    }
+    unsortedparentlist.sort(function (a, b) {
+      const parentA: number = geographyFirstSort.get(depth - 1)!.indexOf(a[0]);
+      const parentB: number = geographyFirstSort.get(depth - 1)!.indexOf(b[0]);
+      return parentA - parentB;
+    });
+    const sortedparentlist: Array<string> = new Array();
+    unsortedparentlist.forEach(function (group) {
+      group[1].forEach(function (node) {
+        sortedparentlist.push(node);
+      });
+    });
+    geographyFirstSort.set(depth, sortedparentlist);
   }
+
+  /**
+   * function to quickly find the combined size of nodes belonging to a single parent
+   * @param nodes nodes to be measured
+   * @param parent filter of what nodes to include
+   * @returns measured size, nodes that match filter, rest of nodes
+   */
+  function combinedNodeSize(
+    nodes: Array<string>,
+    parent: string
+  ): [size: number, found: Array<string>, rest: Array<string>] {
+    let size: number = 0;
+    let index: number;
+    for (index = 0; index < nodes.length; index++) {
+      const node = allNodes.get(nodes[index])!;
+      if (node.parent !== parent) break;
+      size += node.size;
+    }
+    const found: Array<string> = nodes.slice(0, index);
+    const rest: Array<string> = nodes.slice(index);
+    return [size, found, rest];
+  }
+
+  /**
+   * used for a simple first pass placement of nodes
+   * @param nodes all nodes to be placed
+   * @param yCoordinate highest coordinate to start placing
+   */
+  function assignFirstPosition(nodes: Array<string>, yCoordinate: number) {
+    for (const id of nodes) {
+      const node = allNodes.get(id)!;
+      node.position[1] = yCoordinate;
+      yCoordinate += node.size;
+    }
+  }
+  // establishing initial node position
+  // needed to find optimal tunnel placements
+  for (let depth = 0; depth <= maxdepth; depth++) {
+    if (depth == 0) continue;
+    let workorder: Array<string> = geographyFirstSort.get(depth)!;
+    do {
+      const parent: box = allNodes.get(allNodes.get(workorder[0])!.parent)!;
+      let yCoordinatestart: number;
+      let batch: Array<string>;
+      [yCoordinatestart, batch, workorder] = combinedNodeSize(
+        workorder,
+        parent.id
+      );
+      assignFirstPosition(
+        batch,
+        parent.position[1] + parent.size / 2 - yCoordinatestart / 2
+      );
+    } while (workorder.length > 0);
+    let adjust = geographyFirstSort.get(depth)!;
+    for (const id of adjust) {
+      resolveCollision(adjust.slice(0, adjust.indexOf(id)), id, true);
+    }
+  }
+
+  // collision resolve
+  function resolveCollision(
+    list: Array<string>,
+    id: string,
+    compromise: boolean
+  ) {
+    const node = allNodes.get(id)!;
+    if (list.length == 0) return;
+    const nextnode = allNodes.get(list.pop()!)!;
+    if (nextnode.position[1] + nextnode.size <= node.position[1]) return;
+    let conflictzone: number =
+      nextnode.position[1] + nextnode.size - node.position[1];
+    conflictzone = Math.abs(conflictzone);
+    if (compromise) {
+      nextnode.position[1] -= conflictzone / 2;
+      node.position[1] += conflictzone / 2;
+    } else {
+      nextnode.position[1] -= conflictzone;
+    }
+    compromise = false;
+    resolveCollision(list, nextnode.id, compromise);
+  }
+
+  // tunnel find
+  /**
+   * Map< fromid, Map< toid, position >>
+   */
+  const metro: Map<string, Map<string, number>> = new Map();
+  // middle
+  for (const [originid, list] of allConnectionsFrom) {
+    const origin = allNodes.get(originid)!;
+    let placement: number = 0;
+    for (const id of list) {
+      const node = allNodes.get(id)!;
+      placement += node.position[1] + node.size / 2;
+    }
+    placement = placement / list.size;
+    if (!metro.has(origin.id)) metro.set(origin.id, new Map());
+    for (const id of list) {
+      metro.get(origin.id)!.set(id, placement);
+    }
+  }
+  // edge
+  /*
+  for (const [originid, list] of allConnectionsFrom) {
+    const origin = allNodes.get(originid)!;
+    const placement: Array<[number, number]> = new Array();
+    for (const id of list) {
+      const node = allNodes.get(id)!;
+      placement.push([node.position[1], node.position[1] + node.size])
+    }
+    
+    if (!metro.has(origin.id)) metro.set(origin.id, new Map());
+    for (const id of list) {
+      metro.get(origin.id)!.set(id, 0.0);
+    }
+  }
+  function exploratorydig(directionA: number, directionB: number, furtherprospects: Array<[number, number]>) {
+
+  }
+  */
+
+  // group very close tunnels
+  const tunnelspacing: number = 8;
+  const groupinglist: Array<
+    [fromid: string, toid: Array<string>, position: Array<number>]
+  > = new Array();
+  for (const [fromid, data] of metro) {
+    const templisttoid: Array<string> = new Array();
+    const templistposition: Array<number> = new Array();
+    for (const [toid, position] of data) {
+      templisttoid.push(toid);
+      templistposition.push(position);
+    }
+    groupinglist.push([fromid, templisttoid, templistposition]);
+  }
+  groupinglist.sort(function (a, b) {
+    return a[2][0] - b[2][0];
+  });
+  for (const [index, data] of groupinglist.entries()) {
+    const targets = redrill(
+      index,
+      data[2][0] - minimumtunnelseperation,
+      new Array()
+    );
+    if (targets.length <= 0) continue;
+    let adjust = 0;
+    targets.forEach(function (a) {
+      adjust += groupinglist[index][2][0];
+    });
+    adjust = adjust / targets.length;
+    adjust += (targets.length / 2) * tunnelspacing;
+    for (const i of targets) {
+      for (const [indexg, g] of groupinglist[i][2].entries()) {
+        groupinglist[i][2][indexg] = adjust;
+      }
+      adjust -= tunnelspacing;
+    }
+  }
+  for (const data of groupinglist) {
+    const change = metro.get(data[0])!;
+    for (const [index, id] of data[1].entries()) {
+      change.set(id, data[2][index]);
+    }
+  }
+  function redrill(
+    index: number,
+    bound: number,
+    targets: Array<number>
+  ): Array<number> {
+    if (index >= groupinglist.length) return targets;
+    if (groupinglist[index][2][0] >= bound) return targets;
+    targets.push(index);
+    let calculate: number = 0;
+    for (const i of targets) {
+      calculate += groupinglist[i][2][0];
+    }
+    calculate = calculate / targets.length;
+    calculate -= (targets.length * (tunnelspacing * 2)) / 2;
+    calculate -= minimumtunnelseperation;
+    return redrill(index + 1, calculate, targets);
+  }
+
+  // todo
+  // move nodes to clear metro lines
+  // step 1
+  // create 2d map of tunnels
+  const tunnelmap2d: Map<number, Set<number>> = new Map();
+  for (const [fromid, toidlist, positionlist] of groupinglist) {
+    const from: number = allNodes.get(fromid)!.column;
+    for (const [index, toid] of toidlist.entries()) {
+      const to: number = allNodes.get(toid)!.column;
+      for (let column = from + 1; column < to; column++) {
+        if (!tunnelmap2d.has(column)) tunnelmap2d.set(column, new Set());
+        tunnelmap2d.get(column)!.add(positionlist[index]);
+      }
+    }
+  }
+  // step 2
+  // check each node for collision
+  for (const [column, nodeidlist] of geographyFirstSort) {
+    for (const nodeid of nodeidlist) {
+      const node = allNodes.get(nodeid)!;
+      const conflicts: Array<number> = subwaycheck(
+        column,
+        node.position[1],
+        node.position[1] + node.size
+      );
+      //
+    }
+  }
+  function subwaycheck(
+    column: number,
+    upperbound: number,
+    lowerbound: number
+  ): Array<number> {
+    const conflicts: Array<number> = new Array();
+    if (!tunnelmap2d.has(column)) return conflicts;
+    for (const position of tunnelmap2d.get(column)!) {
+      if (
+        upperbound <= position - tunnelspacing &&
+        position + tunnelspacing <= lowerbound
+      ) {
+        conflicts.push(position);
+      }
+    }
+    if (conflicts.length == 0) return conflicts;
+    conflicts.sort();
+    const uppercollision: number = conflicts[0] - upperbound;
+    const lowercollision: number = conflicts[conflicts.length - 1] - lowerbound;
+    let resolve: number = 0;
+    if (uppercollision < Math.abs(lowercollision)) {
+      resolve = uppercollision;
+    } else {
+      resolve = lowercollision;
+    }
+
+    return conflicts.sort();
+  }
+  function subwayexcavation(
+    upperbound: number,
+    lowerbound: number,
+    conflicts: Array<number>
+  ) {}
+
+  // metro reverse
+  /**
+   * Map< toid, Map< fromid, position >>
+   */
+  const reversemetro: Map<string, Map<string, number>> = new Map();
+  for (const [fromid, data] of metro) {
+    for (const [toid, position] of data) {
+      if (!reversemetro.has(toid)) reversemetro.set(toid, new Map());
+      reversemetro.get(toid)!.set(fromid, position);
+    }
+  }
+
+  // yCoordinate fix
+  let minheight: number = Number.POSITIVE_INFINITY;
+  let maxheight: number = Number.NEGATIVE_INFINITY;
+  for (const node of allNodes.values()) {
+    minheight = Math.min(minheight, node.position[1]);
+    maxheight = Math.max(maxheight, node.position[1] + node.size);
+  }
+  maxheight += Math.abs(minheight);
+  for (const node of allNodes.values()) {
+    node.position[1] += Math.abs(minheight);
+  }
+
+  // xCoordinate assignment
+  let seperation = 320;
+  for (let depth = 0; depth < allColumns.size; depth++) {
+    const data = allColumns.get(depth)!;
+    if (depth == 0) continue;
+    // todo change static to based on incomming tunnels
+    let highestSeperation: number = 80;
+    for (const id of data) {
+      const inputnode = allNodes.get(id)!;
+      for (const outputnodeid of inputnode.inputs) {
+        const outputnode = allNodes.get(outputnodeid)!;
+        if (inputnode.column - outputnode.column > 1) continue;
+        highestSeperation = Math.max(
+          highestSeperation,
+          blackmagic(inputnode, outputnode)
+        );
+      }
+    }
+    for (const id of data) {
+      allNodes.get(id)!.position[0] = seperation + highestSeperation;
+    }
+    seperation += highestSeperation + 320;
+  }
+
+  /**
+   * Just some math.
+   *
+   * b = sqrt(sin(alpha.rad)² - a²)
+   *
+   * alpha = maxangle
+   *
+   * a = seperation in yCoordinates between nodes
+   * @param inputnode node that recieves inputs
+   * @param outputnode node that provides inputs
+   * @returns seperation distance in pixel
+   */
+  function blackmagic(inputnode: box, outputnode: box): number {
+    const maxangle: number = 60;
+    return Math.sqrt(
+      Math.abs(
+        Math.pow(Math.sin(maxangle * (Math.PI / 180)), 2) -
+          Math.pow(
+            Math.abs(
+              inputnode.position[1] +
+                inputnode.size / 2 -
+                (outputnode.position[1] + outputnode.size / 2)
+            ),
+            2
+          )
+      )
+    );
+  }
+
+  // find maxwidth
+  let maxwidth = 0;
+  for (const node of allNodes.values()) {
+    maxwidth = Math.max(maxwidth, node.position[0] + 320);
+  }
+
+  // placeholder output
+  const sampleoutput2: Record<string, NodeBoxPosition> = {};
+  for (const node of allNodes.values()) {
+    let tunnelmap: NodeBoxPosition["tunnels"] = new Map();
+    if (reversemetro.has(node.id)) {
+      const tunnelmapraw = reversemetro.get(node.id)!;
+      for (const [id, yCoordinate] of tunnelmapraw) {
+        tunnelmap.set(id, [
+          allNodes.get(
+            allColumns
+              .get(allNodes.get(id)!.column + 1)!
+              .values()
+              .next().value
+          )!.position[0] - 20,
+          yCoordinate + Math.abs(minheight),
+          allNodes.get(node.parent)!.position[0] + 340,
+          yCoordinate + Math.abs(minheight),
+        ]);
+      }
+    }
+    sampleoutput2[node.id] = {
+      offsetLeft: node.position[0],
+      offsetTop: node.position[1],
+      tunnels: tunnelmap,
+      ...node.innerD,
+    };
+  }
+  return {
+    canvasWidth: maxwidth,
+    canvasHeight: maxheight,
+    nodeBoxPositions: sampleoutput2,
+  };
 }
 
 interface nodeBox0 {
@@ -511,6 +907,7 @@ function calculateLayout(document: SceneDocument): Layout {
     sampleoutput2[n.ID] = {
       offsetLeft: n.position![0],
       offsetTop: n.position![1],
+      tunnels: new Map(),
       ...innerDimensions,
     };
   }
