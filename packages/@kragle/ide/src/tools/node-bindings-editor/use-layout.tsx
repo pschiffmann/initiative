@@ -61,9 +61,13 @@ interface box {
 }
 
 function calculateLayout3(document: SceneDocument): Layout {
-  const allNodes: Map<string, box> = new Map();
+  const nodesseperation: number = 16;
+  const tunnelspacing: number = 8;
 
+  // todo change into a 2d model
   let minimumtunnelseperation: number = Number.NEGATIVE_INFINITY;
+
+  const allNodes: Map<string, box> = new Map();
   /**
    * Will unpack all nodes from the Scenedocument into allNodes Map.
    * Recursive!
@@ -224,7 +228,7 @@ function calculateLayout3(document: SceneDocument): Layout {
     for (index = 0; index < nodes.length; index++) {
       const node = allNodes.get(nodes[index])!;
       if (node.parent !== parent) break;
-      size += node.size;
+      size += node.size + nodesseperation;
     }
     const found: Array<string> = nodes.slice(0, index);
     const rest: Array<string> = nodes.slice(index);
@@ -240,7 +244,7 @@ function calculateLayout3(document: SceneDocument): Layout {
     for (const id of nodes) {
       const node = allNodes.get(id)!;
       node.position[1] = yCoordinate;
-      yCoordinate += node.size;
+      yCoordinate += node.size + nodesseperation;
     }
   }
   // establishing initial node position
@@ -276,9 +280,13 @@ function calculateLayout3(document: SceneDocument): Layout {
     const node = allNodes.get(id)!;
     if (list.length == 0) return;
     const nextnode = allNodes.get(list.pop()!)!;
-    if (nextnode.position[1] + nextnode.size <= node.position[1]) return;
+    if (
+      nextnode.position[1] + nextnode.size + nodesseperation <=
+      node.position[1]
+    )
+      return;
     let conflictzone: number =
-      nextnode.position[1] + nextnode.size - node.position[1];
+      nextnode.position[1] + nextnode.size + nodesseperation - node.position[1];
     conflictzone = Math.abs(conflictzone);
     if (compromise) {
       nextnode.position[1] -= conflictzone / 2;
@@ -309,28 +317,10 @@ function calculateLayout3(document: SceneDocument): Layout {
       metro.get(origin.id)!.set(id, placement);
     }
   }
-  // edge
-  /*
-  for (const [originid, list] of allConnectionsFrom) {
-    const origin = allNodes.get(originid)!;
-    const placement: Array<[number, number]> = new Array();
-    for (const id of list) {
-      const node = allNodes.get(id)!;
-      placement.push([node.position[1], node.position[1] + node.size])
-    }
-    
-    if (!metro.has(origin.id)) metro.set(origin.id, new Map());
-    for (const id of list) {
-      metro.get(origin.id)!.set(id, 0.0);
-    }
-  }
-  function exploratorydig(directionA: number, directionB: number, furtherprospects: Array<[number, number]>) {
-
-  }
-  */
 
   // group very close tunnels
-  const tunnelspacing: number = 8;
+  // todo make sure for any column a node can fit inbetween tunnels
+  // todo change so only tunnels that actually run through the same columns get grouped
   const groupinglist: Array<
     [fromid: string, toid: Array<string>, position: Array<number>]
   > = new Array();
@@ -378,7 +368,9 @@ function calculateLayout3(document: SceneDocument): Layout {
     targets: Array<number>
   ): Array<number> {
     if (index >= groupinglist.length) return targets;
-    if (groupinglist[index][2][0] >= bound) return targets;
+    const data = groupinglist[index];
+    if (data[2][0] >= bound) return targets;
+    // exclude non touching tunnels
     targets.push(index);
     let calculate: number = 0;
     for (const i of targets) {
@@ -407,50 +399,123 @@ function calculateLayout3(document: SceneDocument): Layout {
   }
   // step 2
   // check each node for collision
-  for (const [column, nodeidlist] of geographyFirstSort) {
-    for (const nodeid of nodeidlist) {
-      const node = allNodes.get(nodeid)!;
-      const conflicts: Array<number> = subwaycheck(
-        column,
-        node.position[1],
-        node.position[1] + node.size
-      );
-      //
+  // find a tunnel, check for collision, move nodes out of the way
+  for (const [column, tunnels] of tunnelmap2d) {
+    const donetunnels: Array<number> = new Array();
+    const nodesabove: Array<string> = new Array();
+    const nodesbelow: Array<string> = geographyFirstSort.get(column)!;
+    for (const tunnel of tunnels) {
+      subwaydowndodge(donetunnels, tunnel, nodesabove, nodesbelow);
+      donetunnels.push(tunnel);
     }
   }
-  function subwaycheck(
-    column: number,
-    upperbound: number,
-    lowerbound: number
-  ): Array<number> {
-    const conflicts: Array<number> = new Array();
-    if (!tunnelmap2d.has(column)) return conflicts;
-    for (const position of tunnelmap2d.get(column)!) {
-      if (
-        upperbound <= position - tunnelspacing &&
-        position + tunnelspacing <= lowerbound
-      ) {
-        conflicts.push(position);
+  function subwaydowndodge(
+    donetunnels: Array<number>,
+    tunnel: number,
+    nodesabove: Array<string>,
+    nodesbelow: Array<string>
+  ) {
+    if (nodesbelow.length <= 0) return; // finished checking nodes
+    const node = allNodes.get(nodesbelow[0])!;
+    if (node.position[1] > tunnel + tunnelspacing) {
+      // tunnel is above node
+      // go to next tunnel
+      return;
+    }
+    if (node.position[1] + node.size < tunnel - tunnelspacing) {
+      // tunnel is below node
+      // go to next node
+      nodesabove.push(nodesbelow[0]);
+      subwaydowndodge(donetunnels, tunnel, nodesabove, nodesbelow.slice(1));
+      return;
+    }
+    // tunnel hits node
+    // resolve collision
+    if (
+      tunnel - tunnelspacing - node.position[1] <=
+      node.position[1] + node.size - tunnel - tunnelspacing
+    ) {
+      // node is shifted down
+      nodesmover(nodesbelow, tunnel + tunnelspacing - node.position[1]);
+      return;
+    }
+    //remove
+    /*
+    // testing reroute
+    nodesmover(nodesbelow, tunnel + tunnelspacing - node.position[1]);
+    return;
+    */
+    //remove
+
+    // node is shifted up
+    nodesabove.push(nodesbelow[0]);
+    nodesabove.reverse();
+    nodesmover(
+      nodesabove,
+      tunnel - tunnelspacing - (node.position[1] + node.size)
+    );
+    nodesabove.reverse();
+    subwayupdodge(donetunnels, nodesabove);
+  }
+  // todo merge with subwaydowndodge
+  function subwayupdodge(tunnels: Array<number>, nodesabove: Array<string>) {
+    if (tunnels.length <= 0) return;
+    if (nodesabove.length <= 0) return;
+    const node = allNodes.get(nodesabove[nodesabove.length - 1])!;
+    const tunnel = tunnels[tunnels.length - 1];
+    if (tunnel + tunnelspacing <= node.position[1]) {
+      // node is below tunnel
+      // check next node
+      nodesabove.pop();
+      subwayupdodge(tunnels, nodesabove);
+      return;
+    }
+    if (tunnel - tunnelspacing > node.position[1] + node.size) {
+      // node is above tunnel
+      // check next tunnel
+      tunnels.pop();
+      subwayupdodge(tunnels, nodesabove);
+      return;
+    }
+    // tunnel intersects node
+    // move all nodes up
+    let move = tunnel - tunnelspacing - (node.position[1] + node.size);
+    nodesabove.reverse();
+    nodesmover(
+      nodesabove,
+      tunnel - tunnelspacing - (node.position[1] + node.size)
+    );
+    nodesabove.reverse();
+    tunnels.pop();
+    subwayupdodge(tunnels, nodesabove);
+  }
+  function nodesmover(nodes: Array<string>, move: number) {
+    for (let index = 0; index < nodes.length; index++) {
+      const node = allNodes.get(nodes[index])!;
+      node.position[1] += move;
+      if (index == nodes.length - 1) continue;
+      if (move == 0) break;
+      if (move > 0) {
+        move = Math.min(
+          move,
+          node.position[1] +
+            node.size +
+            nodesseperation -
+            allNodes.get(nodes[index + 1])!.position[1]
+        );
+        if (move <= 0) break;
+      } else if (move < 0) {
+        const nextnode = allNodes.get(nodes[index + 1])!;
+        move = Math.max(
+          move,
+          node.position[1] -
+            nodesseperation -
+            (nextnode.position[1] + nextnode.size)
+        );
+        if (move >= 0) break;
       }
     }
-    if (conflicts.length == 0) return conflicts;
-    conflicts.sort();
-    const uppercollision: number = conflicts[0] - upperbound;
-    const lowercollision: number = conflicts[conflicts.length - 1] - lowerbound;
-    let resolve: number = 0;
-    if (uppercollision < Math.abs(lowercollision)) {
-      resolve = uppercollision;
-    } else {
-      resolve = lowercollision;
-    }
-
-    return conflicts.sort();
   }
-  function subwayexcavation(
-    upperbound: number,
-    lowerbound: number,
-    conflicts: Array<number>
-  ) {}
 
   // metro reverse
   /**
