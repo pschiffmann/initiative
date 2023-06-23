@@ -34,16 +34,16 @@ export function MuiTable({
         {rows.map((row) => (
           <TableRow key={getRowKey(row)}>
             <TableCell align={align1}>
-              {slots.column1.element({ row })}
+              {slots.column1.element({ row1: row })}
             </TableCell>
             <TableCell align={align2}>
-              {slots.column2.element({ row })}
+              {slots.column2.element({ row2: row })}
             </TableCell>
             <TableCell align={align3}>
-              {slots.column3.element({ row })}
+              {slots.column3.element({ row3: row })}
             </TableCell>
             <TableCell align={align4}>
-              {slots.column4.element({ row })}
+              {slots.column4.element({ row4: row })}
             </TableCell>
           </TableRow>
         ))}

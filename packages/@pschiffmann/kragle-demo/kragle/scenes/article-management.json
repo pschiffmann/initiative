@@ -128,7 +128,7 @@
         "argument": {
           "type": "node-output",
           "nodeId": "ArticlesTable",
-          "outputName": "row"
+          "outputName": "row1"
         }
       },
       "slots": {
@@ -160,7 +160,7 @@
         "argument": {
           "type": "node-output",
           "nodeId": "ArticlesTable",
-          "outputName": "row"
+          "outputName": "row2"
         }
       },
       "slots": {
@@ -192,7 +192,7 @@
         "argument": {
           "type": "node-output",
           "nodeId": "ArticlesTable",
-          "outputName": "row"
+          "outputName": "row3"
         }
       },
       "slots": {
@@ -243,7 +243,7 @@
         "article": {
           "type": "node-output",
           "nodeId": "ArticlesTable",
-          "outputName": "row"
+          "outputName": "row4"
         },
         "updateArticle": {
           "type": "node-output",

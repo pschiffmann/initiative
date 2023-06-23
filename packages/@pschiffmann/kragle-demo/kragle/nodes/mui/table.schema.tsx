@@ -26,22 +26,22 @@ export const MuiTableSchema = new NodeSchema(
     slots: {
       column1: {
         outputs: {
-          row: t.any(),
+          row1: t.any(),
         },
       },
       column2: {
         outputs: {
-          row: t.any(),
+          row2: t.any(),
         },
       },
       column3: {
         outputs: {
-          row: t.any(),
+          row3: t.any(),
         },
       },
       column4: {
         outputs: {
-          row: t.any(),
+          row4: t.any(),
         },
       },
     },
