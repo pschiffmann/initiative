@@ -1,19 +1,13 @@
+import { useEffect } from "react";
+
 export interface CommandStream<T = void> {
   listen(onRequest: Listener<T>): Unsubscribe;
 }
 
-export type Listener<T> = T extends void
-  ? () => boolean
-  : (value: T) => boolean;
+export type Listener<T> = (value: T) => boolean;
 export type Unsubscribe = () => void;
 
-type SendParams<T> = T extends void
-  ? []
-  : T extends undefined
-  ? [] | [data: T]
-  : [data: T];
-
-export class CommandController<T = void> implements CommandStream<T> {
+export class CommandController<T> implements CommandStream<T> {
   #listeners = new Set<Listener<T>>();
 
   get hasListeners(): boolean {
@@ -35,16 +29,26 @@ export class CommandController<T = void> implements CommandStream<T> {
     };
   }
 
-  send(...args: SendParams<T>): boolean;
-  send(data?: any): boolean {
+  send(command: T): boolean {
     let handled = false;
     for (const listener of [...this.#listeners]) {
       try {
-        handled ||= listener(data);
+        handled ||= listener(command);
       } catch (e) {
         reportError(e);
       }
     }
     return handled;
   }
+}
+
+export function useAcceptCommands<T>(
+  commandStream: CommandStream<T> | undefined,
+  listener: Listener<T>,
+  deps?: readonly any[]
+) {
+  useEffect(
+    () => commandStream?.listen(listener),
+    deps ? [commandStream, ...deps] : [commandStream]
+  );
 }

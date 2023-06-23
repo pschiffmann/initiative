@@ -1,33 +1,30 @@
-import { CommandStream } from "@kragle/react-command";
-import { ReactNode, useEffect, useRef } from "react";
+import { CommandStream, useAcceptCommands } from "@kragle/react-command";
+import { ReactNode, useRef } from "react";
 import { bemClasses } from "../index.js";
 
 const cls = bemClasses("kragle-dialog");
 
+export type DialogCommand = "open" | "close";
+
 export interface DialogProps {
-  setOpenCommandStream?: CommandStream<boolean>;
+  commandStream?: CommandStream<DialogCommand>;
   className?: string;
   children: ReactNode;
 }
 
-export function Dialog({
-  setOpenCommandStream,
-  className,
-  children,
-}: DialogProps) {
+export function Dialog({ commandStream, className, children }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
-  useEffect(
-    () =>
-      setOpenCommandStream?.listen((open: boolean) => {
-        if (open) {
-          ref.current!.showModal();
-        } else {
-          ref.current!.close();
-        }
-        return true;
-      }),
-    [setOpenCommandStream]
-  );
+  useAcceptCommands(commandStream, (command) => {
+    switch (command) {
+      case "open":
+        ref.current!.showModal();
+        break;
+      case "close":
+        ref.current!.close();
+        break;
+    }
+    return true;
+  });
 
   return (
     <dialog ref={ref} className={cls.block(className)}>

@@ -1,5 +1,6 @@
 import {
   Button,
+  DialogCommand,
   IconButton,
   Typography,
   bemClasses,
@@ -34,7 +35,7 @@ export function WorkspaceManager({
   const [workspace, setWorkspace] = useWorkspace();
 
   const [openWorkspaceDialogController] = useState(
-    () => new CommandController<boolean>()
+    () => new CommandController<DialogCommand>()
   );
 
   async function openScene(name: string) {
@@ -96,7 +97,7 @@ export function WorkspaceManager({
               className={cls.element("button")}
               icon="folder"
               label="Select Kragle directory"
-              onPress={() => openWorkspaceDialogController.send(true)}
+              onPress={() => openWorkspaceDialogController.send("open")}
             />
           </>
         )}
