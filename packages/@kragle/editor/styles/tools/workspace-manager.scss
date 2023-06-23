@@ -66,10 +66,11 @@
 
   &__scene {
     padding: 4px 8px;
+    border-radius: 4px;
     list-style: none;
-    cursor: pointer;
     color: color.role("on-surface");
     @include typography.role("body-medium");
+    cursor: pointer;
 
     &:not(&--disabled):is(:hover) {
       background-color: color-mix(

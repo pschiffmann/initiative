@@ -4,6 +4,7 @@
 .kragle-icon-button {
   // Public
   --kragle-icon-button-color: #{color.role("on-surface")};
+  --kragle-icon-button-density: 0;
 
   // Private
   --kragle-icon-button-state-layer-opacity: 0%;
@@ -14,8 +15,8 @@
     --kragle-icon-button-state-layer-opacity: 12%;
   }
 
-  width: 24px;
-  height: 24px;
+  width: calc(24px + var(--kragle-icon-button-density) * 4px);
+  height: calc(24px + var(--kragle-icon-button-density) * 4px);
   display: grid;
   grid: "main" 1fr / 1fr;
   place-items: center;

@@ -1,6 +1,78 @@
 @use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
 
 .kragle-node-tree {
-  background-color: color.role("surface-container");
-  border-radius: 8px;
+  &__nodes {
+    padding: 8px;
+    overflow: auto;
+  }
+
+  &__element {
+    --kragle-node-tree-depth: calc(var(--kragle-node-tree-parent-depth, 0) + 1);
+  }
+
+  &__node-id {
+    --kragle-node-tree-element-fill-color: transparent;
+    --kragle-node-tree-element-stroke-color: #{color.role("on-surface")};
+    --kragle-node-tree-element-state-layer-opacity: 0%;
+    &:focus-visible,
+    &:hover {
+      --kragle-node-tree-element-state-layer-opacity: 8%;
+    }
+    &:active {
+      --kragle-node-tree-element-state-layer-opacity: 12%;
+    }
+
+    padding: 4px 0 4px calc(var(--kragle-node-tree-depth) * 12px - 4px);
+    background-color: color-mix(
+      in srgb,
+      var(--kragle-node-tree-element-fill-color),
+      var(--kragle-node-tree-element-stroke-color)
+        var(--kragle-node-tree-element-state-layer-opacity)
+    );
+    color: var(--kragle-node-tree-element-stroke-color);
+    @include typography.role("body-medium");
+    border-radius: 4px;
+
+    &--selected {
+      --kragle-node-tree-element-fill-color: #{color.role("brand-container")};
+      --kragle-node-tree-element-stroke-color: #{color.role(
+          "on-brand-container"
+        )};
+    }
+  }
+
+  &__slots {
+    margin: 0;
+    padding: 0;
+  }
+
+  &__slot {
+    list-style: none;
+  }
+
+  &__slot-name {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: calc(var(--kragle-node-tree-depth) * 12px - 12px);
+    color: color.role("on-surface-deemphasized");
+    @include typography.role("label-small");
+  }
+
+  &__expand-button,
+  &__add-button {
+    --kragle-icon-button-stroke-color: #{color.role("on-surface-deemphasized")};
+    --kragle-icon-button-density: -2;
+  }
+
+  &__children {
+    --kragle-node-tree-parent-depth: var(--kragle-node-tree-depth);
+    margin: 0;
+    padding: 0;
+  }
+
+  &__child {
+    list-style: none;
+  }
 }

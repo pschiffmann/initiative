@@ -1,4 +1,5 @@
 @use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
 
 .kragle-editor {
   width: 100%;
@@ -30,5 +31,24 @@
   &__license-status {
     grid-area: license-status;
     justify-self: end;
+  }
+
+  &__empty-tool {
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background-color: color.role("surface-container");
+    color: color.role("on-surface-deemphasized");
+    @include typography.role("body-medium");
+
+    &--node-tree {
+      grid-area: node-tree;
+    }
+    &--stage-view {
+      grid-area: stage-view;
+    }
+    &--node-properties {
+      grid-area: node-properties;
+    }
   }
 }

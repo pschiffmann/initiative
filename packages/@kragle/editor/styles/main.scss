@@ -3,6 +3,9 @@
 @use "@kragle/design-system/styles";
 
 @use "app";
+
+@use "tools/tool-frame";
+
 @use "tools/license-status";
 @use "tools/node-properties";
 @use "tools/node-tree";

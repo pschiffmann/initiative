@@ -138,6 +138,22 @@ export class NodeData {
     return result;
   }
 
+  forEachChildInSlot<R>(
+    slotName: string,
+    callback: (childId: string, index: number) => R
+  ): R[] {
+    const result: R[] = [];
+    if (this.schema.isCollectionSlot(slotName)) {
+      for (let i = 0; i < this.collectionSlotSizes[slotName]; i++) {
+        result.push(callback(this.slots[`${slotName}::${i}`], i));
+      }
+    } else {
+      const childId = this.slots[slotName];
+      if (childId) result.push(callback(childId, -1));
+    }
+    return result;
+  }
+
   setInput(
     expression: Expression | null,
     inputName: string,

@@ -15,6 +15,7 @@ export interface AppProps {
 
 export function App({ definitions }: AppProps) {
   const [document, setDocument] = useState<SceneDocument | null>(null);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   useColorTheme(rootRef);
@@ -27,10 +28,44 @@ export function App({ definitions }: AppProps) {
         document={document}
         onDocumentChange={setDocument}
       />
-      <NodeTree className={cls.element("node-tree")} />
-      <StageView className={cls.element("stage-view")} document={document} />
-      <NodeProperties className={cls.element("node-properties")} />
+      {document ? (
+        <>
+          <NodeTree
+            className={cls.element("node-tree")}
+            document={document}
+            selectedNode={selectedNode}
+            onSelectedNodeChange={setSelectedNode}
+          />
+          <StageView
+            className={cls.element("stage-view")}
+            document={document}
+          />
+          <NodeProperties
+            className={cls.element("node-properties")}
+            document={document}
+            selectedNode={selectedNode}
+          />
+        </>
+      ) : (
+        <>
+          <EmptyTool position="node-tree" />
+          <EmptyTool position="stage-view" />
+          <EmptyTool position="node-properties" />
+        </>
+      )}
       <LicenseStatus className={cls.element("license-status")} />
+    </div>
+  );
+}
+
+interface EmptyToolProps {
+  position: string;
+}
+
+function EmptyTool({ position }: EmptyToolProps) {
+  return (
+    <div className={cls.element("empty-tool", null, position)}>
+      No scene selected.
     </div>
   );
 }
