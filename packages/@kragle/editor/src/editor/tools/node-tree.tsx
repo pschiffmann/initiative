@@ -1,6 +1,8 @@
-import { IconButton, bemClasses } from "@kragle/design-system";
+import { DialogCommand, IconButton, bemClasses } from "@kragle/design-system";
+import { CommandController } from "@kragle/react-command";
 import { SceneDocument, useNode, useRootNodeId } from "@kragle/runtime/v2";
 import { memo, useState } from "react";
+import { DataFlowInspector } from "./data-flow-inspector/index.js";
 import { ToolFrame } from "./tool-frame.js";
 
 const cls = bemClasses("kragle-node-tree");
@@ -18,10 +20,31 @@ export function NodeTree({
   onSelectedNodeChange,
   className,
 }: NodeTreeProps) {
+  const [dataFlowInspectorController] = useState(
+    () => new CommandController<DialogCommand>()
+  );
   const rootNodeId = useRootNodeId(document);
 
   return (
-    <ToolFrame className={cls.block(className)} title="Nodes">
+    <ToolFrame
+      className={cls.block(className)}
+      title="Nodes"
+      actions={
+        <>
+          <IconButton
+            label="Delete node"
+            icon="delete"
+            disabled={!selectedNode}
+          />
+          <IconButton
+            label="Inspect data flow"
+            icon="open_in_full"
+            onPress={() => dataFlowInspectorController.send("open")}
+          />
+          <DataFlowInspector controller={dataFlowInspectorController} />
+        </>
+      }
+    >
       <div className={cls.element("nodes")}>
         {rootNodeId !== null && (
           <NodeTreeElement
