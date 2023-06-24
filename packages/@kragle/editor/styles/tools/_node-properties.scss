@@ -1,0 +1,11 @@
+@use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
+
+.kragle-node-properties {
+  &__empty-state {
+    display: grid;
+    place-items: center;
+    @include typography.role("body-medium");
+    color: color.role("on-surface-deemphasized");
+  }
+}

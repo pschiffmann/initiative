@@ -1,0 +1,11 @@
+@use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
+
+@use "node-tree-element";
+
+.kragle-node-tree {
+  &__nodes {
+    padding: 8px;
+    overflow: auto;
+  }
+}

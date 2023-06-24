@@ -1,72 +1,17 @@
-import { DialogCommand, IconButton, bemClasses } from "@kragle/design-system";
-import { CommandController } from "@kragle/react-command";
-import { SceneDocument, useNode, useRootNodeId } from "@kragle/runtime/v2";
+import { IconButton, bemClasses } from "@kragle/design-system";
+import { SceneDocument, useNode } from "@kragle/runtime/v2";
 import { memo, useState } from "react";
-import { DataFlowInspector } from "./data-flow-inspector/index.js";
-import { ToolFrame } from "./tool-frame.js";
 
-const cls = bemClasses("kragle-node-tree");
+const cls = bemClasses("kragle-node-tree-element");
 
-export interface NodeTreeProps {
-  document: SceneDocument;
-  selectedNode: string | null;
-  onSelectedNodeChange(nodeId: string | null): void;
-  className?: string;
-}
-
-export function NodeTree({
-  document,
-  selectedNode,
-  onSelectedNodeChange,
-  className,
-}: NodeTreeProps) {
-  const [dataFlowInspectorController] = useState(
-    () => new CommandController<DialogCommand>()
-  );
-  const rootNodeId = useRootNodeId(document);
-
-  return (
-    <ToolFrame
-      className={cls.block(className)}
-      title="Nodes"
-      actions={
-        <>
-          <IconButton
-            label="Delete node"
-            icon="delete"
-            disabled={!selectedNode}
-          />
-          <IconButton
-            label="Inspect data flow"
-            icon="open_in_full"
-            onPress={() => dataFlowInspectorController.send("open")}
-          />
-          <DataFlowInspector controller={dataFlowInspectorController} />
-        </>
-      }
-    >
-      <div className={cls.element("nodes")}>
-        {rootNodeId !== null && (
-          <NodeTreeElement
-            document={document}
-            selectedNode={selectedNode}
-            onSelectedNodeChange={onSelectedNodeChange}
-            nodeId={rootNodeId}
-          />
-        )}
-      </div>
-    </ToolFrame>
-  );
-}
-
-interface NodeTreeElementProps {
+export interface NodeTreeElementProps {
   document: SceneDocument;
   selectedNode: string | null;
   onSelectedNodeChange(nodeId: string | null): void;
   nodeId: string;
 }
 
-const NodeTreeElement = memo(function NodeTreeElement_({
+export const NodeTreeElement = memo(function NodeTreeElement_({
   document,
   selectedNode,
   onSelectedNodeChange,
@@ -87,7 +32,7 @@ const NodeTreeElement = memo(function NodeTreeElement_({
   }
 
   return (
-    <div className={cls.element("element")}>
+    <div className={cls.block()}>
       <div
         className={cls.element("node-id", null, selected && "selected")}
         onClick={toggleSelected}

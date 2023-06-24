@@ -1,5 +1,5 @@
 import { MaterialIcon, bemClasses } from "@kragle/design-system";
-import { SceneDocument } from "@kragle/runtime/v2";
+import { SceneDocument, useNode } from "@kragle/runtime/v2";
 import { ToolFrame } from "./tool-frame.js";
 
 const cls = bemClasses("kragle-node-properties");
@@ -15,18 +15,36 @@ export function NodeProperties({
   selectedNode,
   className,
 }: NodePropertiesProps) {
-  // const x = useNode(document, selectedNode);
   return (
     <ToolFrame className={cls.block(className)} title="Node Properties">
-      <div>
-        {selectedNode}
-        <MaterialIcon icon="link" />
-        <MaterialIcon icon="clear" />
-        <MaterialIcon icon="calculate" />
-        <MaterialIcon icon="text_fields" />
-        <MaterialIcon icon="check_box" />
-        <MaterialIcon icon="check_box_outline_blank" />
-      </div>
+      {selectedNode ? (
+        <NodePropertiesList document={document} selectedNode={selectedNode} />
+      ) : (
+        <div className={cls.element("empty-state")}>No node selected.</div>
+      )}
     </ToolFrame>
+  );
+}
+
+interface NodePropertiesListProps {
+  document: SceneDocument;
+  selectedNode: string;
+}
+
+function NodePropertiesList({
+  document,
+  selectedNode,
+}: NodePropertiesListProps) {
+  const nodeData = useNode(document, selectedNode);
+
+  return (
+    <div className={cls.element("")}>
+      <MaterialIcon icon="link" />
+      <MaterialIcon icon="clear" />
+      <MaterialIcon icon="calculate" />
+      <MaterialIcon icon="text_fields" />
+      <MaterialIcon icon="check_box" />
+      <MaterialIcon icon="check_box_outline_blank" />
+    </div>
   );
 }

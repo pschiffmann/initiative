@@ -1,15 +1,8 @@
 @use "@kragle/design-system/styles/color";
 @use "@kragle/design-system/styles/typography";
 
-.kragle-node-tree {
-  &__nodes {
-    padding: 8px;
-    overflow: auto;
-  }
-
-  &__element {
-    --kragle-node-tree-depth: calc(var(--kragle-node-tree-parent-depth, 0) + 1);
-  }
+.kragle-node-tree-element {
+  --kragle-node-tree-depth: calc(var(--kragle-node-tree-parent-depth, 0) + 1);
 
   &__node-id {
     --kragle-node-tree-element-fill-color: transparent;

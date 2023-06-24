@@ -3,12 +3,4 @@
 @use "@kragle/design-system/styles";
 
 @use "app";
-
-@use "tools/tool-frame";
-
-@use "tools/data-flow-inspector";
-@use "tools/license-status";
-@use "tools/node-properties";
-@use "tools/node-tree";
-@use "tools/workspace-manager";
-@use "tools/stage-view";
+@use "tools";

@@ -3,7 +3,7 @@ import { Definitions, SceneDocument } from "@kragle/runtime/v2";
 import { useRef, useState } from "react";
 import { LicenseStatus } from "./tools/license-status.js";
 import { NodeProperties } from "./tools/node-properties.js";
-import { NodeTree } from "./tools/node-tree.js";
+import { NodeTree } from "./tools/node-tree/index.js";
 import { StageView } from "./tools/stage-view.js";
 import { WorkspaceManager } from "./tools/workspace-manager/index.js";
 
