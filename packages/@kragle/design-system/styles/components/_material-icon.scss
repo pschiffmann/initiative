@@ -1,0 +1,5 @@
+.kragle-material-icon {
+  --kragle-material-icon-density: 0;
+
+  font-size: calc(1.5rem + var(--kragle-material-icon-density) * 0.25rem);
+}
