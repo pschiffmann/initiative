@@ -73,6 +73,7 @@ const errorColorTokens = {
 
 const neutralColorTokens = {
   surface: 98,
+  "surface-container-highest": 90,
   "on-surface": 10,
   "on-surface-deemphasized": 30,
   "surface-container": 94,
