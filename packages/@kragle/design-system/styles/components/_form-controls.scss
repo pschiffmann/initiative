@@ -45,8 +45,9 @@
     height: 28px;
     padding-inline: 28px;
     border-radius: 4px;
-    // background-color: color.role("surface-container-highest");
     background-color: color.role("surface");
+    @include typography.role("body-large");
+
     &:hover,
     &:focus-visible {
       background-color: color-mix(
@@ -56,10 +57,13 @@
       );
     }
 
-    &--text-field {
+    &--text-field,
+    &--number-field,
+    &--select {
       // reset browser defaults
       border: none;
       outline: none;
+      appearance: none;
     }
   }
 

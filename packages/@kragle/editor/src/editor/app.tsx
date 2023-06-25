@@ -2,7 +2,7 @@ import { bemClasses, useColorTheme } from "@kragle/design-system";
 import { Definitions, SceneDocument } from "@kragle/runtime/v2";
 import { useRef, useState } from "react";
 import { LicenseStatus } from "./tools/license-status.js";
-import { NodeProperties } from "./tools/node-properties.js";
+import { NodeInputs } from "./tools/node-inputs/index.js";
 import { NodeTree } from "./tools/node-tree/index.js";
 import { StageView } from "./tools/stage-view.js";
 import { WorkspaceManager } from "./tools/workspace-manager/index.js";
@@ -40,8 +40,8 @@ export function App({ definitions }: AppProps) {
             className={cls.element("stage-view")}
             document={document}
           />
-          <NodeProperties
-            className={cls.element("node-properties")}
+          <NodeInputs
+            className={cls.element("node-inputs")}
             document={document}
             selectedNode={selectedNode}
           />
@@ -50,7 +50,7 @@ export function App({ definitions }: AppProps) {
         <>
           <EmptyTool position="node-tree" />
           <EmptyTool position="stage-view" />
-          <EmptyTool position="node-properties" />
+          <EmptyTool position="node-inputs" />
         </>
       )}
       <LicenseStatus className={cls.element("license-status")} />

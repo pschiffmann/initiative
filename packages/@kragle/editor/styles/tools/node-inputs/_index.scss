@@ -1,0 +1,31 @@
+@use "@kragle/design-system/styles/color";
+@use "@kragle/design-system/styles/typography";
+
+.kragle-node-inputs {
+  &__empty-state {
+    display: grid;
+    place-items: center;
+    @include typography.role("body-medium");
+    color: color.role("on-surface-deemphasized");
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    overflow: auto;
+  }
+
+  &__slot-section {
+    margin-top: 16px;
+    @include typography.role("title-medium");
+    @include typography.no-wrap();
+  }
+
+  &__child-id {
+    @include typography.role("title-small");
+    @include typography.no-wrap();
+    color: color.role("on-surface-deemphasized");
+  }
+}

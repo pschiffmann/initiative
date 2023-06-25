@@ -5,10 +5,11 @@ import { MaterialIcon } from "./material-icon.js";
 
 const cls = bemClasses("kragle-form-control");
 
-interface BaseFormControlProps {
+export interface BaseFormControlProps {
   label: string;
   helpText?: string;
   errorText?: string;
+  adornmentIcon?: string;
   onClear?(): void;
   className?: string;
 }
@@ -69,32 +70,166 @@ function FormControlLayout({
 
 export interface TextFieldControlProps extends BaseFormControlProps {
   value: string;
-  onChange(value: string): void;
+  onChange?(value: string): void;
 }
 
 export function TextFieldControl({
+  adornmentIcon,
   value,
   onChange,
   ...props
 }: TextFieldControlProps) {
   const id = useId();
   return (
-    <FormControlLayout adornmentIcon="text_fields" id={id} {...props}>
+    <FormControlLayout
+      adornmentIcon={adornmentIcon ?? "text_fields"}
+      id={id}
+      {...props}
+    >
       <input
         type="text"
         className={cls.element("input", null, "text-field")}
         id={id}
+        readOnly={!onChange}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange?.(e.target.value)}
       />
     </FormControlLayout>
   );
 }
 
-export function NumberFieldControl() {}
+export interface NumberFieldControlProps extends BaseFormControlProps {
+  value: number;
+  onChange(value: number): void;
+}
 
-export function CheckboxControl() {}
+export function NumberFieldControl({
+  adornmentIcon,
+  value,
+  onChange,
+  ...props
+}: NumberFieldControlProps) {
+  const id = useId();
+  return (
+    <FormControlLayout
+      adornmentIcon={adornmentIcon ?? "text_fields"}
+      id={id}
+      {...props}
+    >
+      <input
+        type="number"
+        className={cls.element("input", null, "number-field")}
+        id={id}
+        value={value}
+        onChange={(e) => onChange?.(Number.parseFloat(e.target.value))}
+      />
+    </FormControlLayout>
+  );
+}
 
-export function SelectControl() {}
+export interface CheckboxControlProps extends BaseFormControlProps {
+  value: boolean;
+  onChange(value: boolean): void;
+}
 
-export function ButtonControl() {}
+export function CheckboxControl({
+  adornmentIcon,
+  value,
+  onChange,
+  ...props
+}: CheckboxControlProps) {
+  const id = useId();
+  return (
+    <FormControlLayout
+      adornmentIcon={
+        adornmentIcon ?? (value ? "check_box_outline_blank" : "check_box")
+      }
+      id={id}
+      {...props}
+    >
+      <div
+        tabIndex={0}
+        className={cls.element("input", null, "checkbox")}
+        id={id}
+        onClick={() => onChange(!value)}
+      >
+        {value.toString()}
+      </div>
+    </FormControlLayout>
+  );
+}
+
+export interface SelectControlProps<T> extends BaseFormControlProps {
+  options: readonly T[];
+  getOptionLabel(option: T): string;
+  noOptionSelectedLabel: string;
+  value: T;
+  onChange(value: T): void;
+}
+
+export function SelectControl<T>({
+  adornmentIcon,
+  options,
+  getOptionLabel,
+  noOptionSelectedLabel,
+  value,
+  onChange,
+  ...props
+}: SelectControlProps<T>) {
+  const id = useId();
+  const selectedIndex = options.indexOf(value);
+  return (
+    <FormControlLayout
+      adornmentIcon={adornmentIcon ?? "list"}
+      id={id}
+      {...props}
+    >
+      <select
+        className={cls.element("input", null, "select")}
+        id={id}
+        value={selectedIndex}
+        onChange={(e) => {
+          const index = Number.parseInt(e.target.value);
+          onChange(options[index]);
+        }}
+      >
+        {selectedIndex === -1 && (
+          <option value={-1} disabled>
+            {noOptionSelectedLabel}
+          </option>
+        )}
+        {options.map((option, i) => (
+          <option key={i} value={i}>
+            {getOptionLabel(option)}
+          </option>
+        ))}
+      </select>
+    </FormControlLayout>
+  );
+}
+
+export interface ButtonControlProps extends BaseFormControlProps {
+  adornmentIcon: string;
+  value: string;
+  onPress(): void;
+}
+
+export function ButtonControl({
+  value,
+  onPress,
+  ...props
+}: ButtonControlProps) {
+  const id = useId();
+  return (
+    <FormControlLayout id={id} {...props}>
+      <div
+        tabIndex={0}
+        className={cls.element("input", null, "button")}
+        id={id}
+        onClick={onPress}
+      >
+        {value}
+      </div>
+    </FormControlLayout>
+  );
+}

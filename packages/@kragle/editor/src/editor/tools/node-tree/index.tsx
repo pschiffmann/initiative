@@ -67,7 +67,7 @@ export function NodeTree({
           />
           <IconButton
             label="Inspect data flow"
-            icon="open_in_full"
+            icon="polyline"
             onPress={() => dataFlowInspectorController.send("open")}
           />
           <DataFlowInspector controller={dataFlowInspectorController} />
