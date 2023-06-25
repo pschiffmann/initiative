@@ -33,9 +33,13 @@ export function NodeInputControl({
   const expression = nodeData.inputs[inputKey];
   const helpText =
     `Expected type: ` + nodeData.schema.inputTypes[inputName].toString();
-  const errorText = nodeData.errors?.invalidInputs.has(inputKey)
-    ? "TODO: show error message here"
-    : undefined;
+  const errorText = !nodeData.errors?.invalidInputs.has(inputKey)
+    ? undefined
+    : !expression
+    ? "This input is required."
+    : expression.errors.size === 1 && expression.errors.has("/")
+    ? expression.errors.get("/")!
+    : [...expression.errors.values()].join("\n");
 
   function clearNodeInput() {
     document.applyPatch({
