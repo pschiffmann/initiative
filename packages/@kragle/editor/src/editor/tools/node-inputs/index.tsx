@@ -38,6 +38,13 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
 
   return (
     <div className={cls.element("list")}>
+      <div className={cls.element("card")}>
+        <div className={cls.element("card-label")}>ID</div>
+        <div className={cls.element("card-value")}>{nodeData.id}</div>
+        <div className={cls.element("card-label")}>Type</div>
+        <div className={cls.element("card-value")}>{nodeData.type}</div>
+      </div>
+
       {nodeData.forEachInput(
         (expression, type, inputName, index) =>
           index === undefined && (

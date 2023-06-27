@@ -82,4 +82,5 @@ const neutralColorTokens = {
   background: 98,
   "on-background": 10,
   outline: 50,
+  divider: 80,
 };
