@@ -3,6 +3,7 @@ import { SceneDocument, useNode } from "@kragle/runtime/v2";
 import { Fragment } from "react";
 import { ToolFrame } from "../tool-frame.js";
 import { NodeInputControl } from "./controls.js";
+import { useAncestorOutputs } from "./use-ancestor-outputs.js";
 
 const cls = bemClasses("kragle-node-inputs");
 
@@ -35,6 +36,7 @@ interface NodeInputsListProps {
 
 function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
   const nodeData = useNode(document, selectedNode);
+  const ancestorOutputs = useAncestorOutputs(document, nodeData);
 
   return (
     <div className={cls.element("list")}>
@@ -51,6 +53,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
             <NodeInputControl
               key={inputName}
               document={document}
+              ancestorOutputs={ancestorOutputs}
               nodeData={nodeData}
               inputName={inputName}
             />
@@ -72,6 +75,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
                     <NodeInputControl
                       key={inputName}
                       document={document}
+                      ancestorOutputs={ancestorOutputs}
                       nodeData={nodeData}
                       inputName={inputName}
                       index={index}

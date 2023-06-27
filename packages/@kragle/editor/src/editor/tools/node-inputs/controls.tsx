@@ -13,11 +13,13 @@ import {
   SceneInputExpressionJson,
   StringLiteralExpressionJson,
 } from "@kragle/runtime/v2";
+import { AncestorOutput } from "./use-ancestor-outputs.js";
 
 const cls = bemClasses("kragle-node-input-control");
 
 export interface NodeInputControlProps {
   document: SceneDocument;
+  ancestorOutputs: readonly AncestorOutput[];
   nodeData: NodeData;
   inputName: string;
   index?: number;
@@ -25,6 +27,7 @@ export interface NodeInputControlProps {
 
 export function NodeInputControl({
   document,
+  ancestorOutputs,
   nodeData,
   inputName,
   index,
@@ -55,6 +58,7 @@ export function NodeInputControl({
     return (
       <EmptyInputControl
         document={document}
+        ancestorOutputs={ancestorOutputs}
         nodeData={nodeData}
         inputKey={inputKey}
         inputName={inputName}
@@ -70,6 +74,7 @@ export function NodeInputControl({
       return (
         <StringLiteralControl
           document={document}
+          ancestorOutputs={ancestorOutputs}
           nodeData={nodeData}
           inputKey={inputKey}
           inputName={inputName}
@@ -83,6 +88,7 @@ export function NodeInputControl({
       return (
         <SceneInputControl
           document={document}
+          ancestorOutputs={ancestorOutputs}
           nodeData={nodeData}
           inputKey={inputKey}
           inputName={inputName}
@@ -96,6 +102,7 @@ export function NodeInputControl({
       return (
         <NodeOutputControl
           document={document}
+          ancestorOutputs={ancestorOutputs}
           nodeData={nodeData}
           inputKey={inputKey}
           inputName={inputName}
@@ -109,6 +116,7 @@ export function NodeInputControl({
       return (
         <FunctionCallControl
           document={document}
+          ancestorOutputs={ancestorOutputs}
           nodeData={nodeData}
           inputKey={inputKey}
           inputName={inputName}
@@ -126,6 +134,7 @@ export function NodeInputControl({
 export interface InputControlProps
   extends Pick<BaseFormControlProps, "helpText" | "errorText" | "onClear"> {
   document: SceneDocument;
+  ancestorOutputs: readonly AncestorOutput[];
   nodeData: NodeData;
   inputKey: string;
   inputName: string;
@@ -134,21 +143,38 @@ export interface InputControlProps
 
 function EmptyInputControl({
   document,
+  ancestorOutputs,
   nodeData,
   inputKey,
   inputName,
   index,
   ...props
 }: InputControlProps) {
+  const inputType = nodeData.schema.inputTypes[inputName];
+
+  function setNodeInput(value: AncestorOutput) {
+    document.applyPatch({
+      type: "set-node-input",
+      nodeId: nodeData.id,
+      inputName,
+      index,
+      expression: value.expression,
+    });
+  }
+
   return (
     <SelectControl
       label={inputName}
       adornmentIcon="add"
-      options={["a", "b"]}
-      getOptionLabel={(o) => o}
+      options={ancestorOutputs.filter((ancestorOutput) =>
+        ancestorOutput.type.isAssignableTo(inputType)
+      )}
+      getOptionLabel={(o) =>
+        `${o.expression.nodeId}::${o.expression.outputName}`
+      }
       noOptionSelectedLabel="Bind input ..."
-      value=""
-      onChange={console.log}
+      value={null}
+      onChange={setNodeInput}
       {...props}
     />
   );

@@ -18,3 +18,12 @@ export function useRootNodeId(document: SceneDocument) {
   const getRootNodeId = useCallback(() => document.getRootNodeId(), []);
   return useSyncExternalStore(onChange, getRootNodeId);
 }
+
+export function useSceneDocumentVersion(document: SceneDocument) {
+  const onChange = useCallback(
+    (onStoreChange: () => void) => document.listen("change", onStoreChange),
+    [document]
+  );
+  const getVersion = useCallback(() => document.getVersion(), []);
+  return useSyncExternalStore(onChange, getVersion);
+}

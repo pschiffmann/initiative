@@ -163,7 +163,7 @@ export interface SelectControlProps<T> extends BaseFormControlProps {
   options: readonly T[];
   getOptionLabel(option: T): string;
   noOptionSelectedLabel: string;
-  value: T;
+  value: T | null;
   onChange(value: T): void;
 }
 
@@ -177,7 +177,9 @@ export function SelectControl<T>({
   ...props
 }: SelectControlProps<T>) {
   const id = useId();
-  const selectedIndex = options.indexOf(value);
+
+  const selectedIndex = value !== null ? options.indexOf(value) : -1;
+
   return (
     <FormControlLayout
       adornmentIcon={adornmentIcon ?? "list"}

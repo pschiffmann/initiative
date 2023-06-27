@@ -44,6 +44,7 @@ export class SceneDocument {
 
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
+  #version = 0;
 
   getRootNodeId(): string | null {
     return this.#rootNodeId;
@@ -51,6 +52,10 @@ export class SceneDocument {
 
   hasNode(nodeId: string): boolean {
     return this.#nodes.has(nodeId);
+  }
+
+  getVersion(): number {
+    return this.#version;
   }
 
   /**
@@ -107,6 +112,7 @@ export class SceneDocument {
         this.#setNodeInput(patch);
         break;
     }
+    this.#version++;
     this.#patchListeners.notify(patch);
   }
 
