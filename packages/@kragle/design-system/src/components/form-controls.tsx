@@ -1,4 +1,4 @@
-import { ReactNode, useId } from "react";
+import { ReactNode, useEffect, useId, useRef } from "react";
 import { bemClasses } from "../util/bem-classes.js";
 import { IconButton } from "./icon-button.js";
 import { MaterialIcon } from "./material-icon.js";
@@ -109,7 +109,13 @@ export function NumberFieldControl({
   onChange,
   ...props
 }: NumberFieldControlProps) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    ref.current!.value = `${value}`;
+  }, [value]);
+
   const id = useId();
+
   return (
     <FormControlLayout
       adornmentIcon={adornmentIcon ?? "text_fields"}
@@ -117,15 +123,21 @@ export function NumberFieldControl({
       {...props}
     >
       <input
+        ref={ref}
         type="number"
         className={cls.element("input", null, "number-field")}
         id={id}
-        value={value}
-        onChange={(e) => onChange?.(Number.parseFloat(e.target.value))}
+        defaultValue={value}
+        onChange={(e) => {
+          const value = e.target.value;
+          if (value.match(floatPattern)) onChange?.(Number.parseFloat(value));
+        }}
       />
     </FormControlLayout>
   );
 }
+
+const floatPattern = /\d+(?:\.\d+)?/;
 
 export interface CheckboxControlProps extends BaseFormControlProps {
   value: boolean;
@@ -142,19 +154,18 @@ export function CheckboxControl({
   return (
     <FormControlLayout
       adornmentIcon={
-        adornmentIcon ?? (value ? "check_box_outline_blank" : "check_box")
+        adornmentIcon ?? (value ? "check_box" : "check_box_outline_blank")
       }
       id={id}
       {...props}
     >
-      <div
-        tabIndex={0}
+      <button
         className={cls.element("input", null, "checkbox")}
         id={id}
         onClick={() => onChange(!value)}
       >
         {value.toString()}
-      </div>
+      </button>
     </FormControlLayout>
   );
 }
@@ -213,7 +224,7 @@ export function SelectControl<T>({
 export interface ButtonControlProps extends BaseFormControlProps {
   adornmentIcon: string;
   value: string;
-  onPress(): void;
+  onPress?(): void;
 }
 
 export function ButtonControl({
@@ -224,14 +235,14 @@ export function ButtonControl({
   const id = useId();
   return (
     <FormControlLayout id={id} {...props}>
-      <div
-        tabIndex={0}
+      <button
         className={cls.element("input", null, "button")}
         id={id}
+        title={value}
         onClick={onPress}
       >
         {value}
-      </div>
+      </button>
     </FormControlLayout>
   );
 }

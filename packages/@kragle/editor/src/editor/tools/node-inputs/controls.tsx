@@ -1,25 +1,32 @@
 import {
   BaseFormControlProps,
   ButtonControl,
+  CheckboxControl,
+  NumberFieldControl,
   SelectControl,
   TextFieldControl,
   bemClasses,
 } from "@kragle/design-system";
+import { t } from "@kragle/runtime";
 import {
-  Expression,
+  BooleanLiteralExpressionJson,
+  EntityLiteralExpressionJson,
+  ExpressionJson,
+  LibraryMemberExpressionJson,
   NodeData,
   NodeOutputExpressionJson,
+  NumberLiteralExpressionJson,
   SceneDocument,
   SceneInputExpressionJson,
   StringLiteralExpressionJson,
 } from "@kragle/runtime/v2";
-import { AncestorOutput } from "./use-ancestor-outputs.js";
+import { ComponentType } from "react";
+import { InputExpressionOption, useInputOptions } from "./use-input-options.js";
 
 const cls = bemClasses("kragle-node-input-control");
 
 export interface NodeInputControlProps {
   document: SceneDocument;
-  ancestorOutputs: readonly AncestorOutput[];
   nodeData: NodeData;
   inputName: string;
   index?: number;
@@ -27,7 +34,6 @@ export interface NodeInputControlProps {
 
 export function NodeInputControl({
   document,
-  ancestorOutputs,
   nodeData,
   inputName,
   index,
@@ -54,87 +60,27 @@ export function NodeInputControl({
     });
   }
 
-  if (!expression) {
-    return (
-      <EmptyInputControl
-        document={document}
-        ancestorOutputs={ancestorOutputs}
-        nodeData={nodeData}
-        inputKey={inputKey}
-        inputName={inputName}
-        index={index}
-        helpText={helpText}
-        errorText={errorText}
-      />
-    );
-  }
+  const InputControl = expression
+    ? controlComponents[expression.json.type]
+    : EmptyInputControl;
 
-  switch (expression.json.type) {
-    case "string-literal":
-      return (
-        <StringLiteralControl
-          document={document}
-          ancestorOutputs={ancestorOutputs}
-          nodeData={nodeData}
-          inputKey={inputKey}
-          inputName={inputName}
-          index={index}
-          helpText={helpText}
-          errorText={errorText}
-          onClear={clearNodeInput}
-        />
-      );
-    case "scene-input":
-      return (
-        <SceneInputControl
-          document={document}
-          ancestorOutputs={ancestorOutputs}
-          nodeData={nodeData}
-          inputKey={inputKey}
-          inputName={inputName}
-          index={index}
-          helpText={helpText}
-          errorText={errorText}
-          onClear={clearNodeInput}
-        />
-      );
-    case "node-output":
-      return (
-        <NodeOutputControl
-          document={document}
-          ancestorOutputs={ancestorOutputs}
-          nodeData={nodeData}
-          inputKey={inputKey}
-          inputName={inputName}
-          index={index}
-          helpText={helpText}
-          errorText={errorText}
-          onClear={clearNodeInput}
-        />
-      );
-    case "function-call":
-      return (
-        <FunctionCallControl
-          document={document}
-          ancestorOutputs={ancestorOutputs}
-          nodeData={nodeData}
-          inputKey={inputKey}
-          inputName={inputName}
-          index={index}
-          helpText={helpText}
-          errorText={errorText}
-          onClear={clearNodeInput}
-        />
-      );
-  }
-
-  return <div>TODO</div>;
+  return (
+    <InputControl
+      document={document}
+      nodeData={nodeData}
+      inputKey={inputKey}
+      inputName={inputName}
+      index={index}
+      helpText={helpText}
+      errorText={errorText}
+      onClear={clearNodeInput}
+    />
+  );
 }
 
 export interface InputControlProps
   extends Pick<BaseFormControlProps, "helpText" | "errorText" | "onClear"> {
   document: SceneDocument;
-  ancestorOutputs: readonly AncestorOutput[];
   nodeData: NodeData;
   inputKey: string;
   inputName: string;
@@ -143,22 +89,22 @@ export interface InputControlProps
 
 function EmptyInputControl({
   document,
-  ancestorOutputs,
   nodeData,
   inputKey,
   inputName,
   index,
+  onClear,
   ...props
 }: InputControlProps) {
-  const inputType = nodeData.schema.inputTypes[inputName];
+  const options = useInputOptions(document, nodeData, inputName);
 
-  function setNodeInput(value: AncestorOutput) {
+  function setNodeInput({ expression }: InputExpressionOption) {
     document.applyPatch({
       type: "set-node-input",
       nodeId: nodeData.id,
       inputName,
       index,
-      expression: value.expression,
+      expression,
     });
   }
 
@@ -166,12 +112,8 @@ function EmptyInputControl({
     <SelectControl
       label={inputName}
       adornmentIcon="add"
-      options={ancestorOutputs.filter((ancestorOutput) =>
-        ancestorOutput.type.isAssignableTo(inputType)
-      )}
-      getOptionLabel={(o) =>
-        `${o.expression.nodeId}::${o.expression.outputName}`
-      }
+      options={options}
+      getOptionLabel={(o) => o.label}
       noOptionSelectedLabel="Bind input ..."
       value={null}
       onChange={setNodeInput}
@@ -209,6 +151,104 @@ function StringLiteralControl({
   );
 }
 
+function NumberLiteralControl({
+  document,
+  nodeData,
+  inputKey,
+  inputName,
+  index,
+  ...props
+}: InputControlProps) {
+  const json = nodeData.inputs[inputKey].json as NumberLiteralExpressionJson;
+  function setNodeInput(value: number) {
+    document.applyPatch({
+      type: "set-node-input",
+      nodeId: nodeData.id,
+      inputName,
+      index,
+      expression: { ...json, value },
+    });
+  }
+
+  return (
+    <NumberFieldControl
+      label={inputName}
+      value={json.value}
+      onChange={setNodeInput}
+      {...props}
+    />
+  );
+}
+
+function BooleanLiteralControl({
+  document,
+  nodeData,
+  inputKey,
+  inputName,
+  index,
+  ...props
+}: InputControlProps) {
+  const json = nodeData.inputs[inputKey].json as BooleanLiteralExpressionJson;
+  function setNodeInput(value: boolean) {
+    document.applyPatch({
+      type: "set-node-input",
+      nodeId: nodeData.id,
+      inputName,
+      index,
+      expression: { ...json, value },
+    });
+  }
+
+  return (
+    <CheckboxControl
+      label={inputName}
+      value={json.value}
+      onChange={setNodeInput}
+      {...props}
+    />
+  );
+}
+
+function EntityLiteralControl({
+  document,
+  nodeData,
+  inputKey,
+  inputName,
+  index,
+  ...props
+}: InputControlProps) {
+  const json = nodeData.inputs[inputKey].json as EntityLiteralExpressionJson;
+  const entityType = nodeData.schema.inputTypes[inputName] as t.Entity;
+  return (
+    <ButtonControl
+      label={inputName}
+      adornmentIcon="build"
+      value={entityType.literal!.format(json)}
+      onPress={() => alert("TODO: Open entity editor dialog")}
+      {...props}
+    />
+  );
+}
+
+function LibraryMemberControl({
+  document,
+  nodeData,
+  inputKey,
+  inputName,
+  index,
+  ...props
+}: InputControlProps) {
+  const json = nodeData.inputs[inputKey].json as LibraryMemberExpressionJson;
+  return (
+    <ButtonControl
+      label={inputName}
+      adornmentIcon="link"
+      value={`${json.libraryName}::${json.memberName}`}
+      {...props}
+    />
+  );
+}
+
 function SceneInputControl({
   document,
   nodeData,
@@ -219,7 +259,7 @@ function SceneInputControl({
 }: InputControlProps) {
   const json = nodeData.inputs[inputKey].json as SceneInputExpressionJson;
   return (
-    <TextFieldControl
+    <ButtonControl
       label={inputName}
       adornmentIcon="link"
       value={`Scene::${json.inputName}`}
@@ -238,7 +278,7 @@ function NodeOutputControl({
 }: InputControlProps) {
   const json = nodeData.inputs[inputKey].json as NodeOutputExpressionJson;
   return (
-    <TextFieldControl
+    <ButtonControl
       label={inputName}
       adornmentIcon="link"
       value={`${json.nodeId}::${json.outputName}`}
@@ -266,21 +306,16 @@ function FunctionCallControl({
   );
 }
 
-function getFieldIcon(expression: Expression): string {
-  switch (expression.json.type) {
-    case "string-literal":
-    case "number-literal":
-      return "text_fields";
-    case "boolean-literal":
-      return expression.json.value ? "check_box_outline_blank" : "check_box";
-    case "entity-literal":
-      return "build";
-    case "library-member":
-      return "list_alt";
-    case "scene-input":
-    case "node-output":
-      return "link";
-    case "function-call":
-      return "calculate";
-  }
-}
+const controlComponents: Record<
+  ExpressionJson["type"],
+  ComponentType<InputControlProps>
+> = {
+  "string-literal": StringLiteralControl,
+  "number-literal": NumberLiteralControl,
+  "boolean-literal": BooleanLiteralControl,
+  "entity-literal": EntityLiteralControl,
+  "library-member": LibraryMemberControl,
+  "scene-input": SceneInputControl,
+  "node-output": NodeOutputControl,
+  "function-call": FunctionCallControl,
+};
