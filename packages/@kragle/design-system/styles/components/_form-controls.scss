@@ -66,6 +66,11 @@
       appearance: none;
     }
 
+    &--select#{&}--no-value {
+      color: color.role("on-surface-deemphasized");
+      font-style: italic;
+    }
+
     &--checkbox,
     &--button {
       // reset browser defaults

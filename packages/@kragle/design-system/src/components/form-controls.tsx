@@ -198,7 +198,12 @@ export function SelectControl<T>({
       {...props}
     >
       <select
-        className={cls.element("input", null, "select")}
+        className={cls.element(
+          "input",
+          null,
+          "select",
+          value === null && "no-value"
+        )}
         id={id}
         value={selectedIndex}
         onChange={(e) => {
