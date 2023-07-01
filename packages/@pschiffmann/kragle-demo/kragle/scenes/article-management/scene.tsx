@@ -21,7 +21,7 @@ function ArticlcesRepository_Adapter() {
   return (
     <ArticleRepository
       slots={{
-        child: { Component: ArticlesRepository_child },
+        child: { Component: PageLayout_Adapter },
       }}
       OutputsProvider={ArticlcesRepository_OutputsProvider}
     />
@@ -43,10 +43,6 @@ function ArticlcesRepository_OutputsProvider({
       </ArticlesRepository$updateArticleContext.Provider>
     </ArticlesRepository$articlesContext.Provider>
   );
-}
-
-function ArticlesRepository_child() {
-  return <PageLayout_Adapter />;
 }
 
 function PageLayout_Adapter() {
@@ -82,8 +78,8 @@ function NewArticleDialog_Adapter() {
     <MuiDialog
       title="New Article"
       slots={{
-        trigger: { Component: NewArticleDialog_trigger },
-        content: { Component: NewArticleDialog_content },
+        trigger: { Component: NewArticleButton_Adapter },
+        content: { Component: NewArticleBloc_Adapter },
       }}
       OutputsProvider={NewArticleDialog_OutputsProvider}
     />
@@ -113,14 +109,6 @@ function NewArticleDialog_OutputsProvider({
       </NewArticleDialog$openContext.Provider>
     </NewArticleDialog$isOpenContext.Provider>
   );
-}
-
-function NewArticleDialog_trigger() {
-  return <NewArticleButton_Adapter />;
-}
-
-function NewArticleDialog_content() {
-  return <NewArticleBloc_Adapter />;
 }
 
 function NewArticleButton_Adapter() {
