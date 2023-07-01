@@ -1,0 +1,12 @@
+{
+  "name": "@kragle/license",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "dependencies": {
+    "@pschiffmann/std": "^0.3.2"
+  }
+}

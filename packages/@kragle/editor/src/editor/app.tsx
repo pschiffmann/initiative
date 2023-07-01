@@ -1,7 +1,7 @@
 import { bemClasses, useColorTheme } from "@kragle/design-system";
 import { Definitions, SceneDocument } from "@kragle/runtime/v2";
 import { useRef, useState } from "react";
-import { LicenseStatus } from "./tools/license-status.js";
+import { LicenseStatus } from "./tools/license-status/index.js";
 import { NodeInputs } from "./tools/node-inputs/index.js";
 import { NodeTree } from "./tools/node-tree/index.js";
 import { StageView } from "./tools/stage-view.js";
