@@ -30,8 +30,10 @@ export function validateNodeSchemaName(name: string): void {
 
 export function validateNodeId(nodeId: string): void {
   if (!nodeId.match(namespacePattern)) {
-    `Invalid node id '${nodeId}': must start with an uppercase letter, and ` +
-      `contain only alphanumeric characters.`;
+    throw new Error(
+      `Invalid node id '${nodeId}': must start with an uppercase letter, and ` +
+        `contain only alphanumeric characters.`
+    );
   }
 }
 

@@ -1,6 +1,8 @@
 import { IconButton, bemClasses } from "@kragle/design-system";
+import { CommandController } from "@kragle/react-command";
 import { SceneDocument, useNode } from "@kragle/runtime/v2";
 import { memo, useState } from "react";
+import { CreateNodeDialog } from "./create-node-dialog.js";
 
 const cls = bemClasses("kragle-node-tree-element");
 
@@ -31,6 +33,10 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
     onSelectedNodeChange(selected ? null : nodeId);
   }
 
+  const [createNodeDialogController] = useState(
+    () => new CommandController<string>()
+  );
+
   return (
     <div className={cls.block()}>
       <div
@@ -57,6 +63,7 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
                     className={cls.element("add-button")}
                     label="Add"
                     icon="add"
+                    onPress={() => createNodeDialogController.send(slotName)}
                   />
                 )}
               </div>
@@ -77,6 +84,12 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
           );
         })}
       </ul>
+
+      <CreateNodeDialog
+        commandStream={createNodeDialogController}
+        document={document}
+        parentId={nodeId}
+      />
     </div>
   );
 });

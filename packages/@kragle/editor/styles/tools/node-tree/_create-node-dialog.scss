@@ -1,0 +1,14 @@
+@use "@kragle/design-system/styles/color";
+
+.kragle-create-node-dialog {
+  width: 400px;
+
+  &__node-type-control {
+    margin-bottom: 16px;
+  }
+
+  &__create-button {
+    --kragle-button-fill-color: #{color.role("brand")};
+    --kragle-button-stroke-color: #{color.role("on-brand")};
+  }
+}

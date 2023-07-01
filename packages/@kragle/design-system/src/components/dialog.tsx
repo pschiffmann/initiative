@@ -7,7 +7,7 @@ const cls = bemClasses("kragle-dialog");
 export type DialogCommand = "open" | "close";
 
 export interface DialogProps {
-  commandStream?: CommandStream<DialogCommand>;
+  commandStream: CommandStream<DialogCommand>;
   className?: string;
   children: ReactNode;
 }

@@ -2,6 +2,7 @@
 @use "@kragle/design-system/styles/typography";
 
 @use "node-tree-element";
+@use "create-node-dialog";
 
 .kragle-node-tree {
   &__nodes {
