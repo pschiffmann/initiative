@@ -8,10 +8,10 @@
 
   // Private
   --kragle-button-state-layer-opacity: 0%;
-  &:is(:focus-visible, :hover) {
+  &:not([disabled]):is(:focus-visible, :hover) {
     --kragle-button-state-layer-opacity: 8%;
   }
-  &:active {
+  &:not([disabled]):active {
     --kragle-button-state-layer-opacity: 12%;
   }
 
@@ -35,6 +35,10 @@
   padding: 0;
   border: none;
   outline: none;
+
+  &:is([disabled]) {
+    opacity: 0.38;
+  }
 
   &__label {
     grid-area: main;
