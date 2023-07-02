@@ -63,11 +63,16 @@ interface box {
 function calculateLayout3(document: SceneDocument): Layout {
   const nodesseperation: number = 16;
   const tunnelspacing: number = 8;
+  const maxangle: number = 60;
 
   // todo change into a 2d model
   let minimumtunnelseperation: number = Number.NEGATIVE_INFINITY;
+  const minimumtunnelseperation2d: Map<number, number> = new Map();
 
   const allNodes: Map<string, box> = new Map();
+
+  unzip(document.getRootNodeId()!, "", 0);
+
   /**
    * Will unpack all nodes from the Scenedocument into allNodes Map.
    * Recursive!
@@ -106,13 +111,20 @@ function calculateLayout3(document: SceneDocument): Layout {
       inputs: inputs,
     };
     allNodes.set(nodeID, node);
-    if (node.column != 0)
-      minimumtunnelseperation = Math.max(minimumtunnelseperation, node.size);
+    if (node.column == 0) return chainraw[0] + 1;
+
+    minimumtunnelseperation = Math.max(minimumtunnelseperation, node.size);
+    if (!minimumtunnelseperation2d.has(node.column)) {
+      minimumtunnelseperation2d.set(column, 0);
+    }
+    minimumtunnelseperation2d.set(
+      column,
+      Math.max(minimumtunnelseperation2d.get(column)!, node.size)
+    );
     return chainraw[0] + 1;
   }
 
-  unzip(document.getRootNodeId()!, "", 0);
-
+  // todo get rid of allColumns
   const allColumns: Map<number, Set<string>> = new Map();
   for (const node of allNodes.values()) {
     if (!allColumns.has(node.column)) allColumns.set(node.column, new Set());
@@ -336,6 +348,81 @@ function calculateLayout3(document: SceneDocument): Layout {
   groupinglist.sort(function (a, b) {
     return a[2][0] - b[2][0];
   });
+
+  // 2d ->
+  /*
+  const groupinglist2d: Map<
+    number,
+    Array<[fromid: string, toid: Array<string>, position: Array<number>]>
+  > = new Map();
+  for (const [fromid, data] of metro) {
+    const templisttoid: Array<string> = new Array();
+    const templistposition: Array<number> = new Array();
+    const from: number = allNodes.get(fromid)!.column;
+    let to: number = from + 1;
+    for (const [toid, position] of data) {
+      templisttoid.push(toid);
+      templistposition.push(position);
+      to = Math.max(to, allNodes.get(toid)!.column - 1);
+    }
+    for (let depth = from + 1; depth <= to; depth++) {
+      if (!groupinglist2d.has(depth)) groupinglist2d.set(depth, new Array());
+      groupinglist2d.get(depth)!.push([fromid, templisttoid, templistposition]);
+    }
+  }
+  for (const list of groupinglist2d.values()) {
+    list.sort(function (a, b) {
+      return a[2][0] - b[2][0];
+    });
+  }
+  for (const [column, list] of groupinglist2d) {
+    for (const [index, data] of list.entries()) {
+      const targets = redrill2(
+        column,
+        index,
+        data[2][0] - minimumtunnelseperation2d.get(column)!,
+        new Array()
+      );
+      // work in progress
+      if (targets.length <= 0) continue;
+      let adjust = 0;
+      targets.forEach(function (a) {
+        adjust += list[index][2][0];
+      });
+      adjust = adjust / targets.length;
+      adjust += (targets.length / 2) * tunnelspacing;
+      //
+      for (const i of targets) {
+        for (const [indexg, g] of groupinglist[i][2].entries()) {
+          groupinglist[i][2][indexg] = adjust;
+        }
+        adjust -= tunnelspacing;
+      }
+    }
+  }
+  function redrill2(
+    column: number,
+    index: number,
+    bound: number,
+    targets: Array<number>
+  ): Array<number> {
+    if (index >= groupinglist2d.get(column)!.length) return targets;
+    const data = groupinglist2d.get(column)![index];
+    if (data[2][0] >= bound) return targets;
+    // exclude non touching tunnels
+    targets.push(index);
+    let calculate: number = 0;
+    for (const i of targets) {
+      calculate += groupinglist2d.get(column)![i][2][0];
+    }
+    calculate = calculate / targets.length;
+    calculate -= (targets.length * (tunnelspacing * 2)) / 2;
+    calculate -= minimumtunnelseperation2d.get(column)!;
+    return redrill2(column, index + 1, calculate, targets);
+  }
+  */
+  // <- 2d
+
   for (const [index, data] of groupinglist.entries()) {
     const targets = redrill(
       index,
@@ -382,7 +469,6 @@ function calculateLayout3(document: SceneDocument): Layout {
     return redrill(index + 1, calculate, targets);
   }
 
-  // todo
   // move nodes to clear metro lines
   // step 1
   // create 2d map of tunnels
@@ -546,17 +632,28 @@ function calculateLayout3(document: SceneDocument): Layout {
   for (let depth = 0; depth < allColumns.size; depth++) {
     const data = allColumns.get(depth)!;
     if (depth == 0) continue;
-    // todo change static to based on incomming tunnels
+    // maybe also space out outgoing tunnels
     let highestSeperation: number = 80;
     for (const id of data) {
       const inputnode = allNodes.get(id)!;
       for (const outputnodeid of inputnode.inputs) {
         const outputnode = allNodes.get(outputnodeid)!;
-        if (inputnode.column - outputnode.column > 1) continue;
-        highestSeperation = Math.max(
-          highestSeperation,
-          blackmagic(inputnode, outputnode)
-        );
+        if (inputnode.column - outputnode.column > 1) {
+          highestSeperation = Math.max(
+            highestSeperation,
+            blackmagic(
+              inputnode,
+              metro.get(outputnode.id)!.get(inputnode.id)! +
+                Math.abs(minheight),
+              0
+            )
+          );
+        } else {
+          highestSeperation = Math.max(
+            highestSeperation,
+            blackmagic(inputnode, outputnode.position[1], outputnode.size)
+          );
+        }
       }
     }
     for (const id of data) {
@@ -573,12 +670,16 @@ function calculateLayout3(document: SceneDocument): Layout {
    * alpha = maxangle
    *
    * a = seperation in yCoordinates between nodes
-   * @param inputnode node that recieves inputs
-   * @param outputnode node that provides inputs
-   * @returns seperation distance in pixel
+   * @param inputnode
+   * @param outputposition in px
+   * @param outputsize 0 if tunnel
+   * @returns b
    */
-  function blackmagic(inputnode: box, outputnode: box): number {
-    const maxangle: number = 60;
+  function blackmagic(
+    inputnode: box,
+    outputposition: number,
+    outputsize: number
+  ): number {
     return Math.sqrt(
       Math.abs(
         Math.pow(Math.sin(maxangle * (Math.PI / 180)), 2) -
@@ -586,7 +687,7 @@ function calculateLayout3(document: SceneDocument): Layout {
             Math.abs(
               inputnode.position[1] +
                 inputnode.size / 2 -
-                (outputnode.position[1] + outputnode.size / 2)
+                (outputposition + outputsize / 2)
             ),
             2
           )
@@ -600,8 +701,8 @@ function calculateLayout3(document: SceneDocument): Layout {
     maxwidth = Math.max(maxwidth, node.position[0] + 320);
   }
 
-  // placeholder output
-  const sampleoutput2: Record<string, NodeBoxPosition> = {};
+  // output
+  const output: Record<string, NodeBoxPosition> = {};
   for (const node of allNodes.values()) {
     let tunnelmap: NodeBoxPosition["tunnels"] = new Map();
     if (reversemetro.has(node.id)) {
@@ -620,7 +721,7 @@ function calculateLayout3(document: SceneDocument): Layout {
         ]);
       }
     }
-    sampleoutput2[node.id] = {
+    output[node.id] = {
       offsetLeft: node.position[0],
       offsetTop: node.position[1],
       tunnels: tunnelmap,
@@ -630,7 +731,7 @@ function calculateLayout3(document: SceneDocument): Layout {
   return {
     canvasWidth: maxwidth,
     canvasHeight: maxheight,
-    nodeBoxPositions: sampleoutput2,
+    nodeBoxPositions: output,
   };
 }
 
@@ -912,7 +1013,6 @@ function calculateLayout(document: SceneDocument): Layout {
       ((b[1] - b[0] + (1 - 1 / b[2])) * 10 + (1 - 1 / a[0]))
     );
   });
-  // todo
   // insert tunnels
 
   // 2d
