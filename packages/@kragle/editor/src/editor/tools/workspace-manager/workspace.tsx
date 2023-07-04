@@ -3,6 +3,7 @@ import {
   Listeners,
   SceneDocument,
   Unsubscribe,
+  generateCodeForScene,
   sceneDocumentToJson,
   validateSceneName,
 } from "@kragle/runtime/v2";
@@ -91,21 +92,25 @@ export class Workspace {
   }
 
   async save(document: SceneDocument): Promise<void> {
-    const jsonFile = await this.rootDirectory.getFileHandle(
-      `${document.name}/scene.json`,
-      { create: true }
-    );
+    const sceneDirectory = await this.rootDirectory
+      .getDirectoryHandle("scenes")
+      .then((d) => d.getDirectoryHandle(document.name));
+
+    const jsonFile = await sceneDirectory.getFileHandle("scene.json", {
+      create: true,
+    });
     const jsonFileWritable = await jsonFile.createWritable();
     await jsonFileWritable.write(
-      JSON.stringify(sceneDocumentToJson(document), null, 2)
+      JSON.stringify(sceneDocumentToJson(document), null, 2) + "\n"
     );
+    await jsonFileWritable.close();
 
-    const tsxFile = await this.rootDirectory.getFileHandle(
-      `${document.name}/scene.tsx`,
-      { create: true }
-    );
+    const tsxFile = await sceneDirectory.getFileHandle("scene.tsx", {
+      create: true,
+    });
     const tsxFileWritable = await tsxFile.createWritable();
-    await tsxFileWritable.write(`export function Scene() {}`);
+    await tsxFileWritable.write(generateCodeForScene(document));
+    await tsxFileWritable.close();
   }
 
   async scanFileSystem() {

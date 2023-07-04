@@ -72,6 +72,9 @@ export function WorkspaceManager({
               className={cls.element("button")}
               icon="save"
               label="Save"
+              onPress={() => {
+                workspace!.save(document);
+              }}
             />
             <IconButton
               className={cls.element("button")}

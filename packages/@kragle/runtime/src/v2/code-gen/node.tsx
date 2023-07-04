@@ -6,7 +6,9 @@ export function generateNodeRuntime(
   importNames: ImportNames,
   nodeId: string
 ): string {
-  return ``;
+  return `function ${nodeId}_Adapter() {
+  return null; // TODO
+}`;
 }
 
 function generateNodeAdapter(nodeData: NodeData): string {

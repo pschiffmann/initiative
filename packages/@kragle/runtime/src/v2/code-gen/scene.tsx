@@ -6,8 +6,8 @@ export function generateEmptyScene(name: string): string {
 }`;
 }
 
-export function generateScene(name: string, document: SceneDocument): string {
-  return `export function ${sanitizeSceneName(name)}() {
+export function generateScene(document: SceneDocument): string {
+  return `export function ${sanitizeSceneName(document.name)}() {
   return <${document.getRootNodeId()!}_Adapter />;
 }`;
 }
@@ -17,6 +17,6 @@ export function generateScene(name: string, document: SceneDocument): string {
  */
 function sanitizeSceneName(name: string): string {
   const first = name[0].toUpperCase();
-  const rest = name.substring(1).replaceAll(/[_-]/i, "");
+  const rest = name.substring(1).replaceAll(/[_-]/gi, "");
   return first + rest;
 }

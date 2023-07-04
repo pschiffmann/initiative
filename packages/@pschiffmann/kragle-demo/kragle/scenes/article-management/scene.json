@@ -19,7 +19,10 @@
           "type": "number-literal",
           "value": 3
         },
-        "alignSelf::1": { "type": "string-literal", "value": "end" }
+        "alignSelf::1": {
+          "type": "string-literal",
+          "value": "end"
+        }
       },
       "slots": {
         "child::0": "PageTitle",
@@ -54,6 +57,47 @@
         "content": "NewArticleBloc"
       }
     },
+    "ArticlesTable": {
+      "type": "@pschiffmann/kragle-demo::MuiTable",
+      "inputs": {
+        "rows": {
+          "type": "node-output",
+          "nodeId": "ArticlcesRepository",
+          "outputName": "articles"
+        },
+        "getRowKey": {
+          "type": "library-member",
+          "libraryName": "@pschiffmann/kragle-demo::Article",
+          "memberName": "getId"
+        },
+        "header::0": {
+          "type": "string-literal",
+          "value": "Id"
+        },
+        "header::1": {
+          "type": "string-literal",
+          "value": "Name"
+        },
+        "header::2": {
+          "type": "string-literal",
+          "value": "Price"
+        },
+        "header::3": {
+          "type": "string-literal",
+          "value": "Action"
+        },
+        "align::2": {
+          "type": "string-literal",
+          "value": "right"
+        }
+      },
+      "slots": {
+        "column::0": "IdColumn",
+        "column::1": "NameColumn",
+        "column::2": "PriceColumn",
+        "column::3": "EditColumn"
+      }
+    },
     "NewArticleButton": {
       "type": "@pschiffmann/kragle-demo::MuiButton",
       "inputs": {
@@ -76,35 +120,12 @@
     "NewArticleBloc": {
       "type": "@pschiffmann/kragle-demo::MuiTypography",
       "inputs": {
-        "text": { "type": "string-literal", "value": "Under construction" }
+        "text": {
+          "type": "string-literal",
+          "value": "Under construction"
+        }
       },
       "slots": {}
-    },
-    "ArticlesTable": {
-      "type": "@pschiffmann/kragle-demo::MuiTable",
-      "inputs": {
-        "rows": {
-          "type": "node-output",
-          "nodeId": "ArticlcesRepository",
-          "outputName": "articles"
-        },
-        "getRowKey": {
-          "type": "library-member",
-          "libraryName": "@pschiffmann/kragle-demo::Article",
-          "memberName": "getId"
-        },
-        "header::0": { "type": "string-literal", "value": "Id" },
-        "header::1": { "type": "string-literal", "value": "Name" },
-        "header::2": { "type": "string-literal", "value": "Price" },
-        "header::3": { "type": "string-literal", "value": "Action" },
-        "align::2": { "type": "string-literal", "value": "right" }
-      },
-      "slots": {
-        "column::0": "IdColumn",
-        "column::1": "NameColumn",
-        "column::2": "PriceColumn",
-        "column::3": "EditColumn"
-      }
     },
     "IdColumn": {
       "type": "@pschiffmann/kragle-demo::MuiTypography",
@@ -248,7 +269,10 @@
     "EditArticleNameTextField": {
       "type": "@pschiffmann/kragle-demo::MuiTextField",
       "inputs": {
-        "label": { "type": "string-literal", "value": "Name" },
+        "label": {
+          "type": "string-literal",
+          "value": "Name"
+        },
         "value": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
@@ -265,7 +289,10 @@
     "EditArticlePriceTextField": {
       "type": "@pschiffmann/kragle-demo::MuiTextField",
       "inputs": {
-        "label": { "type": "string-literal", "value": "Price" },
+        "label": {
+          "type": "string-literal",
+          "value": "Price"
+        },
         "value": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
@@ -282,7 +309,10 @@
     "UpdateArticleButton": {
       "type": "@pschiffmann/kragle-demo::MuiButton",
       "inputs": {
-        "label": { "type": "string-literal", "value": "Save" },
+        "label": {
+          "type": "string-literal",
+          "value": "Save"
+        },
         "onPress": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
