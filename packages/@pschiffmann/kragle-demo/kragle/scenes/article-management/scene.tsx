@@ -1,206 +1,84 @@
-import {
-  ArticleLibrary$getFormattedPrice,
-  ArticleLibrary$getId,
-  ArticleLibrary$getName,
-} from "#kragle/libraries/index.js";
-import {
-  ArticleRepository,
-  MuiButton,
-  MuiDialog,
-  MuiTable,
-  MuiTypography,
-  Stack,
-} from "#kragle/nodes/index.js";
-import { createContext, useContext } from "react";
+import { createContext, memo, useContext } from "react";
+import { ArticleRepository } from "#kragle/nodes/index.js";
+import { Stack } from "#kragle/nodes/index.js";
+import { MuiTypography } from "#kragle/nodes/index.js";
+import { MuiDialog } from "#kragle/nodes/index.js";
+import { MuiTable } from "#kragle/nodes/index.js";
+import { ArticleLibrary$getId } from "#kragle/libraries/index.js";
+import { MuiButton } from "#kragle/nodes/index.js";
+import { ArticleLibrary$getName } from "#kragle/libraries/index.js";
+import { ArticleLibrary$getFormattedPrice } from "#kragle/libraries/index.js";
+import { EditArticleBloc } from "#kragle/nodes/index.js";
+import { MuiTextField } from "#kragle/nodes/index.js";
 
-export function ArticleManagement() {
+export function Articlemanagement() {
   return <ArticlcesRepository_Adapter />;
 }
 
 function ArticlcesRepository_Adapter() {
-  return (
-    <ArticleRepository
-      slots={{
-        child: { Component: PageLayout_Adapter },
-      }}
-      OutputsProvider={ArticlcesRepository_OutputsProvider}
-    />
-  );
-}
-
-const ArticlesRepository$articlesContext = createContext<any>(null);
-const ArticlesRepository$updateArticleContext = createContext<any>(null);
-
-function ArticlcesRepository_OutputsProvider({
-  articles,
-  updateArticle,
-  children,
-}: any) {
-  return (
-    <ArticlesRepository$articlesContext.Provider value={articles}>
-      <ArticlesRepository$updateArticleContext.Provider value={updateArticle}>
-        {children}
-      </ArticlesRepository$updateArticleContext.Provider>
-    </ArticlesRepository$articlesContext.Provider>
-  );
+  return null; // TODO
 }
 
 function PageLayout_Adapter() {
-  return (
-    <Stack
-      flexDirection={"column"}
-      gap={3}
-      alignSelf={[undefined, "end", undefined]}
-      slots={{ child: { size: 3, Component: PageLayout_child } }}
-    />
-  );
-}
-
-function PageLayout_child({ index }: any) {
-  switch (index) {
-    case 0:
-      return <PageTitle_Adapter />;
-    case 1:
-      return <NewArticleDialog_Adapter />;
-    case 2:
-      return <ArticlesTable_Adapter />;
-    default:
-      throw new Error(`Invalid index '${index}'.`);
-  }
+  return null; // TODO
 }
 
 function PageTitle_Adapter() {
-  return <MuiTypography text="Article Management" variant="h3" />;
+  return null; // TODO
 }
 
 function NewArticleDialog_Adapter() {
-  return (
-    <MuiDialog
-      title="New Article"
-      slots={{
-        trigger: { Component: NewArticleButton_Adapter },
-        content: { Component: NewArticleBloc_Adapter },
-      }}
-      OutputsProvider={NewArticleDialog_OutputsProvider}
-    />
-  );
-}
-
-const NewArticleDialog$isOpenContext = createContext<any>(null);
-const NewArticleDialog$openContext = createContext<any>(null);
-const NewArticleDialog$closeContext = createContext<any>(null);
-const NewArticleDialog$toggleContext = createContext<any>(null);
-
-function NewArticleDialog_OutputsProvider({
-  isOpen,
-  open,
-  close,
-  toggle,
-  children,
-}: any) {
-  return (
-    <NewArticleDialog$isOpenContext.Provider value={isOpen}>
-      <NewArticleDialog$openContext.Provider value={open}>
-        <NewArticleDialog$closeContext.Provider value={close}>
-          <NewArticleDialog$toggleContext.Provider value={toggle}>
-            {children}
-          </NewArticleDialog$toggleContext.Provider>
-        </NewArticleDialog$closeContext.Provider>
-      </NewArticleDialog$openContext.Provider>
-    </NewArticleDialog$isOpenContext.Provider>
-  );
-}
-
-function NewArticleButton_Adapter() {
-  return (
-    <MuiButton
-      label="Add new"
-      variant="contained"
-      onPress={useContext(NewArticleDialog$openContext)}
-    />
-  );
-}
-
-function NewArticleBloc_Adapter() {
-  return <MuiTypography text="Under construction" />;
+  return null; // TODO
 }
 
 function ArticlesTable_Adapter() {
-  return (
-    <MuiTable
-      rows={useContext(ArticlesRepository$articlesContext)}
-      getRowKey={ArticleLibrary$getId}
-      header={["Id", "Name", "Price", "Action"]}
-      align={[undefined, undefined, "right", undefined]}
-      slots={{
-        column: { size: 4, Component: ArticlesTable_column },
-      }}
-    />
-  );
+  return null; // TODO
 }
 
-const ArticlesTable$rowContext = createContext<any>(null);
+function NewArticleButton_Adapter() {
+  return null; // TODO
+}
 
-function ArticlesTable_column({ row, index }: any) {
-  switch (index) {
-    case 0:
-      return (
-        <ArticlesTable$rowContext.Provider value={row}>
-          <IdColumn_Adapter />
-        </ArticlesTable$rowContext.Provider>
-      );
-    case 1:
-      return (
-        <ArticlesTable$rowContext.Provider value={row}>
-          <NameColumn_Adapter />
-        </ArticlesTable$rowContext.Provider>
-      );
-    case 2:
-      return (
-        <ArticlesTable$rowContext.Provider value={row}>
-          <PriceColumn_Adapter />
-        </ArticlesTable$rowContext.Provider>
-      );
-    case 3:
-      return (
-        <ArticlesTable$rowContext.Provider value={row}>
-          <EditColumn_Adapter />
-        </ArticlesTable$rowContext.Provider>
-      );
-    default:
-      throw new Error(`Invalid index '${index}'.`);
-  }
+function NewArticleBloc_Adapter() {
+  return null; // TODO
 }
 
 function IdColumn_Adapter() {
-  return (
-    <MuiTypography
-      text={ArticleLibrary$getId(useContext(ArticlesTable$rowContext))}
-      variant="body2"
-    />
-  );
+  return null; // TODO
 }
 
 function NameColumn_Adapter() {
-  return (
-    <MuiTypography
-      text={ArticleLibrary$getName(useContext(ArticlesTable$rowContext))}
-      variant="body2"
-    />
-  );
+  return null; // TODO
 }
 
 function PriceColumn_Adapter() {
-  return (
-    <MuiTypography
-      text={ArticleLibrary$getFormattedPrice(
-        useContext(ArticlesTable$rowContext)
-      )}
-      variant="body2"
-    />
-  );
+  return null; // TODO
 }
 
 function EditColumn_Adapter() {
-  return <div>You get the idea ...</div>;
+  return null; // TODO
+}
+
+function EditArticleButton_Adapter() {
+  return null; // TODO
+}
+
+function EditArticleBloc_Adapter() {
+  return null; // TODO
+}
+
+function EditArticleFormLayout_Adapter() {
+  return null; // TODO
+}
+
+function EditArticleNameTextField_Adapter() {
+  return null; // TODO
+}
+
+function EditArticlePriceTextField_Adapter() {
+  return null; // TODO
+}
+
+function UpdateArticleButton_Adapter() {
+  return null; // TODO
 }

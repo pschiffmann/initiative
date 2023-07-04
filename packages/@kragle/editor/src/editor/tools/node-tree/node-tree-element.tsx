@@ -1,6 +1,6 @@
 import { IconButton, bemClasses } from "@kragle/design-system";
 import { CommandController } from "@kragle/react-command";
-import { SceneDocument, useNode } from "@kragle/runtime/v2";
+import { SceneDocument, useNode } from "@kragle/runtime";
 import { memo, useState } from "react";
 import { CreateNodeDialog } from "./create-node-dialog.js";
 

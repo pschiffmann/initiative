@@ -10,7 +10,7 @@ import {
   Definitions,
   SceneDocument,
   sceneDocumentFromJson,
-} from "@kragle/runtime/v2";
+} from "@kragle/runtime";
 import { useState } from "react";
 import { ToolFrame } from "../tool-frame.js";
 import { OpenWorkspaceDialog } from "./open-workspace-dialog.js";

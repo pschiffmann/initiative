@@ -1,5 +1,5 @@
 import { bemClasses } from "@kragle/design-system";
-import { SceneDocument, sceneDocumentToJson } from "@kragle/runtime/v2";
+import { SceneDocument, sceneDocumentToJson } from "@kragle/runtime";
 import { useEffect } from "react";
 import {
   ConnectToEditorRequest,

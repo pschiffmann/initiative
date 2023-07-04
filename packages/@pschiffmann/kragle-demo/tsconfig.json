@@ -2,7 +2,6 @@
   "extends": "@pschiffmann/std/tsconfig-base.json",
   "references": [
     { "path": "../../@kragle/editor" },
-    { "path": "../../@kragle/ide" },
     { "path": "../../@kragle/runtime" }
   ],
   "include": ["kragle/**/*", "src/**/*", "kragle/scenes/*.json"],

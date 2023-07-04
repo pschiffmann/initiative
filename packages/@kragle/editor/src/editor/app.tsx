@@ -1,5 +1,5 @@
 import { IconButton, bemClasses, useColorTheme } from "@kragle/design-system";
-import { Definitions, SceneDocument } from "@kragle/runtime/v2";
+import { Definitions, SceneDocument } from "@kragle/runtime";
 import { useRef, useState } from "react";
 import { LicenseStatus } from "./tools/license-status/index.js";
 import { NodeInputs } from "./tools/node-inputs/index.js";

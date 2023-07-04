@@ -3,7 +3,7 @@ import {
   NodeJson,
   NodeSchema,
   SceneJson,
-} from "@kragle/runtime/v2";
+} from "@kragle/runtime";
 import fs from "fs";
 import {
   LayoutTest0i2o1sSchema,

@@ -1,3 +1,4 @@
+export * as t from "../type-system/index.js";
 export * from "./code-gen/index.js";
 export * from "./definitions/index.js";
 export * from "./runtime/index.js";

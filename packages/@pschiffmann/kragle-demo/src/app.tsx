@@ -4,7 +4,7 @@ import {
   SceneRuntime,
   resolveDefinitions,
   sceneDocumentFromJson,
-} from "@kragle/runtime/v2";
+} from "@kragle/runtime";
 
 const [, definitions] = resolveDefinitions([
   ["#kragle/libraries/index.js", await import("#kragle/libraries/index.js")],

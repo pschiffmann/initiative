@@ -12,7 +12,7 @@ import {
   CommandStream,
   useAcceptCommands,
 } from "@kragle/react-command";
-import { NodeSchema, SceneDocument, validateNodeId } from "@kragle/runtime/v2";
+import { NodeSchema, SceneDocument, validateNodeId } from "@kragle/runtime";
 import { useMemo, useState } from "react";
 
 const cls = bemClasses("kragle-create-node-dialog");

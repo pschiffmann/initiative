@@ -1,5 +1,4 @@
-import { t } from "@kragle/runtime";
-import { InferLibraryMembers, LibrarySchema } from "@kragle/runtime/v2";
+import { InferLibraryMembers, LibrarySchema, t } from "@kragle/runtime";
 
 export interface Article {
   id: number;

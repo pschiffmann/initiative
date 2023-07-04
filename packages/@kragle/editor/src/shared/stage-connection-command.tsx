@@ -1,4 +1,4 @@
-import { SceneDocumentPatch, SceneJson } from "@kragle/runtime/v2";
+import { SceneDocumentPatch, SceneJson } from "@kragle/runtime";
 
 export interface ConnectToEditorRequest {
   readonly type: "@kragle/editor.ConnectToEditorRequest";

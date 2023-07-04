@@ -3,7 +3,7 @@ import {
   SceneDocument,
   SceneRuntime,
   sceneDocumentFromJson,
-} from "@kragle/runtime/v2";
+} from "@kragle/runtime";
 import * as $Promise from "@pschiffmann/std/promise";
 import { useEffect, useState } from "react";
 import {

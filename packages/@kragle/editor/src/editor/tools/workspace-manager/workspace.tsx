@@ -6,7 +6,7 @@ import {
   generateCodeForScene,
   sceneDocumentToJson,
   validateSceneName,
-} from "@kragle/runtime/v2";
+} from "@kragle/runtime";
 
 export type WorkspaceState =
   | "initializing"

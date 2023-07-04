@@ -7,7 +7,6 @@ import {
   TextFieldControl,
   bemClasses,
 } from "@kragle/design-system";
-import { t } from "@kragle/runtime";
 import {
   BooleanLiteralExpressionJson,
   EntityLiteralExpressionJson,
@@ -19,7 +18,8 @@ import {
   SceneDocument,
   SceneInputExpressionJson,
   StringLiteralExpressionJson,
-} from "@kragle/runtime/v2";
+  t,
+} from "@kragle/runtime";
 import { ComponentType } from "react";
 import { InputExpressionOption, useInputOptions } from "./use-input-options.js";
 

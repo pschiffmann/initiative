@@ -1,11 +1,11 @@
-import { t } from "@kragle/runtime";
 import {
   ExpressionJson,
   NodeData,
   NodeOutputExpressionJson,
   SceneDocument,
+  t,
   useSceneDocumentVersion,
-} from "@kragle/runtime/v2";
+} from "@kragle/runtime";
 import { ReactNode, createContext, useContext } from "react";
 
 const AncestorOutputsContext = createContext<readonly AncestorOutput[]>([]);

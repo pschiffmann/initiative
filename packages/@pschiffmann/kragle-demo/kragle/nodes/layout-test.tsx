@@ -1,5 +1,4 @@
-import { t } from "@kragle/runtime";
-import { NodeSchema } from "@kragle/runtime/v2";
+import { NodeSchema, t } from "@kragle/runtime";
 import { ComponentType } from "react";
 
 function createNodeSchema(

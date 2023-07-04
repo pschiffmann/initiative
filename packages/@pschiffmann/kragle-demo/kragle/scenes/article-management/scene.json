@@ -22,6 +22,10 @@
         "alignSelf::1": {
           "type": "string-literal",
           "value": "end"
+        },
+        "alignSelf::0": {
+          "type": "string-literal",
+          "value": "center"
         }
       },
       "slots": {

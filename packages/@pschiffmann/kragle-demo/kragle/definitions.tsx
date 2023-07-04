@@ -1,4 +1,4 @@
-import { resolveDefinitions } from "@kragle/runtime/v2";
+import { resolveDefinitions } from "@kragle/runtime";
 
 export const [, definitions] = resolveDefinitions([
   ["#kragle/libraries/index.js", await import("#kragle/libraries/index.js")],

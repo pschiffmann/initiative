@@ -1,4 +1,4 @@
-import { t } from "../../index.js";
+import * as t from "../../type-system/index.js";
 
 /**
  * Expression serialization format.

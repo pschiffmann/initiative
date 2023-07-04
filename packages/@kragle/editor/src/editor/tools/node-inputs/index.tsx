@@ -1,5 +1,5 @@
 import { bemClasses } from "@kragle/design-system";
-import { SceneDocument, useNode } from "@kragle/runtime/v2";
+import { SceneDocument, useNode } from "@kragle/runtime";
 import { Fragment } from "react";
 import { ToolFrame } from "../tool-frame.js";
 import { NodeInputControl } from "./controls.js";

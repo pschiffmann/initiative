@@ -1,5 +1,4 @@
-import { t } from "@kragle/runtime";
-import { InferProps, NodeSchema } from "@kragle/runtime/v2";
+import { InferProps, NodeSchema, t } from "@kragle/runtime";
 
 export const CounterBlocSchema = new NodeSchema(
   "@pschiffmann/kragle-demo::CounterBloc",
