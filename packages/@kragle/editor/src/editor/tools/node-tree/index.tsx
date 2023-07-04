@@ -36,6 +36,7 @@ export function NodeTree({
         nodeId: selectedNode!,
         newId,
       });
+      onSelectedNodeChange(newId);
     } catch (e) {
       alert(`${e}`);
     }
@@ -43,6 +44,7 @@ export function NodeTree({
 
   const deleteSelectedNode = useCallback(() => {
     if (confirm(`Delete node ${selectedNode}?`)) {
+      onSelectedNodeChange(null);
       document.applyPatch({ type: "delete-node", nodeId: selectedNode! });
     }
   }, [document, selectedNode]);

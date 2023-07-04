@@ -333,10 +333,9 @@ export class NodeData {
   }
 
   renameChild(childId: string, slotName: string, index?: number): NodeData {
-    const slotKey =
-      this.schema.getScopedOutputSlot(slotName) === null
-        ? slotName
-        : `${slotName}::${index}`;
+    const slotKey = this.schema.isCollectionSlot(slotName)
+      ? `${slotName}::${index}`
+      : slotName;
     if (!this.slots[slotKey]) throw new Error(`Slot '${slotKey}' is empty.`);
     return new NodeData(
       this.schema,
@@ -356,7 +355,7 @@ export class NodeData {
 
   rename(
     id: string
-  ): [self: NodeData, movedChildren: Iterable<[string, NodeParent]>] {
+  ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
     validateNodeId(id);
     const self = new NodeData(
       this.schema,
@@ -366,10 +365,10 @@ export class NodeData {
       this.collectionSlotSizes,
       this.parent
     );
-    const movedChildren: [string, NodeParent][] = [];
+    const movedChildren: Record<string, NodeParent> = {};
     self.forEachSlot((childId, slotName, index) => {
       if (!childId) return;
-      movedChildren.push([childId, { nodeId: id, slotName, index }]);
+      movedChildren[childId] = { nodeId: id, slotName, index };
     });
     return [self, movedChildren];
   }

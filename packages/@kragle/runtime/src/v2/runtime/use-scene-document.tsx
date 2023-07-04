@@ -6,7 +6,10 @@ export function useNode(document: SceneDocument, nodeId: string): NodeData {
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
     [document]
   );
-  const getNode = useCallback(() => document.getNode(nodeId), [nodeId]);
+  const getNode = useCallback(
+    () => (document.hasNode(nodeId) ? document.getNode(nodeId) : null!),
+    [document, nodeId]
+  );
   return useSyncExternalStore(onChange, getNode);
 }
 

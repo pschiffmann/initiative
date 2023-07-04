@@ -179,10 +179,10 @@ export class SceneDocument {
     const deletedNodeIds = [node.id];
     for (const nodeId of deletedNodeIds) {
       changedIds.push(nodeId);
-      this.#nodes.delete(nodeId);
       this.#nodes.get(nodeId)!.forEachSlot((childId) => {
         if (childId) deletedNodeIds.push(childId);
       });
+      this.#nodes.delete(nodeId);
     }
 
     this.#changeListeners.notify(changedIds);
@@ -343,7 +343,7 @@ export class SceneDocument {
       case "change":
         return this.#changeListeners.add(listener);
       case "patch":
-        this.#patchListeners.add(listener);
+        return this.#patchListeners.add(listener);
       default:
         throw new Error(`Invalid type '${type}'.`);
     }
