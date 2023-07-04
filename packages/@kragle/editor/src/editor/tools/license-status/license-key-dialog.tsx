@@ -106,8 +106,9 @@ export function LicenseKeyDialog({
             )}
             {kind === "personal" && <MaterialIcon icon="check_circle" />}
             <Typography variant="body-large">
-              {kind === "personal" && "Personal license"}
-              {kind === "personal-expired" && "Personal license – EXPIRED"}
+              {kind === "personal-expired"
+                ? "Personal license – EXPIRED"
+                : "Personal license"}
             </Typography>
           </div>
           <Typography variant="body-medium">
