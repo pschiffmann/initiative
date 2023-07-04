@@ -1,5 +1,5 @@
 import { ComponentType } from "react";
-import * as t from "../../type-system/index.js";
+import * as t from "../type-system/index.js";
 import { LibrarySchema } from "./library-schema.js";
 import { NodeSchema } from "./node-schema.js";
 

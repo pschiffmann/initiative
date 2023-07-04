@@ -1,6 +1,6 @@
 import { ComponentType, PropsWithChildren } from "react";
-import * as t from "../../type-system/index.js";
 import { NodeJson } from "../scene-data/node-data.js";
+import * as t from "../type-system/index.js";
 import {
   validateNodeInputName,
   validateNodeOutputName,

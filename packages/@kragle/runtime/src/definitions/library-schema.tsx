@@ -1,4 +1,4 @@
-import * as t from "../../type-system/index.js";
+import * as t from "../type-system/index.js";
 import {
   validateLibraryExportName,
   validateLibraryName,

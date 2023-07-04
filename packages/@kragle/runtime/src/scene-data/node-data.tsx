@@ -1,6 +1,6 @@
 import * as $Object from "@pschiffmann/std/object";
-import * as t from "../../type-system/index.js";
 import { NodeSchema } from "../definitions/index.js";
+import * as t from "../type-system/index.js";
 import { validateNodeId } from "../validate-names.js";
 import { Expression, ExpressionJson } from "./expression.js";
 
