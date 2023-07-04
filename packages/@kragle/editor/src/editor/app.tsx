@@ -25,7 +25,10 @@ export function App({ definitions }: AppProps) {
         className={cls.element("workspace-manager")}
         definitions={definitions}
         document={document}
-        onDocumentChange={setDocument}
+        onDocumentChange={(document) => {
+          setSelectedNode(null);
+          setDocument(document);
+        }}
       />
       {document ? (
         <>

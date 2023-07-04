@@ -142,9 +142,11 @@ export function WorkspaceManager({
               key={scene}
               className={cls.element(
                 "scene",
+                null,
+                document?.name === scene && "selected",
                 document && document.name !== scene && "disabled"
               )}
-              onClick={() => openScene(scene)}
+              onClick={document ? undefined : () => openScene(scene)}
             >
               {scene}
             </li>

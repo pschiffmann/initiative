@@ -47,23 +47,41 @@
   }
 
   &__scene {
+    --kragle-workspace-manager-scene-fill-color: transparent;
+    --kragle-workspace-manager-scene-stroke-color: #{color.role("on-surface")};
+    --kragle-workspace-manager-scene-state-layer-opacity: 0%;
+    &:not(&--disabled):is(:focus-visible, &:hover) {
+      --kragle-workspace-manager-scene-state-layer-opacity: 8%;
+    }
+    &:not(&--disabled):active {
+      --kragle-workspace-manager-scene-state-layer-opacity: 12%;
+    }
+
     padding: 4px 8px;
     border-radius: 4px;
     list-style: none;
-    color: color.role("on-surface");
+    background-color: color-mix(
+      in srgb,
+      var(--kragle-workspace-manager-scene-fill-color),
+      var(--kragle-workspace-manager-scene-stroke-color)
+        var(--kragle-workspace-manager-scene-state-layer-opacity)
+    );
+    color: var(--kragle-workspace-manager-scene-stroke-color);
     @include typography.role("body-medium");
     cursor: pointer;
 
-    &:not(&--disabled):is(:hover) {
-      background-color: color-mix(
-        in srgb,
-        transparent,
-        color.role("on-surface") 12%
-      );
+    &--selected {
+      --kragle-workspace-manager-scene-fill-color: #{color.role(
+          "brand-container"
+        )};
+      --kragle-workspace-manager-scene-stroke-color: #{color.role(
+          "on-brand-container"
+        )};
     }
 
     &--disabled {
       opacity: 0.38;
+      cursor: default;
     }
   }
 }
