@@ -9,7 +9,7 @@
   grid:
     "workspace-manager  stage-view     node-inputs   " auto
     "node-tree          stage-view     node-inputs   " minmax(0, 1fr)
-    "license-status     license-status license-status" auto
+    "actions            license-status license-status" auto
     / 300px minmax(0, 1fr) 300px;
   gap: 8px;
   padding: 8px;
@@ -27,6 +27,11 @@
   }
   &__node-inputs {
     grid-area: node-inputs;
+  }
+  &__actions {
+    grid-area: actions;
+    display: flex;
+    align-items: center;
   }
   &__license-status {
     grid-area: license-status;

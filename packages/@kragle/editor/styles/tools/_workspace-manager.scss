@@ -3,26 +3,6 @@
 
 .kragle-workspace-manager {
   height: 250px;
-  background-color: color.role("surface-container");
-  border-radius: 8px;
-
-  display: grid;
-  grid:
-    "header" auto
-    "body" minmax(0, 1fr)
-    / 1fr;
-
-  &__header {
-    grid-area: header;
-    display: flex;
-    align-items: center;
-    padding: 4px 4px 4px 8px;
-  }
-
-  &__title {
-    flex: 1 0 0;
-    @include typography.role("title-medium");
-  }
 
   &__empty-state {
     grid-area: body;

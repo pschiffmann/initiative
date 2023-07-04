@@ -19,7 +19,7 @@ export function ToolFrame({
   return (
     <div className={cls.block(className)}>
       <div className={cls.element("header")}>
-        <div className={cls.element("title")}>{title} </div>
+        <div className={cls.element("title")}>{title}</div>
         {actions}
       </div>
       {children}

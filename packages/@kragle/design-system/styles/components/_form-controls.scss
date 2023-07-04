@@ -46,6 +46,7 @@
     padding-inline: 28px;
     border-radius: 4px;
     background-color: color.role("surface");
+    color: color.role("on-surface");
     @include typography.role("body-large");
 
     &:hover,

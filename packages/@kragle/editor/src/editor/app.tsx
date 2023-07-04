@@ -1,4 +1,4 @@
-import { bemClasses, useColorTheme } from "@kragle/design-system";
+import { IconButton, bemClasses, useColorTheme } from "@kragle/design-system";
 import { Definitions, SceneDocument } from "@kragle/runtime/v2";
 import { useRef, useState } from "react";
 import { LicenseStatus } from "./tools/license-status/index.js";
@@ -17,8 +17,7 @@ export function App({ definitions }: AppProps) {
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
-  const rootRef = useRef<HTMLDivElement>(null);
-  useColorTheme(rootRef);
+  const { rootRef, toggleColorScheme } = useApplyColorTheme();
 
   return (
     <div ref={rootRef} className={cls.block()}>
@@ -53,6 +52,15 @@ export function App({ definitions }: AppProps) {
           <EmptyTool position="node-inputs" />
         </>
       )}
+      <div className={cls.element("actions")}>
+        <IconButton
+          icon="dark_mode"
+          label="Toggle dark mode"
+          onPress={toggleColorScheme}
+        />
+        <IconButton icon="settings" label="Settings" disabled />
+        <IconButton icon="notifications" label="Announcements" disabled />
+      </div>
       <LicenseStatus className={cls.element("license-status")} />
     </div>
   );
@@ -68,4 +76,25 @@ function EmptyTool({ position }: EmptyToolProps) {
       No scene selected.
     </div>
   );
+}
+
+function useApplyColorTheme() {
+  const localStorageKey = "@kragle/editor.color-theme";
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [colorScheme, setColorScheme] = useState<"light" | "dark">(() => {
+    const colorScheme = localStorage.getItem(localStorageKey);
+    return colorScheme === "light" || colorScheme === "dark"
+      ? colorScheme
+      : "light";
+  });
+  useColorTheme(rootRef, colorScheme);
+
+  function toggleColorScheme() {
+    const newColorScheme = colorScheme === "light" ? "dark" : "light";
+    localStorage.setItem(localStorageKey, newColorScheme);
+    setColorScheme(newColorScheme);
+  }
+
+  return { rootRef, colorScheme, toggleColorScheme };
 }

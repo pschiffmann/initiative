@@ -8,18 +8,14 @@
   background-color: color.role("surface-container");
   border-radius: 8px;
 
-  &__empty-state {
-    grid-area: main;
-    place-self: center;
-    @include typography.role("body-medium");
-    color: color.role("on-surface-deemphasized");
-  }
-
   &__iframe {
     grid-area: main;
     place-self: stretch;
     border-radius: 4px;
-    background-color: color.role("surface");
+
+    // Don't adjust the background color to the editor color scheme, because the
+    // stage is not aware of it.
+    background-color: #fff;
 
     // reset browser defaults
     border: 0;
