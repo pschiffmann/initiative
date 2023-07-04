@@ -1,8 +1,11 @@
-import { Stage } from "@kragle/ide";
-import { resolveNodeDefinitions } from "@kragle/runtime";
+import { Stage } from "@kragle/editor";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import * as nodesModule from "./nodes/index.js";
+import { definitions } from "./definitions.js";
 
-const nodeDefinitions = resolveNodeDefinitions(nodesModule);
 const root = createRoot(document.querySelector("#root")!);
-root.render(<Stage nodeDefinitions={nodeDefinitions} />);
+root.render(
+  <StrictMode>
+    <Stage definitions={definitions} />
+  </StrictMode>
+);
