@@ -9,4 +9,10 @@
     padding: 8px;
     overflow: auto;
   }
+
+  &__create-root-node-button {
+    --kragle-button-fill-color: #{color.role("brand")};
+    --kragle-button-stroke-color: #{color.role("on-brand")};
+    place-self: center;
+  }
 }

@@ -88,7 +88,8 @@ function useInputs(definitions: Definitions, nodeData: NodeData) {
     if (index === undefined) {
       inputs[inputName] = value;
     } else {
-      (inputs[inputName] ??= []).push(value);
+      const values = (inputs[inputName] ??= []);
+      if (index !== -1) values.push(value);
     }
   });
 

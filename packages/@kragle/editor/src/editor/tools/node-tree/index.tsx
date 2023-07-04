@@ -1,9 +1,15 @@
-import { DialogCommand, IconButton, bemClasses } from "@kragle/design-system";
+import {
+  Button,
+  DialogCommand,
+  IconButton,
+  bemClasses,
+} from "@kragle/design-system";
 import { CommandController } from "@kragle/react-command";
 import { SceneDocument, useRootNodeId } from "@kragle/runtime";
 import { useCallback, useState } from "react";
 import { DataFlowInspector } from "../data-flow-inspector/index.js";
 import { ToolFrame } from "../tool-frame.js";
+import { CreateNodeDialog } from "./create-node-dialog.js";
 import { NodeTreeElement } from "./node-tree-element.js";
 
 const cls = bemClasses("kragle-node-tree");
@@ -76,16 +82,40 @@ export function NodeTree({
         </>
       }
     >
-      <div className={cls.element("nodes")}>
-        {rootNodeId !== null && (
+      {rootNodeId !== null ? (
+        <div className={cls.element("nodes")}>
           <NodeTreeElement
             document={document}
             selectedNode={selectedNode}
             onSelectedNodeChange={onSelectedNodeChange}
             nodeId={rootNodeId}
           />
-        )}
-      </div>
+        </div>
+      ) : (
+        <CreateRootNodeButton document={document} />
+      )}
     </ToolFrame>
+  );
+}
+
+interface CreateRootNodeButtonProps {
+  document: SceneDocument;
+}
+
+function CreateRootNodeButton({ document }: CreateRootNodeButtonProps) {
+  const [controller] = useState(() => new CommandController<string>());
+  return (
+    <>
+      <Button
+        className={cls.element("create-root-node-button")}
+        label="Insert root node"
+        onPress={() => controller.send("")}
+      />
+      <CreateNodeDialog
+        commandStream={controller}
+        document={document}
+        parentId={null}
+      />
+    </>
   );
 }

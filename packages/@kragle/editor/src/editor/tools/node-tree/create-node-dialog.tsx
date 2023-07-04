@@ -20,7 +20,7 @@ const cls = bemClasses("kragle-create-node-dialog");
 export interface CreateNodeDialogProps {
   commandStream: CommandStream<string>;
   document: SceneDocument;
-  parentId: string;
+  parentId: string | null;
 }
 
 export function CreateNodeDialog({
@@ -58,7 +58,7 @@ export function CreateNodeDialog({
     document.applyPatch({
       type: "create-node",
       nodeType: nodeType!.name,
-      parent: { nodeId: parentId, slotName },
+      parent: parentId ? { nodeId: parentId, slotName } : undefined,
       nodeId: nodeId || undefined,
     });
     controller.send("close");
