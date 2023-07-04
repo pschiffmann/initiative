@@ -1,5 +1,6 @@
 import {
   Button,
+  Dialog,
   DialogCommand,
   IconButton,
   Typography,
@@ -13,6 +14,7 @@ import {
 } from "@kragle/runtime";
 import { useState } from "react";
 import { ToolFrame } from "../tool-frame.js";
+import { CreateSceneForm } from "./create-scene-form.js";
 import { OpenWorkspaceDialog } from "./open-workspace-dialog.js";
 import { useWorkspace } from "./use-workspace.js";
 
@@ -36,6 +38,9 @@ export function WorkspaceManager({
   const [workspace, setWorkspace] = useWorkspace();
 
   const [openWorkspaceDialogController] = useState(
+    () => new CommandController<DialogCommand>()
+  );
+  const [createSceneDialogController] = useState(
     () => new CommandController<DialogCommand>()
   );
 
@@ -90,6 +95,7 @@ export function WorkspaceManager({
               icon="note_add"
               label="New Scene"
               disabled={workspace?.state !== "ready"}
+              onPress={() => createSceneDialogController.send("open")}
             />
             <IconButton
               className={cls.element("button")}
@@ -150,6 +156,15 @@ export function WorkspaceManager({
         controller={openWorkspaceDialogController}
         onWorkspaceChange={setWorkspace}
       />
+      {workspace && (
+        <Dialog commandStream={createSceneDialogController}>
+          <CreateSceneForm
+            dialogController={createSceneDialogController}
+            definitions={definitions}
+            workspace={workspace}
+          />
+        </Dialog>
+      )}
     </ToolFrame>
   );
 }

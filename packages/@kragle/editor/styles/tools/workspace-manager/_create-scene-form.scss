@@ -1,0 +1,10 @@
+@use "@kragle/design-system/styles/color";
+
+.kragle-create-scene-form {
+  width: 600px;
+
+  &__create-button {
+    --kragle-button-fill-color: #{color.role("brand")};
+    --kragle-button-stroke-color: #{color.role("on-brand")};
+  }
+}

@@ -94,7 +94,7 @@ export class Workspace {
   async save(document: SceneDocument): Promise<void> {
     const sceneDirectory = await this.rootDirectory
       .getDirectoryHandle("scenes")
-      .then((d) => d.getDirectoryHandle(document.name));
+      .then((d) => d.getDirectoryHandle(document.name, { create: true }));
 
     const jsonFile = await sceneDirectory.getFileHandle("scene.json", {
       create: true,

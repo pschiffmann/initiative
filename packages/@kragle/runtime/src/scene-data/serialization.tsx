@@ -7,7 +7,7 @@ import { SceneDocument } from "./scene-document.js";
  * Scene serialization format.
  */
 export interface SceneJson {
-  readonly rootNode: string;
+  readonly rootNode: string | null;
   readonly nodes: { readonly [nodeId: string]: NodeJson };
 }
 
@@ -18,6 +18,7 @@ export function sceneDocumentFromJson(
 ): { errors?: string[]; document?: SceneDocument } {
   const errors: string[] = [];
   const document = new SceneDocument(name, definitions);
+  if (!sceneJson.rootNode) return { document };
 
   if (!isObject(sceneJson, sceneJsonSchema, `'scene.json'`, errors)) {
     return { errors };
@@ -92,10 +93,9 @@ export function sceneDocumentFromJson(
 
 export function sceneDocumentToJson(document: SceneDocument): SceneJson {
   const rootNode = document.getRootNodeId();
-  if (!rootNode) throw new Error("SceneDocument is empty.");
 
   const nodes: { [nodeId: string]: NodeJson } = {};
-  const queue = [rootNode];
+  const queue = rootNode ? [rootNode] : [];
   for (const nodeId of queue) {
     const node = document.getNode(nodeId);
     nodes[nodeId] = node.toJson();
@@ -185,7 +185,7 @@ type UnwrapObjectSchema<S extends ObjectSchema> = {
     : S[K] extends "boolean"
     ? boolean
     : S[K] extends "object"
-    ? {}
+    ? { readonly [key: string]: any }
     : S[K] extends "array"
     ? readonly unknown[]
     : S[K] extends "unknown"
