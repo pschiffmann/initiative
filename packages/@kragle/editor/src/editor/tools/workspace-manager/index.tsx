@@ -12,6 +12,7 @@ import {
   sceneDocumentFromJson,
 } from "@kragle/runtime/v2";
 import { useState } from "react";
+import { ToolFrame } from "../tool-frame.js";
 import { OpenWorkspaceDialog } from "./open-workspace-dialog.js";
 import { useWorkspace } from "./use-workspace.js";
 
@@ -61,10 +62,11 @@ export function WorkspaceManager({
   }
 
   return (
-    <div className={cls.block(className)}>
-      <div className={cls.element("header")}>
-        <div className={cls.element("title")}>Scenes</div>
-        {document ? (
+    <ToolFrame
+      className={cls.block(className)}
+      title="Scenes"
+      actions={
+        document ? (
           <>
             <IconButton
               className={cls.element("button")}
@@ -100,9 +102,9 @@ export function WorkspaceManager({
               onPress={() => openWorkspaceDialogController.send("open")}
             />
           </>
-        )}
-      </div>
-
+        )
+      }
+    >
       {!workspace ? (
         <div className={cls.element("empty-state")}>No workspace selected.</div>
       ) : workspace.state === "initializing" ? (
@@ -145,6 +147,6 @@ export function WorkspaceManager({
         controller={openWorkspaceDialogController}
         onWorkspaceChange={setWorkspace}
       />
-    </div>
+    </ToolFrame>
   );
 }

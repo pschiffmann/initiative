@@ -136,6 +136,19 @@ export class Workspace {
 
   #changeListeners = new Listeners<void>();
   listen(type: "change", listener: Listener<void>): Unsubscribe {
-    return this.#changeListeners.add(listener);
+    const result = this.#changeListeners.add(listener);
+
+    // Ugly workaround for race condition: Sometimes, this code is executed in
+    // the following order:
+    // 1. Workspace is created with `#state === "initializing"`
+    // 2. <WorkspaceManager /> component is rendered
+    // 3. Workspace state changes to `"permission-prompt"`
+    // 4. <WorkspaceManager /> useEffect starts listening for workspace changes
+    // In that case, the WorkspaceManager never re-renders because it never
+    // receives a `"change"` notification. So we just fire the notification
+    // here, even though the workspace didn't actually change.
+    this.#changeListeners.notify();
+
+    return result;
   }
 }
