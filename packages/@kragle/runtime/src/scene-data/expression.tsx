@@ -199,11 +199,11 @@ export class Expression {
           return entity?.literal?.format(json) ?? json.entityName;
         }
         case "node-output":
-          return `${json.nodeId}::${json.outputName}`;
+          return `<${json.nodeId}>.${json.outputName}`;
         case "scene-input":
-          return `Scene::${json.inputName}`;
+          return `Scene.${json.inputName}`;
         case "library-member":
-          return `${json.libraryName}::${json.memberName}`;
+          return `import("${json.libraryName}").${json.memberName}`;
         case "function-call": {
           const parameters = json.args
             .map((p) => (p ? fmt(p) : "null"))

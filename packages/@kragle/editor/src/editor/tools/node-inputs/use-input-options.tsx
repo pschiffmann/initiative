@@ -1,4 +1,5 @@
 import {
+  Definitions,
   ExpressionJson,
   NodeData,
   NodeOutputExpressionJson,
@@ -56,12 +57,9 @@ export interface InputExpressionOption {
 }
 
 export function useInputOptions(
-  document: SceneDocument,
-  nodeData: NodeData,
-  inputName: string
+  definitions: Definitions,
+  inputType: t.KragleType
 ): readonly InputExpressionOption[] {
-  const inputType = nodeData.schema.inputTypes[inputName];
-
   const options: InputExpressionOption[] = [];
   if (t.string().isAssignableTo(inputType)) {
     options.push({
@@ -108,32 +106,32 @@ export function useInputOptions(
   for (const { expression, type } of ancestorOutputs) {
     if (type.isAssignableTo(inputType)) {
       options.push({
-        label: `${expression.nodeId}::${expression.outputName}`,
+        label: `<${expression.nodeId}>.${expression.outputName}`,
         expression,
       });
     }
     if (t.Function.is(type) && type.returns.isAssignableTo(inputType)) {
       options.push({
-        label: `${expression.nodeId}::${expression.outputName}()`,
+        label: `<${expression.nodeId}>.${expression.outputName}()`,
         expression: { type: "function-call", fn: expression, args: [] },
       });
     }
   }
 
-  for (const libraryDefinition of document.definitions.libraries.values()) {
+  for (const libraryDefinition of definitions.libraries.values()) {
     const libraryName = libraryDefinition.schema.name;
     for (const [memberName, type] of Object.entries(
       libraryDefinition.schema.members
     )) {
       if (type.isAssignableTo(inputType)) {
         options.push({
-          label: `${libraryName}::${memberName}`,
+          label: `import("${libraryName}").${memberName}`,
           expression: { type: "library-member", libraryName, memberName },
         });
       }
       if (t.Function.is(type) && type.returns.isAssignableTo(inputType)) {
         options.push({
-          label: `${libraryName}::${memberName}()`,
+          label: `import("${libraryName}").${memberName}()`,
           expression: {
             type: "function-call",
             fn: { type: "library-member", libraryName, memberName },
