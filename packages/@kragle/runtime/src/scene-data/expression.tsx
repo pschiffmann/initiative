@@ -263,7 +263,7 @@ function resolveTypes(
 
         for (const [i, arg] of json.args.entries()) {
           const argPath = `${path}/arg(${i})`;
-          const argType = arg && resolveType(arg);
+          const argType = arg && resolveType(arg, argPath);
           types.set(argPath, argType);
         }
 
