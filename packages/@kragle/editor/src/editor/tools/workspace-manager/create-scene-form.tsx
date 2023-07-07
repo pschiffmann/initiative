@@ -6,21 +6,20 @@ import {
   bemClasses,
 } from "@kragle/design-system";
 import { CommandController } from "@kragle/react-command";
-import { Definitions, SceneDocument, validateSceneName } from "@kragle/runtime";
-import { useState } from "react";
+import { SceneDocument, validateSceneName } from "@kragle/runtime";
+import { useContext, useState } from "react";
+import { DefinitionsContext } from "../../context.js";
 import { Workspace } from "./workspace.js";
 
 const cls = bemClasses("kragle-create-scene-form");
 
 export interface CreateSceneFormProps {
   dialogController: CommandController<DialogCommand>;
-  definitions: Definitions;
   workspace: Workspace;
 }
 
 export function CreateSceneForm({
   dialogController,
-  definitions,
   workspace,
 }: CreateSceneFormProps) {
   const [sceneName, setSceneName] = useState("");
@@ -35,6 +34,7 @@ export function CreateSceneForm({
     sceneNameError = e instanceof Error ? e.message : `${e}`;
   }
 
+  const definitions = useContext(DefinitionsContext);
   async function createScene() {
     dialogController.send("close");
     const document = new SceneDocument(sceneName, definitions);

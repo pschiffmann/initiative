@@ -1,5 +1,4 @@
 import {
-  Definitions,
   ExpressionJson,
   NodeData,
   NodeOutputExpressionJson,
@@ -8,6 +7,7 @@ import {
   useSceneDocumentVersion,
 } from "@kragle/runtime";
 import { ReactNode, createContext, useContext } from "react";
+import { DefinitionsContext } from "../../context.js";
 
 const AncestorOutputsContext = createContext<readonly AncestorOutput[]>([]);
 
@@ -57,7 +57,6 @@ export interface InputExpressionOption {
 }
 
 export function useInputOptions(
-  definitions: Definitions,
   inputType: t.KragleType
 ): readonly InputExpressionOption[] {
   const options: InputExpressionOption[] = [];
@@ -118,6 +117,7 @@ export function useInputOptions(
     }
   }
 
+  const definitions = useContext(DefinitionsContext);
   for (const libraryDefinition of definitions.libraries.values()) {
     const libraryName = libraryDefinition.schema.name;
     for (const [memberName, type] of Object.entries(

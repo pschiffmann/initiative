@@ -7,12 +7,9 @@ import {
   bemClasses,
 } from "@kragle/design-system";
 import { CommandController } from "@kragle/react-command";
-import {
-  Definitions,
-  SceneDocument,
-  sceneDocumentFromJson,
-} from "@kragle/runtime";
-import { useState } from "react";
+import { SceneDocument, sceneDocumentFromJson } from "@kragle/runtime";
+import { useContext, useState } from "react";
+import { DefinitionsContext } from "../../context.js";
 import { ToolFrame } from "../tool-frame.js";
 import { CreateSceneForm } from "./create-scene-form.js";
 import { OpenWorkspaceDialog } from "./open-workspace-dialog.js";
@@ -23,14 +20,12 @@ export { Workspace } from "./workspace.js";
 const cls = bemClasses("kragle-workspace-manager");
 
 export interface SceneManagerProps {
-  definitions: Definitions;
   document: SceneDocument | null;
   onDocumentChange(document: SceneDocument | null): void;
   className?: string;
 }
 
 export function WorkspaceManager({
-  definitions,
   document,
   onDocumentChange,
   className,
@@ -44,6 +39,7 @@ export function WorkspaceManager({
     () => new CommandController<DialogCommand>()
   );
 
+  const definitions = useContext(DefinitionsContext);
   async function openScene(name: string) {
     try {
       const sceneJson = JSON.parse(await workspace!.readSceneJson(name));
@@ -162,7 +158,6 @@ export function WorkspaceManager({
         <Dialog commandStream={createSceneDialogController}>
           <CreateSceneForm
             dialogController={createSceneDialogController}
-            definitions={definitions}
             workspace={workspace}
           />
         </Dialog>

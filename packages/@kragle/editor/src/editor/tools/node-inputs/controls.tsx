@@ -12,7 +12,6 @@ import {
 import { CommandController } from "@kragle/react-command";
 import {
   BooleanLiteralExpressionJson,
-  Definitions,
   EntityLiteralExpressionJson,
   Expression,
   ExpressionJson,
@@ -68,7 +67,6 @@ export function NodeInputControl({
         label={inputName}
         helpText={helpText}
         errorText={errorText}
-        definitions={document.definitions}
         inputType={nodeData.schema.inputTypes[inputName]}
         onChange={setNodeInput}
       />
@@ -90,18 +88,16 @@ export function NodeInputControl({
 
 interface EmptyInputControlProps
   extends Pick<BaseFormControlProps, "label" | "helpText" | "errorText"> {
-  definitions: Definitions;
   inputType: t.KragleType;
   onChange(json: ExpressionJson): void;
 }
 
 function EmptyInputControl({
-  definitions,
   inputType,
   onChange,
   ...props
 }: EmptyInputControlProps) {
-  const options = useInputOptions(definitions, inputType);
+  const options = useInputOptions(inputType);
 
   return (
     <SelectControl
