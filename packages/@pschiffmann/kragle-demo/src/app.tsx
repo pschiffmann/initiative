@@ -2,6 +2,7 @@ import sceneJson from "#kragle/scenes/article-management/scene.json";
 import {
   Scene,
   SceneRuntime,
+  generateCodeForScene,
   resolveDefinitions,
   sceneDocumentFromJson,
 } from "@kragle/runtime";
@@ -19,5 +20,6 @@ console.log({ definitions, document, errors });
 const runtime = new SceneRuntime(document!);
 
 export function App() {
+  console.log(generateCodeForScene(document!));
   return <Scene runtime={runtime} />;
 }
