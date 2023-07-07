@@ -2,6 +2,7 @@ import * as $Object from "@pschiffmann/std/object";
 import { ComponentType, FunctionComponent, useContext } from "react";
 import { Definitions, NodeSchema } from "../definitions/index.js";
 import { NodeData } from "../scene-data/index.js";
+import { ErrorComponent } from "./error-component.js";
 import { evaluateExpression } from "./evaluate-expression.js";
 import {
   AncestorOutputsContext,
@@ -35,24 +36,7 @@ export function createNodeAdapterComponent(
     const inputs = useInputs(document.definitions, nodeData);
     const slots = slotComponents && useSlotsPropValue(slotComponents, nodeData);
     return nodeData.errors ? (
-      <div>
-        Error: node '{nodeId}' contains errors and can't be rendered.
-        <ul>
-          {nodeData.errors.invalidInputs.size !== 0 && (
-            <li>
-              Invalid inputs: {[...nodeData.errors.invalidInputs].join(", ")}
-            </li>
-          )}
-          {nodeData.errors.missingSlots.size !== 0 && (
-            <li>
-              Missing slots: {[...nodeData.errors.missingSlots].join(", ")}
-            </li>
-          )}
-          {nodeData.errors.custom && (
-            <li>Custom error: {nodeData.errors.custom}</li>
-          )}
-        </ul>
-      </div>
+      <ErrorComponent nodeData={nodeData} />
     ) : (
       <NodeImpl OutputsProvider={OutputsProvider} slots={slots} {...inputs} />
     );
@@ -82,9 +66,10 @@ function useInputs(definitions: Definitions, nodeData: NodeData) {
 
   const inputs: Record<string, any> = {};
   nodeData.forEachInput((expression, type, inputName, index) => {
-    const value = expression
-      ? evaluateExpression(expression.json, definitions, ancestorOutputs)
-      : undefined;
+    const value =
+      expression && expression.errors.size === 0
+        ? evaluateExpression(expression.json, definitions, ancestorOutputs)
+        : undefined;
     if (index === undefined) {
       inputs[inputName] = value;
     } else {

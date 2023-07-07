@@ -49,9 +49,15 @@ export class NodeData {
     readonly parent: NodeParent | null
   ) {
     const invalidInputs = new Set<string>(
-      Object.entries(inputs)
-        .filter(([inputKey, expression]) => expression.errors.size > 0)
-        .map(([inputKey]) => inputKey)
+      this.forEachInput((expression, type, inputName, index) => {
+        if (
+          (expression && expression.errors.size === 0) ||
+          (!expression && t.undefined().isAssignableTo(type))
+        ) {
+          return null;
+        }
+        return index === undefined ? inputName : `${inputName}::${index}`;
+      }).filter((inputName): inputName is string => !!inputName)
     );
     const missingSlots = new Set<string>();
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
