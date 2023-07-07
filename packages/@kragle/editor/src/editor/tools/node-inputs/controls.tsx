@@ -15,13 +15,18 @@ import {
   EntityLiteralExpressionJson,
   Expression,
   ExpressionJson,
+  FunctionCallExpressionJson,
+  LibraryMemberExpressionJson,
   NodeData,
+  NodeOutputExpressionJson,
   NumberLiteralExpressionJson,
   SceneDocument,
+  SceneInputExpressionJson,
   StringLiteralExpressionJson,
   t,
 } from "@kragle/runtime";
 import { ComponentType, useState } from "react";
+import { FunctionExpressionBuilder } from "./function-expression-builder.js";
 import { useInputOptions } from "./use-input-options.js";
 
 const cls = bemClasses("kragle-node-input-control");
@@ -40,16 +45,18 @@ export function NodeInputControl({
   index,
 }: NodeInputControlProps) {
   const inputKey = index !== undefined ? `${inputName}::${index}` : inputName;
+  const inputType = nodeData.schema.inputTypes[inputName];
   const expression = nodeData.inputs[inputKey];
-  const helpText =
-    `Expected type: ` + nodeData.schema.inputTypes[inputName].toString();
+  const helpText = `Expected type: ${inputType}`;
   const errorText = !nodeData.errors?.invalidInputs.has(inputKey)
     ? undefined
     : !expression
     ? "This input is required."
     : expression.errors.size === 1 && expression.errors.has("/")
     ? expression.errors.get("/")!
-    : [...expression.errors.values()].join("\n");
+    : [...expression.errors]
+        .map(([expressionPath, error]) => `${expressionPath}: ${error}`)
+        .join("\n");
 
   function setNodeInput(expression: ExpressionJson | null) {
     document.applyPatch({
@@ -61,44 +68,55 @@ export function NodeInputControl({
     });
   }
 
-  if (!expression) {
-    return (
-      <EmptyInputControl
-        label={inputName}
-        helpText={helpText}
-        errorText={errorText}
-        inputType={nodeData.schema.inputTypes[inputName]}
-        onChange={setNodeInput}
-      />
-    );
+  const rootExpressionType = expression?.json.type ?? "empty";
+  switch (rootExpressionType) {
+    case "function-call": {
+      return (
+        <FunctionCallControl
+          label={inputName}
+          helpText={helpText}
+          errorText={errorText}
+          inputType={inputType}
+          expression={expression}
+          onChange={setNodeInput}
+          onClear={() => setNodeInput(null)}
+        />
+      );
+    }
+    default: {
+      const InputControl = controlComponents[rootExpressionType];
+      return (
+        <InputControl
+          label={inputName}
+          helpText={helpText}
+          errorText={errorText}
+          inputType={inputType}
+          json={expression?.json ?? null}
+          onChange={setNodeInput}
+          onClear={() => setNodeInput(null)}
+        />
+      );
+    }
   }
-
-  const InputControl = controlComponents[expression.json.type];
-  return (
-    <InputControl
-      label={inputName}
-      helpText={helpText}
-      errorText={errorText}
-      expression={expression}
-      onChange={setNodeInput}
-      onClear={() => setNodeInput(null)}
-    />
-  );
 }
 
-interface EmptyInputControlProps
-  extends Pick<BaseFormControlProps, "label" | "helpText" | "errorText"> {
+interface InputControlProps<T extends ExpressionJson | null>
+  extends Pick<
+    BaseFormControlProps,
+    "label" | "helpText" | "errorText" | "onClear"
+  > {
   inputType: t.KragleType;
-  onChange(json: ExpressionJson): void;
+  json: T;
+  onChange(json: ExpressionJson | null): void;
 }
 
 function EmptyInputControl({
   inputType,
   onChange,
+  onClear,
   ...props
-}: EmptyInputControlProps) {
+}: InputControlProps<null>) {
   const options = useInputOptions(inputType);
-
   return (
     <SelectControl
       adornmentIcon="add"
@@ -112,21 +130,11 @@ function EmptyInputControl({
   );
 }
 
-interface InputControlProps
-  extends Pick<
-    BaseFormControlProps,
-    "label" | "helpText" | "errorText" | "onClear"
-  > {
-  expression: Expression;
-  onChange(json: ExpressionJson): void;
-}
-
 function StringLiteralControl({
-  expression,
+  json,
   onChange,
   ...props
-}: InputControlProps) {
-  const json = expression.json as StringLiteralExpressionJson;
+}: InputControlProps<StringLiteralExpressionJson>) {
   return (
     <TextFieldControl
       value={json.value}
@@ -137,11 +145,10 @@ function StringLiteralControl({
 }
 
 function NumberLiteralControl({
-  expression,
+  json,
   onChange,
   ...props
-}: InputControlProps) {
-  const json = expression.json as NumberLiteralExpressionJson;
+}: InputControlProps<NumberLiteralExpressionJson>) {
   return (
     <NumberFieldControl
       value={json.value}
@@ -152,11 +159,10 @@ function NumberLiteralControl({
 }
 
 function BooleanLiteralControl({
-  expression,
+  json,
   onChange,
   ...props
-}: InputControlProps) {
-  const json = expression.json as BooleanLiteralExpressionJson;
+}: InputControlProps<BooleanLiteralExpressionJson>) {
   return (
     <CheckboxControl
       value={json.value}
@@ -167,59 +173,73 @@ function BooleanLiteralControl({
 }
 
 function EntityLiteralControl({
-  expression,
+  inputType,
+  json,
   onChange,
   ...props
-}: InputControlProps) {
-  const json = expression.json as EntityLiteralExpressionJson;
-  const entityType = expression.types.get("/") as t.Entity;
+}: InputControlProps<EntityLiteralExpressionJson>) {
   return (
     <ButtonControl
       adornmentIcon="build"
-      value={entityType.literal!.format(json.value)}
+      value={(inputType as t.Entity).literal!.format(json.value)}
       onPress={() => alert("TODO: Open entity editor dialog")}
       {...props}
     />
   );
 }
 
-function LibraryMemberControl({ expression, ...props }: InputControlProps) {
+function LibraryMemberControl({
+  json,
+  ...props
+}: InputControlProps<LibraryMemberExpressionJson>) {
   return (
     <ButtonControl
       adornmentIcon="link"
-      value={expression.format()}
+      value={`import("${json.libraryName}").${json.memberName}`}
       {...props}
     />
   );
 }
 
-function SceneInputControl({ expression, ...props }: InputControlProps) {
+function SceneInputControl({
+  json,
+  ...props
+}: InputControlProps<SceneInputExpressionJson>) {
   return (
     <ButtonControl
       adornmentIcon="link"
-      value={expression.format()}
+      value={`Scene.${json.inputName}`}
       {...props}
     />
   );
 }
 
-function NodeOutputControl({ expression, ...props }: InputControlProps) {
+function NodeOutputControl({
+  json,
+  ...props
+}: InputControlProps<NodeOutputExpressionJson>) {
   return (
     <ButtonControl
       adornmentIcon="link"
-      value={expression.format()}
+      value={`<${json.nodeId}>.${json.outputName}`}
       {...props}
     />
   );
+}
+
+interface FunctionCallControlProps
+  extends Omit<InputControlProps<FunctionCallExpressionJson>, "json"> {
+  expression: Expression;
 }
 
 function FunctionCallControl({
   label,
   helpText,
+  inputType,
   expression,
   onChange,
   ...props
-}: InputControlProps) {
+}: FunctionCallControlProps) {
   const [controller] = useState(() => new CommandController<DialogCommand>());
   return (
     <>
@@ -231,14 +251,22 @@ function FunctionCallControl({
         onPress={() => controller.send("open")}
         {...props}
       />
+      <Dialog commandStream={controller}>
+        <FunctionExpressionBuilder
+          label={label}
+          helpText={helpText!}
+          inputType={inputType}
+          expression={expression}
+          onChange={onChange}
+          onClose={() => controller.send("close")}
+        />
+      </Dialog>
     </>
   );
 }
 
-const controlComponents: Record<
-  ExpressionJson["type"],
-  ComponentType<InputControlProps>
-> = {
+export const controlComponents = {
+  empty: EmptyInputControl,
   "string-literal": StringLiteralControl,
   "number-literal": NumberLiteralControl,
   "boolean-literal": BooleanLiteralControl,
@@ -246,5 +274,7 @@ const controlComponents: Record<
   "library-member": LibraryMemberControl,
   "scene-input": SceneInputControl,
   "node-output": NodeOutputControl,
-  "function-call": FunctionCallControl,
-};
+} as Record<
+  Exclude<ExpressionJson["type"], "function-call"> | "empty",
+  ComponentType<InputControlProps<ExpressionJson | null>>
+>;

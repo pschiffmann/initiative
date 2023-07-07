@@ -1,6 +1,8 @@
 @use "@kragle/design-system/styles/color";
 @use "@kragle/design-system/styles/typography";
 
+@use "function-expression-builder";
+
 .kragle-node-inputs {
   &__empty-state {
     display: grid;

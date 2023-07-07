@@ -92,6 +92,25 @@ export class Expression {
    */
   readonly errors: ReadonlyMap<ExpressionPath, string>;
 
+  get(path: ExpressionPath): ExpressionJson | null {
+    function getAtPath(
+      json: ExpressionJson | null,
+      path: readonly ExpressionPathSegment[]
+    ): ExpressionJson | null {
+      if (path.length === 0) return json;
+      if (json?.type !== "function-call") throw new Error(`Invalid 'path'.`);
+      const [segment, ...rest] = path;
+      switch (segment.type) {
+        case "fn":
+          return getAtPath(json.fn, rest);
+        case "arg":
+          return getAtPath(json.args[segment.index] ?? null, rest);
+      }
+    }
+
+    return getAtPath(this.json, parseExpressionPath(path));
+  }
+
   /**
    * Returns a copy of `json` with the expression at `path` set to `expression`.
    */
@@ -121,36 +140,6 @@ export class Expression {
           } else {
             throw new Error("Invalid path.");
           }
-          return { ...json, args: args };
-        }
-      }
-    }
-
-    return rebuild(this.json, parseExpressionPath(path));
-  }
-
-  /**
-   * Returns a copy of `this` with the expression at `path` wrapped in a
-   * `function-call` expression.
-   */
-  callFunction(path: ExpressionPath): ExpressionJson {
-    function rebuild(
-      json: ExpressionJson,
-      path: readonly ExpressionPathSegment[]
-    ): ExpressionJson {
-      if (path.length === 0) {
-        return { type: "function-call", fn: json, args: [] };
-      }
-      if (json.type !== "function-call") throw new Error(`Invalid 'path'.`);
-      const [segment, ...rest] = path;
-      switch (segment.type) {
-        case "fn":
-          return { ...json, fn: rebuild(json.fn, rest) };
-        case "arg": {
-          const oldArg = json.args[segment.index];
-          if (!oldArg) throw new Error("Invalid path.");
-          const args = [...json.args];
-          args[segment.index] = rebuild(oldArg, rest);
           return { ...json, args: args };
         }
       }
