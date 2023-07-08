@@ -14,25 +14,19 @@ export function generateNodeRuntime(
   let result = "";
 
   // generateNodeAdapter
-  result += "gNAd:\n";
+  // order result += "gNAd:\n";
   result +=
     generateNodeAdapter(
       nodeData,
-      importNames.nodeComponents.get(nodeData.type)!
+      importNames.nodeComponents.get(nodeData.type)!,
+      importNames
     ) + "\n";
   //
 
   // generateNodeOutputContexts
   if (Object.keys(nodeData.schema.outputTypes).length > 0) {
-    result += "gNOC:\n";
+    // order result += "gNOC:\n";
     result += generateNodeOuptputContexts(nodeData) + "\n";
-  }
-  //
-
-  // generateNodeOutputsProvider
-  if (Object.keys(nodeData.schema.outputTypes).length > 0) {
-    result += "gNOP:\n";
-    result += generateNodeOutputsProvider(nodeData, nodeId) + "\n";
   }
   //
 
@@ -61,14 +55,24 @@ export function generateNodeRuntime(
     if (!Array.isArray(data)) {
       continue;
     }
-    result += "gSCO:\n";
-    result += generateSlotComponent(nodeId, slotname) + "\n";
+    // order result += "gSCO:\n";
+    result += generateSlotComponent(nodeData, slotname, data) + "\n";
+  }
+  //
+
+  // generateNodeOutputsProvider
+  if (
+    slotsResultsMap.size <= 0 &&
+    Object.keys(nodeData.schema.outputTypes).length > 0
+  ) {
+    // order result += "gNOP:\n";
+    result += `${generateNodeOutputsProvider(nodeData)}\n`;
   }
   //
 
   // test
-  console.log(nodeData);
-  //console.log(nodeData.inputs);
+  // console.log(nodeData);
+  // console.log(importNames);
   // test
 
   return result;
@@ -76,7 +80,8 @@ export function generateNodeRuntime(
 
 function generateNodeAdapter(
   nodeData: NodeData,
-  componentname: string
+  componentname: string,
+  importNames: ImportNames
 ): string {
   let result: string = "";
   result += `function ${nodeData.id}_Adapter() { \n`;
@@ -96,7 +101,10 @@ function generateNodeAdapter(
       if (expression == null) {
         inputResultsMap.set(inputName, "undefined");
       } else {
-        inputResultsMap.set(inputName, provideValue(expression.json));
+        inputResultsMap.set(
+          inputName,
+          provideValue(expression.json, importNames)
+        );
       }
     } else {
       if (!inputResultsMap.has(inputName)) {
@@ -109,7 +117,7 @@ function generateNodeAdapter(
       if (expression == null) {
         arraycheck.push("undefined");
       } else {
-        arraycheck.push(provideValue(expression.json));
+        arraycheck.push(provideValue(expression.json, importNames));
       }
     }
   });
@@ -180,13 +188,10 @@ function generateNodeOuptputContexts(nodeData: NodeData): string {
   return result;
 }
 
-function generateNodeOutputsProvider(
-  nodeData: NodeData,
-  nodeId: string
-): string {
+function generateNodeOutputsProvider(nodeData: NodeData): string {
   let result: string = "";
   const list: Array<string> = new Array();
-  result += `function ${nodeId}_OutputsProvider({\n`;
+  result += `function ${nodeData.id}_OutputsProvider({\n`;
   for (const output of Object.keys(nodeData.schema.outputTypes)) {
     list.push(output);
     result += `${output},\n`;
@@ -194,67 +199,108 @@ function generateNodeOutputsProvider(
   result += `children,\n`;
   result += `}: any) {\n`;
   result += `return (\n`;
-  result += recursiveDivInserter(nodeId, list.reverse(), "children");
+  result += recursiveDivInserter(nodeData.id, list.reverse(), "{children}");
   result += `);\n`;
   result += `}`;
   return result;
-  function recursiveDivInserter(
-    id: string,
-    list: Array<string>,
-    end: string
-  ): string {
-    const output = list.pop();
-    if (output == undefined) return `{${end}}\n`;
-    return `<${id}$${output}Context.Provider value={${output}}>\n${recursiveDivInserter(
-      id,
-      list,
-      end
-    )}</${id}$${output}Context.Provider>\n`;
-  }
 }
 
-// TODO
 function generateSlotComponent(
-  nodeId: string,
+  nodeData: NodeData,
   slotName: string,
-  index?: number
+  children: Array<string | null>
 ): string {
   let result: string = ``;
-  result += `function ${nodeId}_${slotName}({`;
-  result += ` TODO `;
+  result += `function ${nodeData.id}_${slotName}({ `;
+  const list: Array<string> = new Array();
+  if (Object.keys(nodeData.schema.outputTypes).length > 0) {
+    for (const prop of Object.keys(nodeData.schema.outputTypes)) {
+      list.push(prop);
+      result += `${prop}, `;
+    }
+    list.reverse();
+  }
+  result += `index `;
   result += `}: any) {\n`;
-  result += `switch ( TODO ) {\n`;
-  // TODO
-
+  result += `switch (index) {\n`;
+  for (let index = 0; index < children.length; index++) {
+    result += `case ${index}:\n`;
+    result += `return (\n`;
+    if (Object.keys(nodeData.schema.outputTypes).length <= 0) {
+      result += `<${children[index]}_Adapter />;`;
+    } else {
+      result += `${recursiveDivInserter(
+        nodeData.id,
+        list.slice(),
+        `<${children[index]}_Adapter />;`
+      )}`;
+    }
+    result += `);\n`;
+  }
+  result += `default:\n`;
+  result += `throw new Error(\`Invalid index '\${index}'.\`);\n`;
+  result += `}\n`;
+  result += `}`;
   return result;
 }
 
-function provideValue(exjson: ExpressionJson): string {
+function recursiveDivInserter(
+  id: string,
+  list: Array<string>,
+  end: string
+): string {
+  const output = list.pop();
+  if (output == undefined) return `${end}\n`;
+  return `<${id}$${output}Context.Provider value={${output}}>\n${recursiveDivInserter(
+    id,
+    list,
+    end
+  )}</${id}$${output}Context.Provider>\n`;
+}
+
+function provideValue(
+  exjson: ExpressionJson,
+  importNames: ImportNames
+): string {
   let result: string = "";
-  let directName: string = "";
+  let directName: string | undefined = "";
   switch (exjson.type) {
     case "string-literal":
     case "number-literal":
     case "boolean-literal":
       return JSON.stringify(exjson.value);
     case "library-member":
-      directName = exjson.libraryName.slice(
-        exjson.libraryName.indexOf("::") + 2
+      directName = importNames.libraryMembers.get(
+        `${exjson.libraryName}::${exjson.memberName}`
       );
+      if (directName == undefined) throw new Error(`undefined library-member`);
       return `${directName}Library$${exjson.memberName}`;
     case "node-output":
       return `usecontext(${exjson.nodeId}$${exjson.outputName}Context)`;
     case "function-call":
-      const args = exjson.args[0];
       const fn = exjson.fn;
-      if (args == null)
-        throw new Error("function-call unexpected null in args");
-      if (args.type != "node-output")
-        throw new Error("function-call unexpected type in args");
+      const args = exjson.args;
       if (fn.type != "library-member")
         throw new Error("function-call unexpected type in fn");
-      directName = fn.libraryName.slice(fn.libraryName.indexOf("::") + 2);
-      return `${directName}Library$${fn.memberName}(useContext(${args.nodeId}$${args.outputName}Context))`;
+      // TODO fix for nodeID/nodeType
+      directName = importNames.libraryMembers.get(fn.libraryName);
+      if (directName == undefined) {
+        directName = "Error2";
+      } //throw new Error("undefined library-member");
+      // TODO end
+      let result: string = "";
+      result += `${directName}Library$${fn.memberName}(`;
+      if (args.length <= 0) throw new Error("no args in  function-call");
+      for (const value of args) {
+        if (value == null) {
+          result += `null, `;
+          continue;
+        }
+        result += `${provideValue(value, importNames)}, `;
+      }
+      result = result.slice(0, result.length - 2);
+      result += `)`;
+      return result;
     case "entity-literal":
     case "scene-input":
     default:
