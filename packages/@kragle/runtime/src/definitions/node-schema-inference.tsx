@@ -65,6 +65,11 @@ export type SlotComponentProps<
     : never
   : never;
 
+export type OutputTypes<nodeSchema extends NodeSchema> =
+  nodeSchema extends NodeSchema<any, infer O, infer S>
+    ? RegularOutputTypes<O> & ScopedOutputTypes<S>
+    : never;
+
 type RegularInputTypes<I extends NodeSchemaInputs> = MakeUndefinedOptional<{
   readonly [inputName in keyof I]: t.Unwrap<I[inputName]["type"]>;
 }>;
@@ -112,4 +117,14 @@ type CollectionInputTypes<S extends NodeSchemaSlots> = Flatten<{
 
 type RegularOutputTypes<O extends NodeSchemaOutputs> = MakeUndefinedOptional<{
   readonly [outputName in keyof O]: t.Unwrap<O[outputName]["type"]>;
+}>;
+
+type ScopedOutputTypes<S extends NodeSchemaSlots> = Flatten<{
+  readonly [slotName in keyof S]: S[slotName]["outputs"] extends {}
+    ? {
+        readonly [outputName in keyof S[slotName]["outputs"]]: t.Unwrap<
+          S[slotName]["outputs"][outputName]["type"]
+        >;
+      }
+    : {};
 }>;

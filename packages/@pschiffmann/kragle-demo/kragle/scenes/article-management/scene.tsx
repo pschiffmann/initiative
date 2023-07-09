@@ -5,14 +5,24 @@ import {
 } from "#kragle/libraries/index.js";
 import {
   ArticleRepository,
+  ArticleRepositorySchema,
   EditArticleBloc,
+  EditArticleBlocSchema,
   MuiButton,
   MuiDialog,
+  MuiDialogSchema,
   MuiTable,
+  MuiTableSchema,
   MuiTextField,
   MuiTypography,
   Stack,
+  StackSchema,
 } from "#kragle/nodes/index.js";
+import {
+  OutputTypes,
+  OutputsProviderProps,
+  SlotComponentProps,
+} from "@kragle/runtime/code-gen-helpers";
 import { createContext, useContext } from "react";
 
 export function ArticleManagement() {
@@ -30,14 +40,18 @@ function ArticleRepository_Adapter() {
   );
 }
 
-const ArticleRepository$articlesContext = createContext<any>(null);
-const ArticleRepository$updateArticleContext = createContext<any>(null);
+const ArticleRepository$articlesContext = createContext<
+  OutputTypes<ArticleRepositorySchema>["articles"]
+>(null!);
+const ArticleRepository$updateArticleContext = createContext<
+  OutputTypes<ArticleRepositorySchema>["updateArticle"]
+>(null!);
 
 function ArticleRepository_OutputsProvider({
   articles,
   updateArticle,
   children,
-}: any) {
+}: OutputsProviderProps<ArticleRepositorySchema>) {
   return (
     <ArticleRepository$articlesContext.Provider value={articles}>
       <ArticleRepository$updateArticleContext.Provider value={updateArticle}>
@@ -60,7 +74,7 @@ function PageLayout_Adapter() {
   );
 }
 
-function PageLayout_child({ index }: any) {
+function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
   switch (index) {
     case 0:
       return <PageTitle_Adapter />;
@@ -90,10 +104,18 @@ function NewArticleDialog_Adapter() {
   );
 }
 
-const NewArticleDialog$isOpenContext = createContext<any>(null);
-const NewArticleDialog$openContext = createContext<any>(null);
-const NewArticleDialog$closeContext = createContext<any>(null);
-const NewArticleDialog$toggleContext = createContext<any>(null);
+const NewArticleDialog$isOpenContext = createContext<
+  OutputTypes<MuiDialogSchema>["isOpen"]
+>(null!);
+const NewArticleDialog$openContext = createContext<
+  OutputTypes<MuiDialogSchema>["open"]
+>(null!);
+const NewArticleDialog$closeContext = createContext<
+  OutputTypes<MuiDialogSchema>["close"]
+>(null!);
+const NewArticleDialog$toggleContext = createContext<
+  OutputTypes<MuiDialogSchema>["toggle"]
+>(null!);
 
 function NewArticleDialog_OutputsProvider({
   isOpen,
@@ -101,7 +123,7 @@ function NewArticleDialog_OutputsProvider({
   close,
   toggle,
   children,
-}: any) {
+}: OutputsProviderProps<MuiDialogSchema>) {
   return (
     <NewArticleDialog$isOpenContext.Provider value={isOpen}>
       <NewArticleDialog$openContext.Provider value={open}>
@@ -129,9 +151,14 @@ function ArticlesTable_Adapter() {
   );
 }
 
-const ArticlesTable$rowContext = createContext<any>(null);
+const ArticlesTable$rowContext = createContext<
+  OutputTypes<MuiTableSchema>["row"]
+>(null!);
 
-function ArticlesTable_column({ row, index }: any) {
+function ArticlesTable_column({
+  row,
+  index,
+}: SlotComponentProps<MuiTableSchema, "column">) {
   switch (index) {
     case 0:
       return (
@@ -220,10 +247,18 @@ function EditColumn_Adapter() {
   );
 }
 
-const EditColumn$isOpenContext = createContext<any>(null);
-const EditColumn$openContext = createContext<any>(null);
-const EditColumn$closeContext = createContext<any>(null);
-const EditColumn$toggleContext = createContext<any>(null);
+const EditColumn$isOpenContext = createContext<
+  OutputTypes<MuiDialogSchema>["isOpen"]
+>(null!);
+const EditColumn$openContext = createContext<
+  OutputTypes<MuiDialogSchema>["open"]
+>(null!);
+const EditColumn$closeContext = createContext<
+  OutputTypes<MuiDialogSchema>["close"]
+>(null!);
+const EditColumn$toggleContext = createContext<
+  OutputTypes<MuiDialogSchema>["toggle"]
+>(null!);
 
 function EditColumn_OutputsProvider({
   isOpen,
@@ -231,7 +266,7 @@ function EditColumn_OutputsProvider({
   close,
   toggle,
   children,
-}: any) {
+}: OutputsProviderProps<MuiDialogSchema>) {
   return (
     <EditColumn$isOpenContext.Provider value={isOpen}>
       <EditColumn$openContext.Provider value={open}>
@@ -270,11 +305,21 @@ function EditArticleBloc_Adapter() {
   );
 }
 
-const EditArticleBloc$nameContext = createContext<any>(null);
-const EditArticleBloc$updateNameContext = createContext<any>(null);
-const EditArticleBloc$priceContext = createContext<any>(null);
-const EditArticleBloc$updatePriceContext = createContext<any>(null);
-const EditArticleBloc$saveContext = createContext<any>(null);
+const EditArticleBloc$nameContext = createContext<
+  OutputTypes<EditArticleBlocSchema>["name"]
+>(null!);
+const EditArticleBloc$updateNameContext = createContext<
+  OutputTypes<EditArticleBlocSchema>["updateName"]
+>(null!);
+const EditArticleBloc$priceContext = createContext<
+  OutputTypes<EditArticleBlocSchema>["price"]
+>(null!);
+const EditArticleBloc$updatePriceContext = createContext<
+  OutputTypes<EditArticleBlocSchema>["updatePrice"]
+>(null!);
+const EditArticleBloc$saveContext = createContext<
+  OutputTypes<EditArticleBlocSchema>["save"]
+>(null!);
 
 function EditArticleBloc_OutputsProvider({
   name,
@@ -283,7 +328,7 @@ function EditArticleBloc_OutputsProvider({
   updatePrice,
   save,
   children,
-}: any) {
+}: OutputsProviderProps<EditArticleBlocSchema>) {
   return (
     <EditArticleBloc$nameContext.Provider value={name}>
       <EditArticleBloc$updateNameContext.Provider value={updateName}>
@@ -312,7 +357,9 @@ function EditArticleFormLayout_Adapter() {
   );
 }
 
-function EditArticleFormLayout_child({ index }: any) {
+function EditArticleFormLayout_child({
+  index,
+}: SlotComponentProps<StackSchema, "child">) {
   switch (index) {
     case 0:
       return <EditArticleNameTextField_Adapter />;
