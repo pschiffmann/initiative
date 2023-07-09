@@ -1,7 +1,7 @@
 {
-  "rootNode": "ArticlcesRepository",
+  "rootNode": "ArticleRepository",
   "nodes": {
-    "ArticlcesRepository": {
+    "ArticleRepository": {
       "type": "@pschiffmann/kragle-demo::ArticleRepository",
       "inputs": {},
       "slots": {
@@ -62,7 +62,7 @@
       "inputs": {
         "rows": {
           "type": "node-output",
-          "nodeId": "ArticlcesRepository",
+          "nodeId": "ArticleRepository",
           "outputName": "articles"
         },
         "getRowKey": {
@@ -240,7 +240,7 @@
         },
         "updateArticle": {
           "type": "node-output",
-          "nodeId": "ArticlcesRepository",
+          "nodeId": "ArticleRepository",
           "outputName": "updateArticle"
         }
       },
