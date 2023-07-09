@@ -1,7 +1,11 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { useMemo, useState } from "react";
-import { CounterBlocProps } from "./counter-bloc.schema.js";
+import { CounterBlocSchema } from "./counter-bloc.schema.js";
 
-export function CounterBloc({ slots, OutputsProvider }: CounterBlocProps) {
+export function CounterBloc({
+  slots,
+  OutputsProvider,
+}: NodeComponentProps<CounterBlocSchema>) {
   const [n, setN] = useState(0);
 
   const actions = useMemo(

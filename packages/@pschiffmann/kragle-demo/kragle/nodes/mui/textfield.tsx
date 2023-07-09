@@ -1,7 +1,12 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { TextField } from "@mui/material";
-import { MuiTextFieldProps } from "./textfield.schema.js";
+import { MuiTextFieldSchema } from "./textfield.schema.js";
 
-export function MuiTextField({ label, value, onChange }: MuiTextFieldProps) {
+export function MuiTextField({
+  label,
+  value,
+  onChange,
+}: NodeComponentProps<MuiTextFieldSchema>) {
   return (
     <TextField
       variant="filled"

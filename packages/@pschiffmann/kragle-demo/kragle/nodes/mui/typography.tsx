@@ -1,6 +1,10 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { Typography } from "@mui/material";
-import { MuiTypographyProps } from "./typography.schema.js";
+import { MuiTypographySchema } from "./typography.schema.js";
 
-export function MuiTypography({ text, variant }: MuiTypographyProps) {
+export function MuiTypography({
+  text,
+  variant,
+}: NodeComponentProps<MuiTypographySchema>) {
   return <Typography variant={variant}>{text}</Typography>;
 }

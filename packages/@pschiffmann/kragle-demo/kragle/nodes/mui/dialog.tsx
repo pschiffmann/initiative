@@ -1,8 +1,13 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { useMemo, useState } from "react";
-import { MuiDialogProps } from "./dialog.schema.js";
+import { MuiDialogSchema } from "./dialog.schema.js";
 
-export function MuiDialog({ title, slots, OutputsProvider }: MuiDialogProps) {
+export function MuiDialog({
+  title,
+  slots,
+  OutputsProvider,
+}: NodeComponentProps<MuiDialogSchema>) {
   const [isOpen, setIsOpen] = useState(false);
   const { open, close, toggle } = useMemo(
     () => ({

@@ -1,12 +1,16 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { NodeSchema, t } from "@kragle/runtime";
 import { articleType } from "../../libraries/article.schema.js";
 
 export const ArticleRepositorySchema = new NodeSchema(
   "@pschiffmann/kragle-demo::ArticleRepository",
   {
     outputs: {
-      articles: t.array(articleType),
-      updateArticle: t.function(articleType)(),
+      articles: {
+        type: t.array(articleType),
+      },
+      updateArticle: {
+        type: t.function(articleType)(),
+      },
     },
     slots: {
       child: {},
@@ -14,4 +18,4 @@ export const ArticleRepositorySchema = new NodeSchema(
   }
 );
 
-export type ArticleRepositoryProps = InferProps<typeof ArticleRepositorySchema>;
+export type ArticleRepositorySchema = typeof ArticleRepositorySchema;

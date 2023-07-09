@@ -1,5 +1,6 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { Button } from "@mui/material";
-import { MuiButtonProps } from "./button.schema.js";
+import { MuiButtonSchema } from "./button.schema.js";
 
 export function MuiButton({
   label,
@@ -7,7 +8,7 @@ export function MuiButton({
   color,
   size,
   onPress,
-}: MuiButtonProps) {
+}: NodeComponentProps<MuiButtonSchema>) {
   return (
     <Button variant={variant} color={color} size={size} onClick={onPress}>
       {label}

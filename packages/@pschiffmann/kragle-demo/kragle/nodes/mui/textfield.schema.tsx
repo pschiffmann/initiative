@@ -1,14 +1,20 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { NodeSchema, t } from "@kragle/runtime";
 
 export const MuiTextFieldSchema = new NodeSchema(
   "@pschiffmann/kragle-demo::MuiTextField",
   {
     inputs: {
-      label: t.string(),
-      value: t.string(),
-      onChange: t.function(t.string())(),
+      label: {
+        type: t.string(),
+      },
+      value: {
+        type: t.string(),
+      },
+      onChange: {
+        type: t.function(t.string())(),
+      },
     },
   }
 );
 
-export type MuiTextFieldProps = InferProps<typeof MuiTextFieldSchema>;
+export type MuiTextFieldSchema = typeof MuiTextFieldSchema;

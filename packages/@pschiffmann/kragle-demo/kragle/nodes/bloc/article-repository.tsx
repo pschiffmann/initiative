@@ -1,11 +1,12 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { useCallback, useState } from "react";
 import { Article } from "../../libraries/article.schema.js";
-import { ArticleRepositoryProps } from "./article-repository.schema.js";
+import { ArticleRepositorySchema } from "./article-repository.schema.js";
 
 export function ArticleRepository({
   slots,
   OutputsProvider,
-}: ArticleRepositoryProps) {
+}: NodeComponentProps<ArticleRepositorySchema>) {
   const [articles, setArticles] = useState(createArticles);
 
   const updateArticle = useCallback(

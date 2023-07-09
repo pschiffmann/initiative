@@ -1,16 +1,17 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import { useState } from "react";
 import {
   ArticleLibrary$getFormattedPrice,
   ArticleLibrary$parseFormattedPrice,
 } from "../../libraries/article.js";
-import { EditArticleBlocProps } from "./edit-article-bloc.schema.js";
+import { EditArticleBlocSchema } from "./edit-article-bloc.schema.js";
 
 export function EditArticleBloc({
   article,
   updateArticle,
   slots,
   OutputsProvider,
-}: EditArticleBlocProps) {
+}: NodeComponentProps<EditArticleBlocSchema>) {
   const [name, setName] = useState(article.name);
   const [price, setPrice] = useState(ArticleLibrary$getFormattedPrice(article));
 

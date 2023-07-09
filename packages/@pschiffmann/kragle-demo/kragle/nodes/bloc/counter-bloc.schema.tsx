@@ -1,13 +1,21 @@
-import { InferProps, NodeSchema, t } from "@kragle/runtime";
+import { NodeSchema, t } from "@kragle/runtime";
 
 export const CounterBlocSchema = new NodeSchema(
   "@pschiffmann/kragle-demo::CounterBloc",
   {
     outputs: {
-      label: t.string(),
-      increaseCounter: t.function()(),
-      decreaseCounter: t.function()(),
-      reset: t.function()(),
+      label: {
+        type: t.string(),
+      },
+      increaseCounter: {
+        type: t.function()(),
+      },
+      decreaseCounter: {
+        type: t.function()(),
+      },
+      reset: {
+        type: t.function()(),
+      },
     },
     slots: {
       child: {},
@@ -15,4 +23,4 @@ export const CounterBlocSchema = new NodeSchema(
   }
 );
 
-export type CounterBlocProps = InferProps<typeof CounterBlocSchema>;
+export type CounterBlocSchema = typeof CounterBlocSchema;

@@ -1,4 +1,3 @@
-import { ComponentType, PropsWithChildren } from "react";
 import { NodeJson } from "../scene-data/node-data.js";
 import * as t from "../type-system/index.js";
 import {
@@ -13,9 +12,9 @@ import {
 //
 
 interface NodeSchemaInit<
-  I extends t.KragleTypeRecord = {},
-  O extends t.KragleTypeRecord = {},
-  S extends SlotSchemas = {}
+  I extends NodeSchemaInputs = {},
+  O extends NodeSchemaOutputs = {},
+  S extends NodeSchemaSlots = {}
 > {
   readonly inputs?: I;
   readonly outputs?: O;
@@ -23,40 +22,34 @@ interface NodeSchemaInit<
   readonly validate?: ValidateNode;
 }
 
-type GenericNodeSchemaInit<
-  I extends t.KragleTypeRecord = {},
-  O extends t.KragleTypeRecord = {},
-  S extends SlotSchemas = {}
-> = <
-  TypeVariable1,
-  TypeVariable2,
-  TypeVariable3,
-  TypeVariable4,
-  TypeVariable5,
-  TypeVariable6,
-  TypeVariable7,
-  TypeVariable8
->(
-  t1: t.Entity<TypeVariable1>,
-  t2: t.Entity<TypeVariable2>,
-  t3: t.Entity<TypeVariable3>,
-  t4: t.Entity<TypeVariable4>,
-  t5: t.Entity<TypeVariable5>,
-  t6: t.Entity<TypeVariable6>,
-  t7: t.Entity<TypeVariable7>,
-  t8: t.Entity<TypeVariable8>
-) => NodeSchemaInit<I, O, S>;
+export interface NodeSchemaInputs {
+  readonly [inputName: string]: NodeSchemaInput;
+}
 
-export interface SlotSchema {
+export interface NodeSchemaInput {
+  readonly type: t.KragleType;
+}
+
+export interface NodeSchemaOutputs {
+  readonly [inputName: string]: NodeSchemaOutput;
+}
+
+export interface NodeSchemaOutput {
+  readonly type: t.KragleType;
+}
+
+export interface NodeSchemaSlots {
+  readonly [slotName: string]: NodeSchemaSlot;
+}
+
+export interface NodeSchemaSlot {
   /**
    * If a slot schema has an `inputs` key (even if it is empty), then that slot
    * is a collection slot and can accept any number of children, including 0.
    */
-  readonly inputs?: t.KragleTypeRecord;
-  readonly outputs?: t.KragleTypeRecord;
+  readonly inputs?: NodeSchemaInputs;
+  readonly outputs?: NodeSchemaOutputs;
 }
-
-export type SlotSchemas = { readonly [slotName: string]: SlotSchema };
 
 /**
  * This callback can be used to implement custom validation logic. It is only
@@ -69,24 +62,21 @@ export type ValidateNode = (nodeJson: NodeJson) => string | null;
 //
 
 export class NodeSchema<
-  I extends t.KragleTypeRecord = {},
-  O extends t.KragleTypeRecord = {},
-  S extends SlotSchemas = {}
+  I extends NodeSchemaInputs = {},
+  O extends NodeSchemaOutputs = {},
+  S extends NodeSchemaSlots = {}
 > {
-  constructor(
-    readonly name: string,
-    init: NodeSchemaInit<I, O, S> // | GenericNodeSchemaInit<I, O, S>
-  ) {
+  constructor(readonly name: string, init: NodeSchemaInit<I, O, S>) {
     validateNodeSchemaName(name);
 
     const canonicalizedInputTypes: Record<string, t.KragleType> = {};
-    for (const [inputName, type] of Object.entries(init.inputs ?? {})) {
+    for (const [inputName, { type }] of Object.entries(init.inputs ?? {})) {
       validateNodeInputName(name, inputName);
       canonicalizedInputTypes[inputName] = type.canonicalize();
     }
 
     const canonicalizedOutputTypes: Record<string, t.KragleType> = {};
-    for (const [outputName, type] of Object.entries(init.outputs ?? {})) {
+    for (const [outputName, { type }] of Object.entries(init.outputs ?? {})) {
       validateNodeOutputName(name, outputName);
       canonicalizedOutputTypes[outputName] = type.canonicalize();
     }
@@ -103,7 +93,7 @@ export class NodeSchema<
         outputNames: Object.keys(outputs),
       };
 
-      for (const [inputName, type] of Object.entries(inputs)) {
+      for (const [inputName, { type }] of Object.entries(inputs)) {
         validateNodeInputName(name, inputName);
         if (canonicalizedInputTypes[inputName]) {
           throw new Error(
@@ -115,7 +105,7 @@ export class NodeSchema<
         canonicalizedInputTypes[inputName] = type.canonicalize();
       }
 
-      for (const [outputName, type] of Object.entries(outputs)) {
+      for (const [outputName, { type }] of Object.entries(outputs)) {
         validateNodeOutputName(name, outputName);
         if (canonicalizedOutputTypes[outputName]) {
           throw new Error(
@@ -263,81 +253,3 @@ export interface SlotAttributes {
   readonly inputNames: readonly string[];
   readonly outputNames: readonly string[];
 }
-
-//
-// Type inference
-//
-
-type UnwrapAllSlotInputs<S extends SlotSchemas> = {
-  readonly [k in keyof S]: UnwrapSingleSlotInputs<S[k]["inputs"]>;
-};
-type UnwrapSingleSlotInputs<I extends t.KragleTypeRecord | undefined> =
-  I extends t.KragleTypeRecord
-    ? { readonly [k in keyof I]: readonly t.Unwrap<I[k]>[] }
-    : {};
-
-type NestedKeys<T extends {}> = {
-  [k in keyof T]: keyof T[k] & string;
-}[keyof T];
-type Flatten<T extends Record<string, {}>> = {
-  readonly [k in NestedKeys<T>]: T[keyof T][k];
-};
-
-type AddKeys<T extends {}, K extends string> = {
-  [k in K]: k extends keyof T ? T[k] : never;
-};
-type AddNestedKeys<T extends Record<string, {}>, K extends string> = {
-  [k in keyof T]: AddKeys<T[k], K>;
-};
-
-// TODO: Explain this magic
-type FlattenSlotInputs<S extends SlotSchemas> = Flatten<
-  AddNestedKeys<UnwrapAllSlotInputs<S>, NestedKeys<UnwrapAllSlotInputs<S>>>
->;
-
-//
-// React component props
-//
-
-export type InferProps<N extends NodeSchema> = N extends NodeSchema<
-  infer I,
-  infer O,
-  infer S
->
-  ? t.UnwrapRecord<I> &
-      FlattenSlotInputs<S> &
-      SlotPropMixin<S> &
-      OutputsProviderPropMixin<O>
-  : {};
-
-type SlotPropMixin<S extends SlotSchemas> = keyof S extends never
-  ? {}
-  : {
-      readonly slots: {
-        readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
-          ? {
-              readonly size: number;
-              readonly Component: ComponentType<
-                SlotWithInputsComponentPropsMixin<S[slotName]> &
-                  SlotWithOutputsComponentPropsMixin<S[slotName]>
-              >;
-            }
-          : {
-              readonly Component: ComponentType<
-                SlotWithInputsComponentPropsMixin<S[slotName]> &
-                  SlotWithOutputsComponentPropsMixin<S[slotName]>
-              >;
-            };
-      };
-    };
-
-type SlotWithInputsComponentPropsMixin<S extends SlotSchema> =
-  S["inputs"] extends {} ? { readonly index: number } : {};
-
-type SlotWithOutputsComponentPropsMixin<S extends SlotSchema> =
-  S["outputs"] extends {} ? t.UnwrapRecord<S["outputs"]> : {};
-
-type OutputsProviderPropMixin<O extends t.KragleTypeRecord> =
-  keyof O extends never
-    ? {}
-    : { OutputsProvider: ComponentType<PropsWithChildren<t.UnwrapRecord<O>>> };

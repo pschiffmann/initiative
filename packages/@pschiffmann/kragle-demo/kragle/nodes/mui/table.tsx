@@ -1,3 +1,4 @@
+import { NodeComponentProps } from "@kragle/runtime";
 import {
   Table,
   TableBody,
@@ -5,7 +6,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { MuiTableProps } from "./table.schema.js";
+import { MuiTableSchema } from "./table.schema.js";
 
 export function MuiTable({
   rows,
@@ -13,7 +14,7 @@ export function MuiTable({
   header,
   align,
   slots,
-}: MuiTableProps) {
+}: NodeComponentProps<MuiTableSchema>) {
   const columns = new Array(slots.column.size).fill(0);
   return (
     <Table>
