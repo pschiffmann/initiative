@@ -15,7 +15,7 @@ import {
   LayoutTest3i6o2sSchema,
   LayoutTest5i2o3sSchema,
   LayoutTest7i4o4sSchema,
-} from "../kragle/nodes/index.js";
+} from "../kragle/nodes/layout-test.js";
 
 //
 // Generation parameters
