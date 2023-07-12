@@ -8,6 +8,8 @@ import {
   ArticleRepositorySchema,
   EditArticleBloc,
   EditArticleBlocSchema,
+  I18n,
+  I18nSchema,
   MuiButton,
   MuiDialog,
   MuiDialogSchema,
@@ -26,9 +28,34 @@ import {
 import { createContext, useContext } from "react";
 
 export function ArticleManagement() {
-  return <ArticleRepository_Adapter />;
+  return <Translations_Adapter />;
 }
 
+function Translations_Adapter() {
+  return (
+    <I18n
+      slots={{
+        child: { Component: ArticleRepository_Adapter },
+      }}
+      OutputsProvider={Translations_OutputsProvider}
+    />
+  );
+}
+
+const Translations$translateContext = createContext<
+  OutputTypes<I18nSchema>["translate"]
+>(null!);
+
+function Translations_OutputsProvider({
+  translate,
+  children,
+}: OutputsProviderProps<I18nSchema>) {
+  return (
+    <Translations$translateContext.Provider value={translate}>
+      {children}
+    </Translations$translateContext.Provider>
+  );
+}
 function ArticleRepository_Adapter() {
   return (
     <ArticleRepository
@@ -88,7 +115,12 @@ function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
 }
 
 function PageTitle_Adapter() {
-  return <MuiTypography text={"Article Management"} variant={"h3"} />;
+  return (
+    <MuiTypography
+      text={useContext(Translations$translateContext)("scene-title")}
+      variant={"h3"}
+    />
+  );
 }
 
 function NewArticleDialog_Adapter() {

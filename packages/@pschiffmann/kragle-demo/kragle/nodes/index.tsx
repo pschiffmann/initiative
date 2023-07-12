@@ -4,6 +4,8 @@ export * from "./bloc/counter-bloc.js";
 export * from "./bloc/counter-bloc.schema.js";
 export * from "./bloc/edit-article-bloc.js";
 export * from "./bloc/edit-article-bloc.schema.js";
+export * from "./i18n.js";
+export * from "./i18n.schema.js";
 export * from "./index.js";
 // export * from "./layout-test.js";
 export * from "./mui/button.js";

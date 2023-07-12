@@ -1,6 +1,13 @@
 {
-  "rootNode": "ArticleRepository",
+  "rootNode": "Translations",
   "nodes": {
+    "Translations": {
+      "type": "@pschiffmann/kragle-demo::I18n",
+      "inputs": {},
+      "slots": {
+        "child": "ArticleRepository"
+      }
+    },
     "ArticleRepository": {
       "type": "@pschiffmann/kragle-demo::ArticleRepository",
       "inputs": {},
@@ -33,13 +40,23 @@
     "PageTitle": {
       "type": "@pschiffmann/kragle-demo::MuiTypography",
       "inputs": {
-        "text": {
-          "type": "string-literal",
-          "value": "Article Management"
-        },
         "variant": {
           "type": "string-literal",
           "value": "h3"
+        },
+        "text": {
+          "type": "function-call",
+          "fn": {
+            "type": "node-output",
+            "nodeId": "Translations",
+            "outputName": "translate"
+          },
+          "args": [
+            {
+              "type": "string-literal",
+              "value": "scene-title"
+            }
+          ]
         }
       },
       "slots": {}
