@@ -20,3 +20,7 @@ export * from "./mui/textfield.js";
 export * from "./mui/textfield.schema.js";
 export * from "./mui/typography.js";
 export * from "./mui/typography.schema.js";
+export * from "./testing/repeat.js";
+export * from "./testing/repeat.schema.js";
+export * from "./testing/try-call.js";
+export * from "./testing/try-call.schema.js";
