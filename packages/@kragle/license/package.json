@@ -6,6 +6,7 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "sideEffects": false,
   "dependencies": {
     "@pschiffmann/std": "^0.3.2"
   }

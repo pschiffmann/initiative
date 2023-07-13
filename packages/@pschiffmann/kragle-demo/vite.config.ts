@@ -7,4 +7,9 @@ export default defineConfig({
   server: {
     hmr: false,
   },
+  build: {
+    // Set to `false` to check whether imports from `@kragle/runtime` (e.g.
+    // `NodeSchema`) are emitted into the bundle.
+    minify: false,
+  },
 });

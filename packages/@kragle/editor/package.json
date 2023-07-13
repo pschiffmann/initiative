@@ -10,6 +10,7 @@
     ".": "./dist/index.js",
     "./styles.css": "./dist/editor/styles.css"
   },
+  "sideEffects": false,
   "dependencies": {
     "@kragle/design-system": "^0.1.0",
     "@kragle/license": "^0.1.0",

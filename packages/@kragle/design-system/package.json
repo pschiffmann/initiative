@@ -6,6 +6,7 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "sideEffects": false,
   "scripts": {
     "tsc": "tsc -b -w",
     "dev": "vite",
