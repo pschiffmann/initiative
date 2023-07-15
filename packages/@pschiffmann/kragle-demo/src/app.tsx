@@ -19,5 +19,6 @@ console.log({ definitions, document, errors });
 const runtime = new SceneRuntime(document!);
 
 export function App() {
+  console.log("test");
   return <Scene runtime={runtime} />;
 }

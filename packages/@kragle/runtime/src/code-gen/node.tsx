@@ -11,6 +11,12 @@ export function generateNodeRuntime(
   nodeId: string
 ): string {
   const nodeData = document.getNode(nodeId);
+
+  if (nodeData.errors) {
+    // TODO: Generate Error component
+    return "";
+  }
+
   let result = "";
 
   // generateNodeAdapter
@@ -24,28 +30,25 @@ export function generateNodeRuntime(
 
   // generateNodeOutputContexts
   if (Object.keys(nodeData.schema.outputTypes).length > 0) {
-    result += generateNodeOuptputContexts(nodeData) + "\n";
+    result += generateNodeOuptputContexts(nodeData, importNames) + "\n";
   }
   //
 
   // generateSlotComponent
-  const slotsResultsMap: Map<string, null | string | Array<null | string>> =
-    new Map();
+  const slotsResultsMap: Map<string, string | Array<string | null>> = new Map();
   nodeData.forEachSlot((childId, slotName, index) => {
     // calls for node PageLayout:
     // call 1: childId == "PageTitle", slotName == "child", index == 0
     // call 2: childId == "NewArticleDialog", slotName == "child", index == 1
     // call 3: childId == "ArticlesTable", slotName == "child", index == 2
-    if (index == undefined) {
-      slotsResultsMap.set(slotName, childId);
+    if (index === undefined) {
+      slotsResultsMap.set(slotName, childId!);
     } else {
-      if (!slotsResultsMap.has(slotName)) {
-        slotsResultsMap.set(slotName, new Array());
-      }
-      const arraycheck = slotsResultsMap.get(slotName);
+      let arraycheck = slotsResultsMap.get(slotName);
       if (!Array.isArray(arraycheck)) {
-        throw new Error("No Array after Array allocation");
+        slotsResultsMap.set(slotName, (arraycheck = new Array()));
       }
+      // TODO
       arraycheck.push(childId);
     }
   });
@@ -58,20 +61,13 @@ export function generateNodeRuntime(
   //
 
   // generateNodeOutputsProvider
-  let check = true;
-  for (const value of slotsResultsMap.values()) {
-    if (Array.isArray(value)) {
-      check = false;
-      break;
-    }
-  }
-  if (Object.keys(nodeData.schema.outputTypes).length > 0 && check) {
+  if (nodeData.schema.hasRegularOutputs()) {
     result += `${generateNodeOutputsProvider(nodeData)}\n`;
   }
   //
 
   // test
-  // console.log(nodeData);
+  console.log(nodeData);
   // console.log(importNames);
   // test
 
@@ -97,8 +93,8 @@ function generateNodeAdapter(
     // call 3: expression == null, inputName == "alignSelf", index == 0
     // call 4: expression == { ... }, inputName == "alignSelf", index == 1
     // call 5: expression == null, inputName == "alignSelf", index == 2
-    if (index == undefined) {
-      if (expression == null) {
+    if (index === undefined) {
+      if (expression === null) {
         inputResultsMap.set(inputName, "undefined");
       } else {
         inputResultsMap.set(
@@ -114,7 +110,7 @@ function generateNodeAdapter(
       if (!Array.isArray(arraycheck)) {
         throw new Error("No Array after Array allocation");
       }
-      if (expression == null) {
+      if (expression === null) {
         arraycheck.push("undefined");
       } else {
         arraycheck.push(provideValue(expression.json, importNames, nodeData));
@@ -124,12 +120,7 @@ function generateNodeAdapter(
   for (const [input, data] of inputResultsMap) {
     result += `${input}={`;
     if (Array.isArray(data)) {
-      result += `[`;
-      for (const value of data) {
-        result += `${value} ,`;
-      }
-      result = result.slice(0, result.length - 2);
-      result += "]";
+      result += `[${data.join(", ")}]`;
     } else {
       result += `${data}`;
     }
@@ -137,15 +128,14 @@ function generateNodeAdapter(
   }
 
   // slots
-  const slotsResultsMap: Map<string, null | string | Array<null | string>> =
-    new Map();
+  const slotsResultsMap: Map<string, string | Array<string | null>> = new Map();
   nodeData.forEachSlot((childId, slotName, index) => {
     // calls for node PageLayout:
     // call 1: childId == "PageTitle", slotName == "child", index == 0
     // call 2: childId == "NewArticleDialog", slotName == "child", index == 1
     // call 3: childId == "ArticlesTable", slotName == "child", index == 2
-    if (index == undefined) {
-      slotsResultsMap.set(slotName, childId);
+    if (index === undefined) {
+      slotsResultsMap.set(slotName, childId!);
     } else {
       if (!slotsResultsMap.has(slotName)) {
         slotsResultsMap.set(slotName, new Array());
@@ -155,6 +145,7 @@ function generateNodeAdapter(
         throw new Error("No Array after Array allocation");
       }
       arraycheck.push(childId);
+      // TODO
     }
   });
   if (slotsResultsMap.size > 0) {
@@ -165,20 +156,16 @@ function generateNodeAdapter(
         result += `Component: ${data}_Adapter },\n`;
         continue;
       }
-      result += `size: ${data.length}, Component: ${nodeData.id}_${slotName} },\n`;
+      if (data[0] !== null) {
+        result += `size: ${data.length}, Component: ${nodeData.id}_${slotName} },\n`;
+      } else {
+        result += `size: 0, Component: ${nodeData.id}_${slotName} }, \n`;
+      }
     }
     result += `}}\n`;
   }
 
-  let check = true;
-  for (const value of slotsResultsMap.values()) {
-    if (Array.isArray(value)) {
-      check = false;
-      break;
-    }
-  }
-  const outputTypesKeyArray = Object.keys(nodeData.schema.outputTypes);
-  if (outputTypesKeyArray.length > 0 && check) {
+  if (nodeData.schema.hasRegularOutputs()) {
     result += `OutputsProvider={${nodeData.id}_OutputsProvider}\n`;
   }
   //
@@ -187,26 +174,30 @@ function generateNodeAdapter(
   return result;
 }
 
-function generateNodeOuptputContexts(nodeData: NodeData): string {
+function generateNodeOuptputContexts(
+  nodeData: NodeData,
+  importNames: ImportNames
+): string {
   let result: string = "";
+  const schemaName = importNames.nodeComponents.get(nodeData.type);
   for (const output of Object.keys(nodeData.schema.outputTypes)) {
-    result += `const ${nodeData.id}$${output}Context = createContext<any>(null);\n`;
+    result += `const ${nodeData.id}$${output}Context = createContext<`;
+    result += `OutputTypes<${schemaName}Schema>["${output}"]>(null!);\n`;
   }
   return result;
 }
 
 function generateNodeOutputsProvider(nodeData: NodeData): string {
   let result: string = "";
-  const list: Array<string> = new Array();
+  const outputNames = Object.keys(nodeData.schema.outputTypes);
   result += `function ${nodeData.id}_OutputsProvider({\n`;
-  for (const output of Object.keys(nodeData.schema.outputTypes)) {
-    list.push(output);
+  for (const output of outputNames) {
     result += `${output},\n`;
   }
   result += `children,\n`;
   result += `}: any) {\n`;
   result += `return (\n`;
-  result += recursiveDivInserter(nodeData.id, list.reverse(), "{children}");
+  result += recursiveDivInserter(nodeData.id, outputNames, "{children}");
   result += `)\n`;
   result += `}`;
   return result;
@@ -219,30 +210,25 @@ function generateSlotComponent(
 ): string {
   let result: string = ``;
   result += `function ${nodeData.id}_${slotName}({ `;
-  const list: Array<string> = new Array();
-  if (Object.keys(nodeData.schema.outputTypes).length > 0) {
-    for (const prop of Object.keys(nodeData.schema.outputTypes)) {
-      list.push(prop);
-      result += `${prop}, `;
-    }
-    list.reverse();
+  const list: Array<string> = Object.keys(nodeData.schema.outputTypes);
+  for (const prop of list) {
+    result += `${prop}, `;
   }
+  // TODO
   result += `index `;
   result += `}: any) {\n`;
   result += `switch (index) {\n`;
-  for (let index = 0; index < children.length; index++) {
-    result += `case ${index}:\n`;
-    result += `return (\n`;
-    if (Object.keys(nodeData.schema.outputTypes).length <= 0) {
-      result += `<${children[index]}_Adapter />`;
-    } else {
+  if (children[0] !== null) {
+    for (let index = 0; index < children.length; index++) {
+      result += `case ${index}:\n`;
+      result += `return (\n`;
       result += `${recursiveDivInserter(
         nodeData.id,
-        list.slice(),
+        list,
         `<${children[index]}_Adapter />`
       )}`;
+      result += `);\n`;
     }
-    result += `);\n`;
   }
   result += `default:\n`;
   result += `throw new Error(\`Invalid index '\${index}'.\`)\n`;
@@ -256,13 +242,12 @@ function recursiveDivInserter(
   list: Array<string>,
   end: string
 ): string {
-  const output = list.pop();
-  if (output == undefined) return `${end}\n`;
-  return `<${id}$${output}Context.Provider value={${output}}>\n${recursiveDivInserter(
-    id,
-    list,
-    end
-  )}</${id}$${output}Context.Provider>\n`;
+  const [output, ...rest] = list;
+  if (output === undefined) return `${end}\n`;
+  return `<${id}$${output}Context.Provider value={${output}}>
+    ${recursiveDivInserter(id, rest, end)}
+  </${id}$${output}Context.Provider>
+  `;
 }
 
 function provideValue(
@@ -270,28 +255,28 @@ function provideValue(
   importNames: ImportNames,
   nodeData: NodeData
 ): string {
-  let result: string = "";
-  let directName: string | undefined = "";
   switch (exjson.type) {
     case "string-literal":
     case "number-literal":
     case "boolean-literal":
       return JSON.stringify(exjson.value);
-    case "library-member":
-      directName = importNames.libraryMembers.get(
+    case "library-member": {
+      const directName = importNames.libraryMembers.get(
         `${exjson.libraryName}::${exjson.memberName}`
       );
-      if (directName == undefined) throw new Error(`undefined library-member`);
+      if (directName === undefined) throw new Error(`undefined library-member`);
       return `${directName}`;
+    }
     case "node-output":
       return `useContext(${exjson.nodeId}$${exjson.outputName}Context)`;
-    case "function-call":
+    case "function-call": {
+      // TODO
       const fn = exjson.fn;
       const args = exjson.args;
       if (fn.type != "library-member") {
         throw new Error("function-call unexpected type in fn");
       }
-      directName = importNames.libraryMembers.get(
+      let directName = importNames.libraryMembers.get(
         `${fn.libraryName}::${fn.memberName}`
       );
       if (directName == undefined) {
@@ -311,7 +296,9 @@ function provideValue(
       result = result.slice(0, result.length - 2);
       result += `)`;
       return result;
+    }
     case "entity-literal":
+      return JSON.stringify(exjson.value);
     case "scene-input":
     default:
       // NOT IMPLEMENTED
