@@ -37,8 +37,10 @@ export function createNodeAdapterComponent(
     const slots = slotComponents && useSlotsPropValue(slotComponents, nodeData);
     return nodeData.errors ? (
       <ErrorComponent nodeData={nodeData} />
-    ) : (
+    ) : OutputsProvider ? (
       <NodeImpl OutputsProvider={OutputsProvider} slots={slots} {...inputs} />
+    ) : (
+      <NodeImpl slots={slots} {...inputs} />
     );
   };
   result.displayName = `${nodeId}_Adapter`;

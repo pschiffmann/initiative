@@ -1,0 +1,185 @@
+{
+  "rootNode": "TodoRepositoryBloc1",
+  "nodes": {
+    "TodoRepositoryBloc1": {
+      "type": "@pschiffmann/todo-app::TodoRepositoryBloc",
+      "inputs": {},
+      "slots": {
+        "child": "Layout"
+      }
+    },
+    "Layout": {
+      "type": "@pschiffmann/template-mui-material::FlexContainer",
+      "inputs": {
+        "alignSelf::1": {
+          "type": "string-literal",
+          "value": "stretch"
+        },
+        "backgroundColor": {
+          "type": "string-literal",
+          "value": "background.paper"
+        },
+        "elevation": {
+          "type": "number-literal",
+          "value": 2
+        },
+        "padding": {
+          "type": "string-literal",
+          "value": "16px 0"
+        },
+        "gap": {
+          "type": "number-literal",
+          "value": -1
+        },
+        "margin::0": {
+          "type": "string-literal",
+          "value": "0 16px"
+        },
+        "margin::1": {
+          "type": "string-literal",
+          "value": "0 8px"
+        },
+        "borderRadius": {
+          "type": "number-literal",
+          "value": 2
+        }
+      },
+      "slots": {
+        "child::0": "AppTitle",
+        "child::1": "HeaderControls",
+        "child::2": "TodoList"
+      }
+    },
+    "AppTitle": {
+      "type": "@kragle/template-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "string-literal",
+          "value": "Todo App"
+        },
+        "variant": {
+          "type": "string-literal",
+          "value": "h4"
+        }
+      },
+      "slots": {}
+    },
+    "HeaderControls": {
+      "type": "@pschiffmann/template-mui-material::FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "string-literal",
+          "value": "row"
+        },
+        "gap": {
+          "type": "number-literal",
+          "value": 1
+        },
+        "justifyContent": {
+          "type": "string-literal",
+          "value": "end"
+        }
+      },
+      "slots": {
+        "child::0": "ShowCompletedControl",
+        "child::1": "ShowIncompleteControl"
+      }
+    },
+    "TodoList": {
+      "type": "@kragle/template-mui-material::CheckList",
+      "inputs": {
+        "items": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "todos"
+        },
+        "onCheckedChange": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "toggleCompleted"
+        },
+        "getItemKey": {
+          "type": "library-member",
+          "libraryName": "@pschiffmann/todo-app::Todo",
+          "memberName": "getId"
+        },
+        "getPrimaryText": {
+          "type": "library-member",
+          "libraryName": "@pschiffmann/todo-app::Todo",
+          "memberName": "getDescription"
+        },
+        "checked": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "completedTodoIds"
+        },
+        "getSecondaryText": {
+          "type": "library-member",
+          "libraryName": "@pschiffmann/todo-app::Todo",
+          "memberName": "getCreatedAt"
+        }
+      },
+      "slots": {
+        "secondaryAction": "DeleteTodo"
+      }
+    },
+    "ShowCompletedControl": {
+      "type": "@kragle/template-mui-material::CheckboxControl",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Show complete"
+        },
+        "checked": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "showComplete"
+        },
+        "onChange": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "toggleShowComplete"
+        }
+      },
+      "slots": {}
+    },
+    "ShowIncompleteControl": {
+      "type": "@kragle/template-mui-material::CheckboxControl",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Show incomplete"
+        },
+        "checked": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "showIncomplete"
+        },
+        "onChange": {
+          "type": "node-output",
+          "nodeId": "TodoRepositoryBloc1",
+          "outputName": "toggleShowIncomplete"
+        }
+      },
+      "slots": {}
+    },
+    "DeleteTodo": {
+      "type": "@kragle/template-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Delete"
+        },
+        "icon": {
+          "type": "string-literal",
+          "value": "delete"
+        },
+        "color": {
+          "type": "string-literal",
+          "value": "error"
+        }
+      },
+      "slots": {}
+    }
+  }
+}
