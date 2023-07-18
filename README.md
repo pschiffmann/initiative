@@ -13,7 +13,10 @@ This component renders a single item from the users shopping cart, and lets them
 
 Here is how that component might be implemented traditionally:
 
-<div style="display: flex">
+<table>
+<tbody>
+<tr>
+<td>
 
 ```ts
 function ShoppingCartItem({ item }) {
@@ -70,6 +73,9 @@ function ShoppingCartItem({ item }) {
 }
 ```
 
+</td>
+<td>
+
 ```
 .
 .
@@ -125,7 +131,10 @@ function ShoppingCartItem({ item }) {
 .
 ```
 
-</div>
+</td>
+</tr>
+</tbody>
+</table>
 
 For comparison, here is the same component implemented with Kragle:
 
