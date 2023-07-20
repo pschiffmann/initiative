@@ -17,6 +17,7 @@
     "@kragle/editor": "^0.1.0",
     "@kragle/runtime": "^0.1.0",
     "@kragle/template-mui-material": "^0.1.0",
+    "@kragle/template-std": "^0.1.0",
     "@mui/material": "^5.13.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

@@ -9,7 +9,7 @@ const flexAlign = t.union(
 );
 
 export const FlexContainerSchema = new NodeSchema(
-  "@pschiffmann/template-mui-material::FlexContainer",
+  "@kragle/template-mui-material::FlexContainer",
   {
     inputs: {
       flexDirection: {

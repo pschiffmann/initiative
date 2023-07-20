@@ -17,32 +17,25 @@ export function TodoRepositoryBloc({
     []
   );
 
-  const [showComplete, setShowComplete] = useState(true);
-  const toggleShowComplete = useCallback(() => setShowComplete((x) => !x), []);
-  const [showIncomplete, setShowIncomplete] = useState(true);
-  const toggleShowIncomplete = useCallback(
-    () => setShowIncomplete((x) => !x),
+  const [showCompleted, setShowCompleted] = useState(true);
+  const toggleShowCompleted = useCallback(
+    () => setShowCompleted((x) => !x),
     []
   );
 
-  const completedTodoIds = todos
+  const completedIds = todos
     .filter((todo) => todo.completed)
     .map((todo) => todo.id);
-  const visibleTodos = todos.filter((todo) => {
-    if (todo.completed && showComplete) return true;
-    if (!todo.completed && showIncomplete) return true;
-    return false;
-  });
+  const visibleTodos = todos.filter((todo) => showCompleted || !todo.completed);
 
   return (
     <OutputsProvider
-      todos={visibleTodos}
-      completedTodoIds={completedTodoIds}
+      visibleTodos={visibleTodos}
+      completedIds={completedIds}
+      totalCount={todos.length}
       toggleCompleted={toggleCompleted}
-      showComplete={showComplete}
-      toggleShowComplete={toggleShowComplete}
-      showIncomplete={showIncomplete}
-      toggleShowIncomplete={toggleShowIncomplete}
+      showCompleted={showCompleted}
+      toggleShowCompleted={toggleShowCompleted}
     >
       <slots.child.Component />
     </OutputsProvider>

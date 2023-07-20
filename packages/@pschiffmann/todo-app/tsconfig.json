@@ -2,7 +2,8 @@
   "extends": "@pschiffmann/std/tsconfig-base.json",
   "references": [
     { "path": "../../@kragle/editor" },
-    { "path": "../../@kragle/template-mui-material" }
+    { "path": "../../@kragle/template-mui-material" },
+    { "path": "../../@kragle/template-std" }
   ],
   "include": ["kragle/**/*", "src/**/*"],
   "compilerOptions": {

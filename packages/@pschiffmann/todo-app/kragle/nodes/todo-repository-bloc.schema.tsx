@@ -5,26 +5,23 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
   "@pschiffmann/todo-app::TodoRepositoryBloc",
   {
     outputs: {
-      todos: {
+      visibleTodos: {
         type: t.array(todoItem),
       },
-      completedTodoIds: {
+      completedIds: {
         type: t.array(t.string()),
+      },
+      totalCount: {
+        type: t.number(),
       },
       toggleCompleted: {
         type: t.function(t.string(), t.boolean())(),
       },
-      showComplete: {
+      showCompleted: {
         type: t.boolean(),
       },
-      toggleShowComplete: {
-        type: t.function(t.boolean())(),
-      },
-      showIncomplete: {
-        type: t.boolean(),
-      },
-      toggleShowIncomplete: {
-        type: t.function(t.boolean())(),
+      toggleShowCompleted: {
+        type: t.function()(),
       },
     },
     slots: {
