@@ -10,6 +10,8 @@ export * from "./flex-container.js";
 export * from "./flex-container.schema.js";
 export * from "./icon-button.js";
 export * from "./icon-button.schema.js";
+export * from "./text-field.js";
+export * from "./text-field.schema.js";
 export * from "./typography.js";
 export * from "./typography.schema.js";
 
