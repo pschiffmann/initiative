@@ -20,6 +20,7 @@ export interface ImportNames {
 export function resolveUsedImports(document: SceneDocument) {
   const importStatements = [
     `import { createContext, memo, useContext } from "react";`,
+    `import { OutputTypes, OutputsProviderProps, SlotComponentProps, } from "@kragle/runtime/code-gen-helpers";`,
   ];
 
   // `nodeComponents` is the same as `ImportNames.nodeComponents`.
@@ -34,12 +35,11 @@ export function resolveUsedImports(document: SceneDocument) {
       const importName = i === 1 ? exportName : `${exportName}${i}`;
       if (!nodeComponentImportNames.has(importName)) {
         importStatements.push(`import { ${importName} } from "${moduleName}";`);
-        // TODO
-        if (true) {
-          importStatements.push(
-            `import { ${importName}Schema } from "${moduleName}";`
-          );
-        }
+        importStatements.push(
+          i === 1
+            ? `import { ${importName}Schema } from "${moduleName}";`
+            : `import { ${exportName} as ${importName}Schema } from "${moduleName}";`
+        );
         nodeComponents.set(nodeType, importName);
         nodeComponentImportNames.add(importName);
         break;
@@ -80,14 +80,6 @@ export function resolveUsedImports(document: SceneDocument) {
       });
     });
   }
-
-  // TODO
-  // OutputTypes,
-  // OutputsProviderProps,
-  // SlotComponentProps,
-  importStatements.push(
-    `import { OutputTypes, OutputsProviderProps, SlotComponentProps, } from "@kragle/runtime/code-gen-helpers";\n`
-  );
 
   return {
     importStatements: importStatements.join("\n"),
