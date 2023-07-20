@@ -16,6 +16,7 @@ export interface ImportNames {
   libraryMembers: ReadonlyMap<string, string>;
 }
 
+// TODO expand to include kraggel schema imports
 export function resolveUsedImports(document: SceneDocument) {
   const importStatements = [
     `import { createContext, memo, useContext } from "react";`,
@@ -33,6 +34,12 @@ export function resolveUsedImports(document: SceneDocument) {
       const importName = i === 1 ? exportName : `${exportName}${i}`;
       if (!nodeComponentImportNames.has(importName)) {
         importStatements.push(`import { ${importName} } from "${moduleName}";`);
+        // TODO
+        if (true) {
+          importStatements.push(
+            `import { ${importName}Schema } from "${moduleName}";`
+          );
+        }
         nodeComponents.set(nodeType, importName);
         nodeComponentImportNames.add(importName);
         break;
@@ -73,6 +80,14 @@ export function resolveUsedImports(document: SceneDocument) {
       });
     });
   }
+
+  // TODO
+  // OutputTypes,
+  // OutputsProviderProps,
+  // SlotComponentProps,
+  importStatements.push(
+    `import { OutputTypes, OutputsProviderProps, SlotComponentProps, } from "@kragle/runtime/code-gen-helpers";\n`
+  );
 
   return {
     importStatements: importStatements.join("\n"),

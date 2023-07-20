@@ -12,12 +12,15 @@ export function generateNodeRuntime(
 ): string {
   const nodeData = document.getNode(nodeId);
 
+  let result = "";
+
   if (nodeData.errors) {
     // TODO: Generate Error component
-    return "";
+    result += `function ${nodeData.id}() {\n`;
+    result += `throw new Error("Node: ${nodeData.id} contains errors!");\n`;
+    result += `}\n`;
+    return result;
   }
-
-  let result = "";
 
   // generateNodeAdapter
   result +=
@@ -62,7 +65,7 @@ export function generateNodeRuntime(
 
   // generateNodeOutputsProvider
   if (nodeData.schema.hasRegularOutputs()) {
-    result += `${generateNodeOutputsProvider(nodeData)}\n`;
+    result += `${generateNodeOutputsProvider(nodeData, importNames)}\n`;
   }
   //
 
@@ -145,7 +148,7 @@ function generateNodeAdapter(
         throw new Error("No Array after Array allocation");
       }
       arraycheck.push(childId);
-      // TODO
+      // TODO done?
     }
   });
   if (slotsResultsMap.size > 0) {
@@ -187,7 +190,10 @@ function generateNodeOuptputContexts(
   return result;
 }
 
-function generateNodeOutputsProvider(nodeData: NodeData): string {
+function generateNodeOutputsProvider(
+  nodeData: NodeData,
+  importNames: ImportNames
+): string {
   let result: string = "";
   const outputNames = Object.keys(nodeData.schema.outputTypes);
   result += `function ${nodeData.id}_OutputsProvider({\n`;
@@ -195,7 +201,10 @@ function generateNodeOutputsProvider(nodeData: NodeData): string {
     result += `${output},\n`;
   }
   result += `children,\n`;
-  result += `}: any) {\n`;
+  // TODO
+  const schemaName = importNames.nodeComponents.get(nodeData.type);
+  result += `}: OutputsProviderProps<${schemaName}Schema>`;
+  result += `) {\n`;
   result += `return (\n`;
   result += recursiveDivInserter(nodeData.id, outputNames, "{children}");
   result += `)\n`;
@@ -214,7 +223,7 @@ function generateSlotComponent(
   for (const prop of list) {
     result += `${prop}, `;
   }
-  // TODO
+  // TODO done?
   result += `index `;
   result += `}: any) {\n`;
   result += `switch (index) {\n`;
@@ -270,22 +279,20 @@ function provideValue(
     case "node-output":
       return `useContext(${exjson.nodeId}$${exjson.outputName}Context)`;
     case "function-call": {
-      // TODO
+      // TODO done?
       const fn = exjson.fn;
       const args = exjson.args;
-      if (fn.type != "library-member") {
-        throw new Error("function-call unexpected type in fn");
+      let directName: string | undefined = "";
+      if (fn.type != "function-call") {
+        directName = provideValue(fn, importNames, nodeData);
       }
-      let directName = importNames.libraryMembers.get(
-        `${fn.libraryName}::${fn.memberName}`
-      );
       if (directName == undefined) {
         directName = importNames.nodeComponents.get(nodeData.type);
       }
-      if (directName == undefined) throw new Error("undefined library-member");
+      if (directName == undefined) throw new Error("lost in the souce");
       let result: string = "";
       result += `${directName}(`;
-      if (args.length <= 0) throw new Error("no args in  function-call");
+      if (args.length === 0) throw new Error("no args in  function-call");
       for (const value of args) {
         if (value == null) {
           result += `null, `;
