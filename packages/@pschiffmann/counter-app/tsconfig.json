@@ -1,0 +1,16 @@
+{
+  "extends": "@pschiffmann/std/tsconfig-base.json",
+  "references": [
+    { "path": "../../@kragle/editor" },
+    { "path": "../../@kragle/template-mui-material" },
+    { "path": "../../@kragle/template-std" }
+  ],
+  "include": ["kragle/**/*", "src/**/*"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "tsc-build/",
+    "tsBuildInfoFile": "tsc-build/.tsbuildinfo",
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  }
+}
