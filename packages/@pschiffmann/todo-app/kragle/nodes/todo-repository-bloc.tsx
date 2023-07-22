@@ -8,6 +8,15 @@ export function TodoRepositoryBloc({
   OutputsProvider,
 }: NodeComponentProps<TodoRepositoryBlocSchema>) {
   const [todos, setTodos] = useState(createMockTodos);
+  const createTodo = useCallback(
+    (newTodo: TodoItem) => setTodos((todos) => [...todos, newTodo]),
+    []
+  );
+  const deleteTodo = useCallback(
+    (id: string) => () =>
+      setTodos((todos) => todos.filter((todo) => todo.id !== id)),
+    []
+  );
 
   const toggleCompleted = useCallback(
     (id: string, completed: boolean) =>
@@ -36,6 +45,8 @@ export function TodoRepositoryBloc({
       toggleCompleted={toggleCompleted}
       showCompleted={showCompleted}
       toggleShowCompleted={toggleShowCompleted}
+      createTodo={createTodo}
+      deleteTodo={deleteTodo}
     >
       <slots.child.Component />
     </OutputsProvider>

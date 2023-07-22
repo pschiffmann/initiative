@@ -23,6 +23,12 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
       toggleShowCompleted: {
         type: t.function()(),
       },
+      createTodo: {
+        type: t.function(todoItem)(),
+      },
+      deleteTodo: {
+        type: t.function(t.string())(t.function()()),
+      },
     },
     slots: {
       child: {},

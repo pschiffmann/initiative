@@ -4,10 +4,15 @@ import {
   TodoLibrary$getId,
 } from "#kragle/libraries/index.js";
 import {
+  CreateTodoBloc,
+  CreateTodoBlocSchema,
   TodoRepositoryBloc,
   TodoRepositoryBlocSchema,
 } from "#kragle/nodes/index.js";
-import { OutputTypes } from "@kragle/runtime/code-gen-helpers";
+import {
+  OutputTypes,
+  OutputsProviderProps,
+} from "@kragle/runtime/code-gen-helpers";
 import {
   Button,
   CheckList,
@@ -16,6 +21,7 @@ import {
   DialogSchema,
   FlexContainer,
   IconButton,
+  TextField,
   Typography,
 } from "@kragle/template-mui-material/nodes";
 import {
@@ -60,6 +66,12 @@ const TodoRepositoryBloc1$showCompletedContext = createContext<
 const TodoRepositoryBloc1$toggleShowCompletedContext = createContext<
   OutputTypes<TodoRepositoryBlocSchema>["toggleShowCompleted"]
 >(null!);
+const TodoRepositoryBloc1$createTodoContext = createContext<
+  OutputTypes<TodoRepositoryBlocSchema>["createTodo"]
+>(null!);
+const TodoRepositoryBloc1$deleteTodoContext = createContext<
+  OutputTypes<TodoRepositoryBlocSchema>["deleteTodo"]
+>(null!);
 
 function TodoRepositoryBloc1_OutputsProvider({
   visibleTodos,
@@ -68,8 +80,10 @@ function TodoRepositoryBloc1_OutputsProvider({
   toggleCompleted,
   showCompleted,
   toggleShowCompleted,
+  createTodo,
+  deleteTodo,
   children,
-}: any) {
+}: OutputsProviderProps<TodoRepositoryBlocSchema>) {
   return (
     <TodoRepositoryBloc1$visibleTodosContext.Provider value={visibleTodos}>
       <TodoRepositoryBloc1$completedIdsContext.Provider value={completedIds}>
@@ -83,7 +97,15 @@ function TodoRepositoryBloc1_OutputsProvider({
               <TodoRepositoryBloc1$toggleShowCompletedContext.Provider
                 value={toggleShowCompleted}
               >
-                {children}
+                <TodoRepositoryBloc1$createTodoContext.Provider
+                  value={createTodo}
+                >
+                  <TodoRepositoryBloc1$deleteTodoContext.Provider
+                    value={deleteTodo}
+                  >
+                    {children}
+                  </TodoRepositoryBloc1$deleteTodoContext.Provider>
+                </TodoRepositoryBloc1$createTodoContext.Provider>
               </TodoRepositoryBloc1$toggleShowCompletedContext.Provider>
             </TodoRepositoryBloc1$showCompletedContext.Provider>
           </TodoRepositoryBloc1$toggleCompletedContext.Provider>
@@ -134,7 +156,7 @@ function Header_Adapter() {
       alignItems={"center"}
       justifyContent={undefined}
       gap={1}
-      padding={"0 12px"}
+      padding={"0 20px 0 12px"}
       backgroundColor={undefined}
       elevation={undefined}
       outlined={undefined}
@@ -195,7 +217,7 @@ function NewTodoDialog_Adapter() {
       title={"dialog title"}
       slots={{
         trigger: { Component: OpenNewTodoDialog_Adapter },
-        content: { Component: Typography1_Adapter },
+        content: { Component: CreateTodoBloc1_Adapter },
       }}
       OutputsProvider={NewTodoDialog_OutputsProvider}
     />
@@ -221,7 +243,7 @@ function NewTodoDialog_OutputsProvider({
   close,
   toggle,
   children,
-}: any) {
+}: OutputsProviderProps<DialogSchema>) {
   return (
     <NewTodoDialog$isOpenContext.Provider value={isOpen}>
       <NewTodoDialog$openContext.Provider value={open}>
@@ -346,15 +368,55 @@ function OpenNewTodoDialog_Adapter() {
   );
 }
 
-function Typography1_Adapter() {
+function CreateTodoBloc1_Adapter() {
   return (
-    <Typography
-      text={"hello world"}
-      variant={undefined}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
+    <CreateTodoBloc
+      createTodo={useContext(TodoRepositoryBloc1$createTodoContext)}
+      closeDialog={useContext(NewTodoDialog$closeContext)}
+      slots={{
+        child: { Component: NewTodoFormLayout_Adapter },
+      }}
+      OutputsProvider={CreateTodoBloc1_OutputsProvider}
     />
+  );
+}
+
+const CreateTodoBloc1$description$valueContext = createContext<
+  OutputTypes<CreateTodoBlocSchema>["description$value"]
+>(null!);
+const CreateTodoBloc1$description$onChangeContext = createContext<
+  OutputTypes<CreateTodoBlocSchema>["description$onChange"]
+>(null!);
+const CreateTodoBloc1$submitContext = createContext<
+  OutputTypes<CreateTodoBlocSchema>["submit"]
+>(null!);
+const CreateTodoBloc1$submitDisabledContext = createContext<
+  OutputTypes<CreateTodoBlocSchema>["submitDisabled"]
+>(null!);
+
+function CreateTodoBloc1_OutputsProvider({
+  description$value,
+  description$onChange,
+  submit,
+  submitDisabled,
+  children,
+}: OutputsProviderProps<CreateTodoBlocSchema>) {
+  return (
+    <CreateTodoBloc1$description$valueContext.Provider
+      value={description$value}
+    >
+      <CreateTodoBloc1$description$onChangeContext.Provider
+        value={description$onChange}
+      >
+        <CreateTodoBloc1$submitContext.Provider value={submit}>
+          <CreateTodoBloc1$submitDisabledContext.Provider
+            value={submitDisabled}
+          >
+            {children}
+          </CreateTodoBloc1$submitDisabledContext.Provider>
+        </CreateTodoBloc1$submitContext.Provider>
+      </CreateTodoBloc1$description$onChangeContext.Provider>
+    </CreateTodoBloc1$description$valueContext.Provider>
   );
 }
 
@@ -365,7 +427,9 @@ function DeleteTodo_Adapter() {
       icon={"delete"}
       color={"error"}
       size={undefined}
-      onPress={undefined}
+      onPress={useContext(TodoRepositoryBloc1$deleteTodoContext)(
+        TodoLibrary$getId(useContext(TodoList$itemContext))
+      )}
       disabled={undefined}
     />
   );
@@ -379,6 +443,63 @@ function EmptyStateText_Adapter() {
       noWrap={undefined}
       color={"text.secondary"}
       component={undefined}
+    />
+  );
+}
+
+function NewTodoFormLayout_Adapter() {
+  return (
+    <FlexContainer
+      flexDirection={undefined}
+      alignItems={undefined}
+      justifyContent={undefined}
+      gap={1}
+      padding={"8px 0 0 0"}
+      backgroundColor={undefined}
+      elevation={undefined}
+      outlined={undefined}
+      borderRadius={undefined}
+      alignSelf={[undefined, "end"]}
+      margin={[undefined, undefined]}
+      slots={{
+        child: { size: 2, Component: NewTodoFormLayout_child },
+      }}
+    />
+  );
+}
+
+function NewTodoFormLayout_child({ index }: any) {
+  switch (index) {
+    case 0:
+      return <NewTodoDescription_Adapter />;
+    case 1:
+      return <NewTodoSubmitButton_Adapter />;
+    default:
+      throw new Error(`Invalid index '${index}'.`);
+  }
+}
+
+function NewTodoDescription_Adapter() {
+  return (
+    <TextField
+      label={"Description"}
+      value={useContext(CreateTodoBloc1$description$valueContext)}
+      onChange={useContext(CreateTodoBloc1$description$onChangeContext)}
+    />
+  );
+}
+
+function NewTodoSubmitButton_Adapter() {
+  return (
+    <Button
+      label={"Add"}
+      variant={"contained"}
+      color={"primary"}
+      size={undefined}
+      startIcon={undefined}
+      endIcon={undefined}
+      onPress={useContext(CreateTodoBloc1$submitContext)}
+      disabled={undefined}
     />
   );
 }
