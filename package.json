@@ -11,6 +11,6 @@
   "dependencies": {
     "@pschiffmann/std": "^0.3.2",
     "prettier": "3.0.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.6"
   }
 }
