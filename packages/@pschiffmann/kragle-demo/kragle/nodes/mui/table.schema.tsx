@@ -19,7 +19,7 @@ export const MuiTableSchema = new NodeSchema(
           },
           align: {
             type: t.optional(
-              t.union(t.string("left"), t.string("center"), t.string("right"))
+              t.union(t.string("left"), t.string("center"), t.string("right")),
             ),
           },
         },
@@ -30,7 +30,7 @@ export const MuiTableSchema = new NodeSchema(
         },
       },
     },
-  }
+  },
 );
 
 export type MuiTableSchema = typeof MuiTableSchema;

@@ -70,7 +70,7 @@ export class Expression {
   constructor(
     json: ExpressionJson,
     expectedType: t.KragleType,
-    ctx: ExpressionValidationContext
+    ctx: ExpressionValidationContext,
   ) {
     this.json = json = trimFunctionCallArguments(json);
     this.types = resolveTypes(json, ctx);
@@ -95,7 +95,7 @@ export class Expression {
   get(path: ExpressionPath): ExpressionJson | null {
     function getAtPath(
       json: ExpressionJson | null,
-      path: readonly ExpressionPathSegment[]
+      path: readonly ExpressionPathSegment[],
     ): ExpressionJson | null {
       if (path.length === 0) return json;
       if (json?.type !== "function-call") throw new Error(`Invalid 'path'.`);
@@ -116,11 +116,11 @@ export class Expression {
    */
   set(
     path: ExpressionPath,
-    expression: ExpressionJson | null
+    expression: ExpressionJson | null,
   ): ExpressionJson | null {
     function rebuild(
       json: ExpressionJson,
-      path: readonly ExpressionPathSegment[]
+      path: readonly ExpressionPathSegment[],
     ): ExpressionJson | null {
       if (path.length === 0) return expression;
       if (json.type !== "function-call") throw new Error(`Invalid 'path'.`);
@@ -156,7 +156,7 @@ export class Expression {
    * `json` (`Object.is(expr.json, expr.map(...))` returns true).
    */
   map(
-    callback: (json: ExpressionJson) => ExpressionJson | null
+    callback: (json: ExpressionJson) => ExpressionJson | null,
   ): ExpressionJson | null {
     function rebuild(json: ExpressionJson): ExpressionJson | null {
       const result = callback(json);
@@ -211,7 +211,7 @@ export interface ExpressionValidationContext {
 
   getLibraryMemberType(
     libraryName: string,
-    memberName: string
+    memberName: string,
   ): t.KragleType | null;
 
   /**
@@ -233,13 +233,13 @@ export interface ExpressionValidationContext {
  */
 function resolveTypes(
   json: ExpressionJson,
-  ctx: ExpressionValidationContext
+  ctx: ExpressionValidationContext,
 ): ReadonlyMap<ExpressionPath, t.KragleType | null> {
   const types = new Map<ExpressionPath, t.KragleType | null>();
 
   function resolveType(
     json: ExpressionJson,
-    path: ExpressionPath = ""
+    path: ExpressionPath = "",
   ): t.KragleType | null {
     switch (json.type) {
       case "string-literal":
@@ -281,14 +281,14 @@ function resolveTypes(
 function resolveErrors(
   json: ExpressionJson,
   types: Expression["types"],
-  expectedType: t.KragleType
+  expectedType: t.KragleType,
 ): ReadonlyMap<ExpressionPath, string> {
   const errors = new Map<ExpressionPath, string>();
 
   function resolveError(
     json: ExpressionJson,
     expectedType: t.KragleType,
-    path: ExpressionPath = ""
+    path: ExpressionPath = "",
   ): string | null {
     const type = types.get(path || "/");
     switch (json.type) {

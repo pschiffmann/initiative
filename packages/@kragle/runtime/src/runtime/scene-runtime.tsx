@@ -16,7 +16,7 @@ export class SceneRuntime {
 
   getAdapterComponent(nodeId: string): ComponentType {
     return $Map.putIfAbsent(this.#adapterComponents, nodeId, () =>
-      createNodeAdapterComponent(this, nodeId)
+      createNodeAdapterComponent(this, nodeId),
     );
   }
 }

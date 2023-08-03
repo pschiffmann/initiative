@@ -22,8 +22,8 @@ export const TypographySchema = new NodeSchema(
             t.string("body2"),
             t.string("caption"),
             t.string("button"),
-            t.string("overline")
-          )
+            t.string("overline"),
+          ),
         ),
       },
       noWrap: {
@@ -52,17 +52,17 @@ export const TypographySchema = new NodeSchema(
             t.string("error.dark"),
             t.string("info.light"),
             t.string("info.main"),
-            t.string("info.dark")
-          )
+            t.string("info.dark"),
+          ),
         ),
       },
       component: {
         type: t.optional(
-          t.union(t.string("div"), t.string("span"), t.string("p"))
+          t.union(t.string("div"), t.string("span"), t.string("p")),
         ),
       },
     },
-  }
+  },
 );
 
 export type TypographySchema = typeof TypographySchema;

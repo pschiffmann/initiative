@@ -29,7 +29,7 @@ export function useEditorConnection(definitions: Definitions) {
           type: "@kragle/editor.ConnectToEditorRequest",
           port: port1,
         } satisfies ConnectToEditorRequest,
-        { transfer: [port1] }
+        { transfer: [port1] },
       );
 
       let document: SceneDocument | undefined;
@@ -40,14 +40,14 @@ export function useEditorConnection(definitions: Definitions) {
             ({ document } = sceneDocumentFromJson(
               definitions,
               data.sceneName,
-              data.sceneJson
+              data.sceneJson,
             ));
             setRuntime(new SceneRuntime(document!));
           } else {
             document!.applyPatch(data);
           }
         },
-        { signal }
+        { signal },
       );
       port2.start();
     })();

@@ -24,7 +24,7 @@ export const TryCallSchema = new NodeSchema(
         },
       },
     },
-  }
+  },
 );
 
 export type TryCallSchema = typeof TryCallSchema;

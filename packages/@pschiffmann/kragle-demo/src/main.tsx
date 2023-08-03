@@ -6,5 +6,5 @@ const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
     <ArticleManagement />
-  </StrictMode>
+  </StrictMode>,
 );

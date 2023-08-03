@@ -12,7 +12,7 @@ export interface LicenseStatusProps {
 
 export function LicenseStatus({ className }: LicenseStatusProps) {
   const [dialogController] = useState(
-    () => new CommandController<DialogCommand>()
+    () => new CommandController<DialogCommand>(),
   );
 
   const { licenseData, saveLicenseKey } = useLicense();

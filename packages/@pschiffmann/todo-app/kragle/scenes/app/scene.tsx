@@ -189,7 +189,7 @@ function EmptStateSwitch_Adapter() {
       showIf={[
         Operators$gt(
           Array$length(useContext(TodoRepositoryBloc1$visibleTodosContext)),
-          0
+          0,
         ),
         true,
       ]}
@@ -276,7 +276,7 @@ function TodoCount_Adapter() {
         "Completed: ",
         Array$length(useContext(TodoRepositoryBloc1$completedIdsContext)),
         "/",
-        useContext(TodoRepositoryBloc1$totalCountContext)
+        useContext(TodoRepositoryBloc1$totalCountContext),
       )}
       variant={undefined}
       noWrap={undefined}
@@ -293,7 +293,7 @@ function ToggleCompletedButton_Adapter() {
       icon={Operators$ternary(
         useContext(TodoRepositoryBloc1$showCompletedContext),
         "visibility",
-        "visibility_off"
+        "visibility_off",
       )}
       color={"primary"}
       size={"small"}
@@ -428,7 +428,7 @@ function DeleteTodo_Adapter() {
       color={"error"}
       size={undefined}
       onPress={useContext(TodoRepositoryBloc1$deleteTodoContext)(
-        TodoLibrary$getId(useContext(TodoList$itemContext))
+        TodoLibrary$getId(useContext(TodoList$itemContext)),
       )}
       disabled={undefined}
     />

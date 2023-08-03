@@ -39,7 +39,7 @@ function useStageConnection(document: SceneDocument) {
         } satisfies StageConnectionCommand);
         ports.push(data.port);
       },
-      { signal: controller.signal }
+      { signal: controller.signal },
     );
 
     const unsubscribeFromDocument = document.listen("patch", (patch) => {

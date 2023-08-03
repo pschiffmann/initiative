@@ -7,5 +7,5 @@ const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
     <Stage definitions={definitions} />
-  </StrictMode>
+  </StrictMode>,
 );

@@ -3,9 +3,12 @@ import { KragleType } from "./kragle-type.js";
 
 class KragleFunction<
   P extends t.KragleTypeArray = t.KragleTypeArray,
-  R extends KragleType = KragleType
+  R extends KragleType = KragleType,
 > extends KragleType<(...args: t.UnwrapArray<P>) => t.Unwrap<R>> {
-  constructor(readonly parameters: P, readonly returns: R) {
+  constructor(
+    readonly parameters: P,
+    readonly returns: R,
+  ) {
     super();
   }
 
@@ -23,7 +26,7 @@ class KragleFunction<
   override canonicalize(): t.KragleType {
     return new KragleFunction(
       this.parameters.map((p) => p.canonicalize()),
-      this.returns.canonicalize()
+      this.returns.canonicalize(),
     );
   }
 

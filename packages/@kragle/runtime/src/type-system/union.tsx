@@ -2,7 +2,7 @@ import * as t from "./index.js";
 import { KragleType } from "./kragle-type.js";
 
 class KragleUnion<
-  T extends t.KragleTypeArray = t.KragleTypeArray
+  T extends t.KragleTypeArray = t.KragleTypeArray,
 > extends KragleType<t.Unwrap<T[number]>> {
   constructor(readonly elements: T) {
     if (elements.length === 0) {
@@ -16,7 +16,7 @@ class KragleUnion<
       for (const element of this.elements) {
         if (
           !other.elements.some((otherElement) =>
-            element.isAssignableTo(otherElement)
+            element.isAssignableTo(otherElement),
           )
         ) {
           return false;
@@ -72,7 +72,7 @@ class KragleUnion<
 
     if (containsTrue || containsFalse) {
       result.push(
-        t.boolean(containsTrue && containsFalse ? undefined : containsTrue)
+        t.boolean(containsTrue && containsFalse ? undefined : containsTrue),
       );
     }
 
@@ -109,7 +109,7 @@ function kragleUnion<T extends t.KragleTypeArray>(
  * calling `union.canonicalize()` first.
  */
 function kragleRequired<T extends t.KragleTypeArray>(
-  union: KragleUnion<T>
+  union: KragleUnion<T>,
 ): KragleType {
   const elements = union.elements.filter((e) => {
     if (KragleUnion.is(e)) {

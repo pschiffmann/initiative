@@ -29,7 +29,7 @@ export const CreateTodoBlocSchema = new NodeSchema(
     slots: {
       child: {},
     },
-  }
+  },
 );
 
 export type CreateTodoBlocSchema = typeof CreateTodoBlocSchema;

@@ -259,7 +259,7 @@ function PriceColumn_Adapter() {
   return (
     <MuiTypography
       text={ArticleLibrary$getFormattedPrice(
-        useContext(ArticlesTable$rowContext)
+        useContext(ArticlesTable$rowContext),
       )}
       variant={"body2"}
     />

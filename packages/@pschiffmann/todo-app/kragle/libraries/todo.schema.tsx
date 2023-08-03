@@ -16,7 +16,7 @@ export const TodoLibrarySchema = new LibrarySchema(
     getDescription: t.function(todoItem)(t.string()),
     getCreatedAt: t.function(todoItem)(t.string()),
     getCompleted: t.function(todoItem)(t.boolean()),
-  }
+  },
 );
 
 export type TodoLibraryMembers = InferLibraryMembers<typeof TodoLibrarySchema>;

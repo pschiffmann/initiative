@@ -26,7 +26,7 @@ export const DialogSchema = new NodeSchema(
       trigger: {},
       content: {},
     },
-  }
+  },
 );
 
 export type DialogSchema = typeof DialogSchema;

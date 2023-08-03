@@ -14,7 +14,7 @@ export const TextFieldSchema = new NodeSchema(
         type: t.function(t.string())(),
       },
     },
-  }
+  },
 );
 
 export type TextFieldSchema = typeof TextFieldSchema;

@@ -13,10 +13,10 @@ export function ArticleRepository({
     (newArticle: Article) =>
       setArticles((prev) =>
         prev.map((article) =>
-          article.id === newArticle.id ? newArticle : article
-        )
+          article.id === newArticle.id ? newArticle : article,
+        ),
       ),
-    []
+    [],
   );
 
   return (

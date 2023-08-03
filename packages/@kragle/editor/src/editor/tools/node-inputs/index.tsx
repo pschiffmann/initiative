@@ -56,7 +56,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
                 nodeData={nodeData}
                 inputName={inputName}
               />
-            )
+            ),
         )}
 
         {nodeData.schema.forEachSlot(
@@ -84,7 +84,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
                   </Fragment>
                 ))}
               </Fragment>
-            )
+            ),
         )}
       </div>
     </AncestorOutputsProvider>

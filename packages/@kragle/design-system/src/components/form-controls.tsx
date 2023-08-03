@@ -202,7 +202,7 @@ export function SelectControl<T>({
           "input",
           null,
           "select",
-          value === null && "no-value"
+          value === null && "no-value",
         )}
         id={id}
         value={selectedIndex}

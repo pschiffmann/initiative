@@ -10,5 +10,5 @@ root.render(
     <ThemeProvider>
       <Stage definitions={definitions} />
     </ThemeProvider>
-  </StrictMode>
+  </StrictMode>,
 );

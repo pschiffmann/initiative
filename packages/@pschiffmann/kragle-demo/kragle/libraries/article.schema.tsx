@@ -7,7 +7,7 @@ export interface Article {
 }
 
 export const articleType = t.entity<Article>(
-  "@pschiffmann/kragle-demo::Article"
+  "@pschiffmann/kragle-demo::Article",
 );
 
 export const ArticleLibrarySchema = new LibrarySchema(
@@ -20,7 +20,7 @@ export const ArticleLibrarySchema = new LibrarySchema(
     getName: t.function(articleType)(t.string()),
     getFormattedPrice: t.function(articleType)(t.string()),
     parseFormattedPrice: t.function(t.string())(t.number()),
-  }
+  },
 );
 
 export type ArticleLibraryMembers = InferLibraryMembers<

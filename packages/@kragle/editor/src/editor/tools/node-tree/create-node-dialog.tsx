@@ -37,7 +37,7 @@ export function CreateNodeDialog({
 
   const nodeTypes = useMemo(
     () => [...document.definitions.nodes.values()].map((d) => d.schema),
-    [document]
+    [document],
   );
 
   const [nodeType, setNodeType] = useState<NodeSchema | null>(null);

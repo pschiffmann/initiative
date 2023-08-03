@@ -9,7 +9,7 @@ class KragleEntity<T = unknown> extends KragleType<T> {
      * If this property exists, then constant expressions of this entity type
      * can be created in the IDE.
      */
-    readonly literal?: EntityLiteralSupport<T>
+    readonly literal?: EntityLiteralSupport<T>,
   ) {
     super();
   }
@@ -51,7 +51,7 @@ export interface EntityLiteralSupport<T = unknown> {
 
 function kragleEntity<T>(
   name: string,
-  literal?: EntityLiteralSupport<T>
+  literal?: EntityLiteralSupport<T>,
 ): KragleEntity<T> {
   return new KragleEntity(name, literal);
 }

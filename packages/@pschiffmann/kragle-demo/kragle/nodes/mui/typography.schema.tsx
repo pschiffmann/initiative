@@ -22,12 +22,12 @@ export const MuiTypographySchema = new NodeSchema(
             t.string("body2"),
             t.string("caption"),
             t.string("button"),
-            t.string("overline")
-          )
+            t.string("overline"),
+          ),
         ),
       },
     },
-  }
+  },
 );
 
 export type MuiTypographySchema = typeof MuiTypographySchema;

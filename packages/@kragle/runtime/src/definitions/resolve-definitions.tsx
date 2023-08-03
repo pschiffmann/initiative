@@ -21,7 +21,7 @@ export class Definitions {
   constructor(
     readonly entities: ReadonlyMap<string, t.Entity>,
     readonly nodes: ReadonlyMap<string, NodeDefinition>,
-    readonly libraries: ReadonlyMap<string, LibraryDefinition>
+    readonly libraries: ReadonlyMap<string, LibraryDefinition>,
   ) {}
 
   getEntity(entityName: string): t.Entity {
@@ -81,7 +81,7 @@ export class Definitions {
 export type ModuleRef = [moduleName: string, module: Object];
 
 export function resolveDefinitions(
-  moduleRefs: readonly ModuleRef[]
+  moduleRefs: readonly ModuleRef[],
 ): [hasErrors: boolean, definitions: Definitions] {
   if (moduleRefs.length === 0) {
     throw new Error(`'moduleRefs' must not be empty.`);
@@ -96,7 +96,7 @@ export function resolveDefinitions(
 
 function processModule([moduleName, module]: ModuleRef): [
   hasErrors: boolean,
-  definitions: Definitions
+  definitions: Definitions,
 ] {
   let hasErrors = false;
   const entities = new Map<string, t.Entity>();
@@ -111,7 +111,7 @@ function processModule([moduleName, module]: ModuleRef): [
         console.error(
           `Module '${moduleName}' exports multiple 't.entity()' types with ` +
             `name '${value.name}'. Do create entity types only once, then ` +
-            `reference that instance in all schemas that need it.`
+            `reference that instance in all schemas that need it.`,
         );
       } else {
         entities.set(value.name, value);
@@ -131,7 +131,7 @@ function processModule([moduleName, module]: ModuleRef): [
       moduleName,
       exportName,
       schema,
-      otherExports
+      otherExports,
     );
     if (definition) {
       nodes.set(schema.name, definition);
@@ -146,7 +146,7 @@ function processModule([moduleName, module]: ModuleRef): [
       moduleName,
       exportName,
       schema,
-      otherExports
+      otherExports,
     );
     if (definition) {
       libraries.set(schema.name, definition);
@@ -163,7 +163,7 @@ function processModule([moduleName, module]: ModuleRef): [
     console.error(
       `Module '${moduleName}' exports the following names that don't belong ` +
         `to a NodeSchema or LibrarySchema: ${unmatchedExportsNames}. Did you ` +
-        `forget to export a schema?`
+        `forget to export a schema?`,
     );
   }
 
@@ -174,19 +174,19 @@ function resolveNodeDefinition(
   moduleName: string,
   schemaExportName: string,
   schema: NodeSchema,
-  otherExports: Map<string, unknown>
+  otherExports: Map<string, unknown>,
 ): NodeDefinition | null {
   if (!schemaExportName.endsWith("Schema")) {
     console.error(
       `Module '${moduleName}' exports NodeSchema '${schema.name}' with an ` +
         `invalid name. The export name is '${schemaExportName}', but it must ` +
-        `end with 'Schema'.`
+        `end with 'Schema'.`,
     );
     return null;
   }
   const componentExportName = schemaExportName.substring(
     0,
-    schemaExportName.length - "Schema".length
+    schemaExportName.length - "Schema".length,
   );
   const component = otherExports.get(componentExportName) as ComponentType;
   otherExports.delete(componentExportName);
@@ -194,7 +194,7 @@ function resolveNodeDefinition(
     console.error(
       `Module '${moduleName}' exports a NodeSchema '${schema.name}' as ` +
         `'${schemaExportName}', but doesn't export a React component as ` +
-        `'${componentExportName}'.`
+        `'${componentExportName}'.`,
     );
     return null;
   }
@@ -210,19 +210,19 @@ function resolveLibraryDefinition(
   moduleName: string,
   schemaExportName: string,
   schema: LibrarySchema,
-  otherExports: Map<string, unknown>
+  otherExports: Map<string, unknown>,
 ): LibraryDefinition | null {
   if (!schemaExportName.endsWith("Schema")) {
     console.error(
       `Module '${moduleName}' exports LibrarySchema '${schema.name}' with an ` +
         `invalid name. The export name is '${schemaExportName}', but it must ` +
-        `end with 'Schema'.`
+        `end with 'Schema'.`,
     );
     return null;
   }
   const exportNamePrefix = schemaExportName.substring(
     0,
-    schemaExportName.length - "Schema".length
+    schemaExportName.length - "Schema".length,
   );
   const members: Record<string, any> = {};
   for (const memberName of Object.keys(schema.members)) {
@@ -235,7 +235,7 @@ function resolveLibraryDefinition(
       console.error(
         `Module '${moduleName}' exports a LibrarySchema '${schema.name}' as ` +
           `'${schemaExportName}' that defines a member '${memberName}', but ` +
-          ` doesn't contain an export '${memberExportName}'.`
+          ` doesn't contain an export '${memberExportName}'.`,
       );
     }
   }

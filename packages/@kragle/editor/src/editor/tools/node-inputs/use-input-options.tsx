@@ -57,7 +57,7 @@ export interface InputExpressionOption {
 }
 
 export function useInputOptions(
-  inputType: t.KragleType
+  inputType: t.KragleType,
 ): readonly InputExpressionOption[] {
   const options: InputExpressionOption[] = [];
   if (t.string().isAssignableTo(inputType)) {
@@ -121,7 +121,7 @@ export function useInputOptions(
   for (const libraryDefinition of definitions.libraries.values()) {
     const libraryName = libraryDefinition.schema.name;
     for (const [memberName, type] of Object.entries(
-      libraryDefinition.schema.members
+      libraryDefinition.schema.members,
     )) {
       if (type.isAssignableTo(inputType)) {
         options.push({

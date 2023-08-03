@@ -8,7 +8,7 @@ import { ImportNames } from "./imports.js";
 export function generateNodeRuntime(
   document: SceneDocument,
   importNames: ImportNames,
-  nodeId: string
+  nodeId: string,
 ): string {
   const nodeData = document.getNode(nodeId);
 
@@ -27,7 +27,7 @@ export function generateNodeRuntime(
     generateNodeAdapter(
       nodeData,
       importNames.nodeComponents.get(nodeData.type)!,
-      importNames
+      importNames,
     ) + "\n";
   //
 
@@ -80,7 +80,7 @@ export function generateNodeRuntime(
 function generateNodeAdapter(
   nodeData: NodeData,
   componentname: string,
-  importNames: ImportNames
+  importNames: ImportNames,
 ): string {
   let result: string = "";
   result += `function ${nodeData.id}_Adapter() { \n`;
@@ -102,7 +102,7 @@ function generateNodeAdapter(
       } else {
         inputResultsMap.set(
           inputName,
-          provideValue(expression.json, importNames, nodeData)
+          provideValue(expression.json, importNames, nodeData),
         );
       }
     } else {
@@ -179,7 +179,7 @@ function generateNodeAdapter(
 
 function generateNodeOuptputContexts(
   nodeData: NodeData,
-  importNames: ImportNames
+  importNames: ImportNames,
 ): string {
   let result: string = "";
   const schemaName = importNames.nodeComponents.get(nodeData.type);
@@ -192,7 +192,7 @@ function generateNodeOuptputContexts(
 
 function generateNodeOutputsProvider(
   nodeData: NodeData,
-  importNames: ImportNames
+  importNames: ImportNames,
 ): string {
   let result: string = "";
   const outputNames = Object.keys(nodeData.schema.outputTypes);
@@ -215,7 +215,7 @@ function generateNodeOutputsProvider(
 function generateSlotComponent(
   nodeData: NodeData,
   slotName: string,
-  children: Array<string | null>
+  children: Array<string | null>,
 ): string {
   let result: string = ``;
   result += `function ${nodeData.id}_${slotName}({ `;
@@ -234,7 +234,7 @@ function generateSlotComponent(
       result += `${recursiveDivInserter(
         nodeData.id,
         list,
-        `<${children[index]}_Adapter />`
+        `<${children[index]}_Adapter />`,
       )}`;
       result += `);\n`;
     }
@@ -249,7 +249,7 @@ function generateSlotComponent(
 function recursiveDivInserter(
   id: string,
   list: Array<string>,
-  end: string
+  end: string,
 ): string {
   const [output, ...rest] = list;
   if (output === undefined) return `${end}\n`;
@@ -262,7 +262,7 @@ function recursiveDivInserter(
 function provideValue(
   exjson: ExpressionJson,
   importNames: ImportNames,
-  nodeData: NodeData
+  nodeData: NodeData,
 ): string {
   switch (exjson.type) {
     case "string-literal":
@@ -271,7 +271,7 @@ function provideValue(
       return JSON.stringify(exjson.value);
     case "library-member": {
       const directName = importNames.libraryMembers.get(
-        `${exjson.libraryName}::${exjson.memberName}`
+        `${exjson.libraryName}::${exjson.memberName}`,
       );
       if (directName === undefined) throw new Error(`undefined library-member`);
       return `${directName}`;

@@ -9,5 +9,5 @@ const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
     <Editor definitions={definitions} />
-  </StrictMode>
+  </StrictMode>,
 );

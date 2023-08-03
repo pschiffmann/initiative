@@ -34,7 +34,7 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
   }
 
   const [createNodeDialogController] = useState(
-    () => new CommandController<string>()
+    () => new CommandController<string>(),
   );
 
   return (

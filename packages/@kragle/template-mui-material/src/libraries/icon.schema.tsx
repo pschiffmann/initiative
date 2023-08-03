@@ -6,5 +6,5 @@ import { t } from "@kragle/runtime";
 import { SvgIconComponent } from "@mui/icons-material";
 
 export const iconType = t.entity<SvgIconComponent>(
-  "@kragle/template-mui-material::Icon"
+  "@kragle/template-mui-material::Icon",
 );

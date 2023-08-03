@@ -4,7 +4,7 @@ export const ArticleLibrary$getId: ArticleLibraryMembers["getId"] = (article) =>
   `${article.id}`;
 
 export const ArticleLibrary$getName: ArticleLibraryMembers["getName"] = (
-  article
+  article,
 ) => article.name;
 
 export const ArticleLibrary$getFormattedPrice: ArticleLibraryMembers["getFormattedPrice"] =

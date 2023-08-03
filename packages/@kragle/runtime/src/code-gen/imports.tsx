@@ -38,7 +38,7 @@ export function resolveUsedImports(document: SceneDocument) {
         importStatements.push(
           i === 1
             ? `import { ${importName}Schema } from "${moduleName}";`
-            : `import { ${exportName} as ${importName}Schema } from "${moduleName}";`
+            : `import { ${exportName} as ${importName}Schema } from "${moduleName}";`,
         );
         nodeComponents.set(nodeType, importName);
         nodeComponentImportNames.add(importName);

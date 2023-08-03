@@ -9,7 +9,11 @@ export const MuiButtonSchema = new NodeSchema(
       },
       variant: {
         type: t.optional(
-          t.union(t.string("text"), t.string("outlined"), t.string("contained"))
+          t.union(
+            t.string("text"),
+            t.string("outlined"),
+            t.string("contained"),
+          ),
         ),
       },
       color: {
@@ -20,20 +24,20 @@ export const MuiButtonSchema = new NodeSchema(
             t.string("success"),
             t.string("error"),
             t.string("info"),
-            t.string("warning")
-          )
+            t.string("warning"),
+          ),
         ),
       },
       size: {
         type: t.optional(
-          t.union(t.string("small"), t.string("medium"), t.string("large"))
+          t.union(t.string("small"), t.string("medium"), t.string("large")),
         ),
       },
       onPress: {
         type: t.function()(),
       },
     },
-  }
+  },
 );
 
 export type MuiButtonSchema = typeof MuiButtonSchema;

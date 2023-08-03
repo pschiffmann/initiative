@@ -20,14 +20,14 @@ export const StackSchema = new NodeSchema(
                 t.string("start"),
                 t.string("center"),
                 t.string("end"),
-                t.string("stretch")
-              )
+                t.string("stretch"),
+              ),
             ),
           },
         },
       },
     },
-  }
+  },
 );
 
 export type StackSchema = typeof StackSchema;

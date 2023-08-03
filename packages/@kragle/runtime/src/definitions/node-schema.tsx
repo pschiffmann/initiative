@@ -14,7 +14,7 @@ import {
 interface NodeSchemaInit<
   I extends NodeSchemaInputs = {},
   O extends NodeSchemaOutputs = {},
-  S extends NodeSchemaSlots = {}
+  S extends NodeSchemaSlots = {},
 > {
   readonly inputs?: I;
   readonly outputs?: O;
@@ -64,9 +64,12 @@ export type ValidateNode = (nodeJson: NodeJson) => string | null;
 export class NodeSchema<
   I extends NodeSchemaInputs = {},
   O extends NodeSchemaOutputs = {},
-  S extends NodeSchemaSlots = {}
+  S extends NodeSchemaSlots = {},
 > {
-  constructor(readonly name: string, init: NodeSchemaInit<I, O, S>) {
+  constructor(
+    readonly name: string,
+    init: NodeSchemaInit<I, O, S>,
+  ) {
     validateNodeSchemaName(name);
 
     const canonicalizedInputTypes: Record<string, t.KragleType> = {};
@@ -98,7 +101,7 @@ export class NodeSchema<
         if (canonicalizedInputTypes[inputName]) {
           throw new Error(
             `NodeSchema '${name}' must not contain multiple declarations of ` +
-              `input '${inputName}'.`
+              `input '${inputName}'.`,
           );
         }
         collectionInputSlots[inputName] = slotName;
@@ -110,7 +113,7 @@ export class NodeSchema<
         if (canonicalizedOutputTypes[outputName]) {
           throw new Error(
             `NodeSchema '${name}' must not contain multiple declarations of ` +
-              `output '${outputName}'.`
+              `output '${outputName}'.`,
           );
         }
         scopedOutputSlots[outputName] = slotName;
@@ -153,7 +156,7 @@ export class NodeSchema<
   getCollectionInputSlot(inputName: string): string | null {
     if (!this.inputTypes[inputName]) {
       throw new Error(
-        `Input '${inputName}' doesn't exist on schema '${this.name}'.`
+        `Input '${inputName}' doesn't exist on schema '${this.name}'.`,
       );
     }
     return this.collectionInputSlots[inputName] ?? null;
@@ -168,7 +171,7 @@ export class NodeSchema<
   getScopedOutputSlot(outputName: string): string | null {
     if (!this.outputTypes[outputName]) {
       throw new Error(
-        `Output '${outputName}' doesn't exist on schema '${this.name}'.`
+        `Output '${outputName}' doesn't exist on schema '${this.name}'.`,
       );
     }
     return this.scopedOutputSlots[outputName] ?? null;
@@ -179,10 +182,10 @@ export class NodeSchema<
    * `slotName` contains the slot name this input belongs to.
    */
   forEachInput<R>(
-    callback: (type: t.KragleType, inputName: string, slotName?: string) => R
+    callback: (type: t.KragleType, inputName: string, slotName?: string) => R,
   ): R[] {
     return Object.entries(this.inputTypes).map(([inputName, type]) =>
-      callback(type, inputName, this.collectionInputSlots[inputName])
+      callback(type, inputName, this.collectionInputSlots[inputName]),
     );
   }
 
@@ -193,7 +196,7 @@ export class NodeSchema<
    */
   forEachCollectionSlotInput<R>(
     slotName: string,
-    callback: (type: t.KragleType, inputName: string) => R
+    callback: (type: t.KragleType, inputName: string) => R,
   ): R[] {
     const slotAttributes = this.slotAttributes[slotName];
     if (!slotAttributes) {
@@ -202,11 +205,11 @@ export class NodeSchema<
     if (!slotAttributes.isCollectionSlot) {
       throw new Error(
         `Slot '${slotName}' of NodeSchema '${this.name}' is not a collection ` +
-          `slot.`
+          `slot.`,
       );
     }
     return slotAttributes.inputNames.map((inputName) =>
-      callback(this.inputTypes[inputName], inputName)
+      callback(this.inputTypes[inputName], inputName),
     );
   }
 
@@ -214,25 +217,25 @@ export class NodeSchema<
     const slotAttributes = this.slotAttributes[slotName];
     if (!slotAttributes) {
       throw new Error(
-        `Slot '${slotName}' doesn't exist on schema '${this.name}'.`
+        `Slot '${slotName}' doesn't exist on schema '${this.name}'.`,
       );
     }
     return slotAttributes.isCollectionSlot;
   }
 
   forEachSlot<R>(
-    callback: (slotName: string, slotAttributes: SlotAttributes) => R
+    callback: (slotName: string, slotAttributes: SlotAttributes) => R,
   ): R[] {
     return Object.entries(this.slotAttributes).map(([slotName, attributes]) =>
-      callback(slotName, attributes)
+      callback(slotName, attributes),
     );
   }
 
   forEachOutput<R>(
-    callback: (type: t.KragleType, outputName: string, slotName?: string) => R
+    callback: (type: t.KragleType, outputName: string, slotName?: string) => R,
   ): R[] {
     return Object.entries(this.outputTypes).map(([outputName, type]) =>
-      callback(type, outputName, this.scopedOutputSlots[outputName])
+      callback(type, outputName, this.scopedOutputSlots[outputName]),
     );
   }
 

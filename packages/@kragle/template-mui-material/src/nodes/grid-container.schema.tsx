@@ -4,7 +4,7 @@ const flexAlign = t.union(
   t.string("start"),
   t.string("center"),
   t.string("end"),
-  t.string("stretch")
+  t.string("stretch"),
 );
 
 export const FlexContainerSchema = new NodeSchema(
@@ -39,7 +39,7 @@ export const FlexContainerSchema = new NodeSchema(
         },
       },
     },
-  }
+  },
 );
 
 export type FlexContainerSchema = typeof FlexContainerSchema;

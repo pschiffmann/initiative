@@ -12,7 +12,7 @@ export const OperatorsSchema = new LibrarySchema(
     or: t.function(t.boolean(), t.boolean())(t.boolean()),
     not: t.function(t.any())(t.boolean()),
     ternary: t.function(t.boolean(), t.any(), t.any())(t.any()),
-  }
+  },
 );
 
 export type OperatorsMembers = InferLibraryMembers<typeof OperatorsSchema>;

@@ -14,7 +14,7 @@ export const CheckboxControlSchema = new NodeSchema(
         type: t.function(t.boolean())(),
       },
     },
-  }
+  },
 );
 
 export type CheckboxControlSchema = typeof CheckboxControlSchema;

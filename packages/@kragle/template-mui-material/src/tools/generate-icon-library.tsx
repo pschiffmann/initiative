@@ -8,7 +8,7 @@ const filledIconNames = Object.keys(muiIcons).filter(
     !iconName.endsWith("Outlined") &&
     !iconName.endsWith("Rounded") &&
     !iconName.endsWith("Sharp") &&
-    !iconName.endsWith("TwoTone")
+    !iconName.endsWith("TwoTone"),
 );
 
 fs.writeFileSync(
@@ -26,7 +26,7 @@ ${filledIconNames
 );
 
 export type IconsFilledLibraryMembers = InferLibraryMembers<typeof IconsFilledLibrarySchema>;
-`
+`,
 );
 
 fs.writeFileSync(
@@ -38,10 +38,11 @@ ${filledIconNames.map((icon) => `  ${icon},`).join("\n")}
 
 ${filledIconNames
   .map(
-    (icon) => `export const IconsFilledLibrary$${uncapitalize(icon)} = ${icon};`
+    (icon) =>
+      `export const IconsFilledLibrary$${uncapitalize(icon)} = ${icon};`,
   )
   .join("\n")}
-`
+`,
 );
 
 function uncapitalize(s: string): string {

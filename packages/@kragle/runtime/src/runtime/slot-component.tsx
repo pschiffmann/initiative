@@ -16,7 +16,7 @@ export interface CollectionSlotComponentProps extends NodeOutputs {
 
 export function createSlotComponents(
   runtime: SceneRuntime,
-  nodeId: string
+  nodeId: string,
 ): SlotComponents {
   const { schema } = runtime.document.getNode(nodeId);
   return Object.fromEntries(
@@ -25,7 +25,7 @@ export function createSlotComponents(
         ? createCollectionSlotComponent(runtime, schema, nodeId, slotName)
         : createSlotComponent(runtime, schema, nodeId, slotName);
       return [slotName, component];
-    })
+    }),
   );
 }
 
@@ -33,7 +33,7 @@ function createCollectionSlotComponent(
   runtime: SceneRuntime,
   schema: NodeSchema,
   nodeId: string,
-  slotName: string
+  slotName: string,
 ) {
   const result: FunctionComponent<CollectionSlotComponentProps> = ({
     index,
@@ -43,7 +43,7 @@ function createCollectionSlotComponent(
     const childId = nodeData.slots[`${slotName}::${index}`];
     if (!childId) {
       throw new Error(
-        `Invalid index '${index}' for slot '${slotName}' of node '${nodeId}'.`
+        `Invalid index '${index}' for slot '${slotName}' of node '${nodeId}'.`,
       );
     }
     const ChildAdapter = runtime.getAdapterComponent(childId);
@@ -67,7 +67,7 @@ function createSlotComponent(
   runtime: SceneRuntime,
   schema: NodeSchema,
   nodeId: string,
-  slotName: string
+  slotName: string,
 ) {
   const result: FunctionComponent<NodeOutputs> = (outputs) => {
     const nodeData = useNode(runtime.document, nodeId);

@@ -33,7 +33,7 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
     slots: {
       child: {},
     },
-  }
+  },
 );
 
 export type TodoRepositoryBlocSchema = typeof TodoRepositoryBlocSchema;

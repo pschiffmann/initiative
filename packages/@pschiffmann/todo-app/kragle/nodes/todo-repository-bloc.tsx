@@ -10,26 +10,26 @@ export function TodoRepositoryBloc({
   const [todos, setTodos] = useState(createMockTodos);
   const createTodo = useCallback(
     (newTodo: TodoItem) => setTodos((todos) => [...todos, newTodo]),
-    []
+    [],
   );
   const deleteTodo = useCallback(
     (id: string) => () =>
       setTodos((todos) => todos.filter((todo) => todo.id !== id)),
-    []
+    [],
   );
 
   const toggleCompleted = useCallback(
     (id: string, completed: boolean) =>
       setTodos((todos) =>
-        todos.map((todo) => (todo.id === id ? { ...todo, completed } : todo))
+        todos.map((todo) => (todo.id === id ? { ...todo, completed } : todo)),
       ),
-    []
+    [],
   );
 
   const [showCompleted, setShowCompleted] = useState(true);
   const toggleShowCompleted = useCallback(
     () => setShowCompleted((x) => !x),
-    []
+    [],
   );
 
   const completedIds = todos

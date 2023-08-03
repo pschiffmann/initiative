@@ -13,7 +13,7 @@ const [, definitions] = resolveDefinitions([
 const { document, errors } = sceneDocumentFromJson(
   definitions,
   "article-management",
-  sceneJson as any
+  sceneJson as any,
 );
 console.log({ definitions, document, errors });
 const runtime = new SceneRuntime(document!);

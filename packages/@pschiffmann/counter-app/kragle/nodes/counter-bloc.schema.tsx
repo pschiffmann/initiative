@@ -20,7 +20,7 @@ export const CounterBlocSchema = new NodeSchema(
     slots: {
       child: {},
     },
-  }
+  },
 );
 
 export type CounterBlocSchema = typeof CounterBlocSchema;

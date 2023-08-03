@@ -18,13 +18,13 @@ export const IconButtonSchema = new NodeSchema(
             t.string("success"),
             t.string("error"),
             t.string("info"),
-            t.string("warning")
-          )
+            t.string("warning"),
+          ),
         ),
       },
       size: {
         type: t.optional(
-          t.union(t.string("small"), t.string("medium"), t.string("large"))
+          t.union(t.string("small"), t.string("medium"), t.string("large")),
         ),
       },
       onPress: {
@@ -34,7 +34,7 @@ export const IconButtonSchema = new NodeSchema(
         type: t.optional(t.boolean()),
       },
     },
-  }
+  },
 );
 
 export type IconButtonSchema = typeof IconButtonSchema;

@@ -32,7 +32,7 @@ export const CheckListSchema = new NodeSchema(
         },
       },
     },
-  }
+  },
 );
 
 export type CheckListSchema = typeof CheckListSchema;

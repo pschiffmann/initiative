@@ -11,7 +11,7 @@ const privateKey = await webcrypto.subtle.importKey(
   privateKeyJwk,
   algorithm,
   false,
-  ["sign"]
+  ["sign"],
 );
 
 async function main() {
@@ -31,7 +31,7 @@ async function main() {
   const signature = await webcrypto.subtle.sign(
     privateKey.algorithm.name,
     privateKey,
-    textEncoder.encode(`${header64}.${payload64}`)
+    textEncoder.encode(`${header64}.${payload64}`),
   );
   const signature64 = base64url.encode(new Uint8Array(signature));
   const jwt = `${header64}.${payload64}.${signature64}`;

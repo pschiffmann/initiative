@@ -14,7 +14,7 @@ export function MaterialIcon({ icon, title, className }: MaterialIconProps) {
       className={cls.block(
         className
           ? `material-icons-outlined ${className}`
-          : `material-icons-outlined`
+          : `material-icons-outlined`,
       )}
       title={title}
     >

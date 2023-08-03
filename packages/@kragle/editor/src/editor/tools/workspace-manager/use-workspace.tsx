@@ -6,7 +6,7 @@ const idbKey = "@kragle/editor::last-used-workspace";
 
 export function useWorkspace(): [
   Workspace | null,
-  (workspace: Workspace | null) => void
+  (workspace: Workspace | null) => void,
 ] {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
 

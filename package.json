@@ -5,9 +5,12 @@
     "packages/@kragle/*",
     "packages/@pschiffmann/*"
   ],
+  "scripts": {
+    "format": "prettier -w packages/"
+  },
   "dependencies": {
     "@pschiffmann/std": "^0.3.2",
-    "prettier": "2.8.4",
+    "prettier": "3.0.1",
     "typescript": "^5.0.4"
   }
 }

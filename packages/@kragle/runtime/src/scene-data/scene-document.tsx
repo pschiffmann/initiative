@@ -40,7 +40,10 @@ export interface SetNodeInputPatch {
 }
 
 export class SceneDocument {
-  constructor(readonly name: string, readonly definitions: Definitions) {}
+  constructor(
+    readonly name: string,
+    readonly definitions: Definitions,
+  ) {}
 
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
@@ -131,7 +134,7 @@ export class SceneDocument {
 
   #createNode(
     { nodeType, nodeId: childId }: CreateNodePatch,
-    { nodeId: parentId, slotName }: Omit<NodeParent, "index">
+    { nodeId: parentId, slotName }: Omit<NodeParent, "index">,
   ): void {
     const { schema } = this.definitions.getNode(nodeType);
     childId ??= this.#generateNodeId(schema);
@@ -141,14 +144,14 @@ export class SceneDocument {
 
     const [parentNode, movedChildren] = this.getNode(parentId).addChild(
       childId,
-      slotName
+      slotName,
     );
     const newChild = NodeData.empty(schema, childId, movedChildren[childId]);
     this.#nodes.set(parentId, parentNode);
     for (const [childId, nodeParent] of Object.entries(movedChildren)) {
       this.#nodes.set(
         childId,
-        this.#nodes.get(childId)?.move(nodeParent) ?? newChild
+        this.#nodes.get(childId)?.move(nodeParent) ?? newChild,
       );
     }
 
@@ -204,7 +207,7 @@ export class SceneDocument {
       changedIds.push(nodeId);
       this.#nodes.set(
         nodeId,
-        this.#nodes.get(nodeId)!.renameChild(newId, slotName, index)
+        this.#nodes.get(nodeId)!.renameChild(newId, slotName, index),
       );
     } else {
       this.#rootNodeId = newId;
@@ -229,7 +232,7 @@ export class SceneDocument {
     oldAncestorId: string,
     newAncestorId: string,
     nodeId: string,
-    changedIds: string[]
+    changedIds: string[],
   ): void {
     const oldNode = this.#nodes.get(nodeId)!;
     let newNode = oldNode;
@@ -240,14 +243,14 @@ export class SceneDocument {
       const newExpression = oldExpression.map((expr) =>
         expr.type === "node-output" && expr.nodeId === oldAncestorId
           ? { ...expr, nodeId: newAncestorId }
-          : expr
+          : expr,
       );
       if (oldExpression.json === newExpression) return;
 
       newNode = newNode.setInput(
         newExpression && new Expression(newExpression, type, ctx),
         inputName,
-        index
+        index,
       );
     });
 
@@ -262,7 +265,7 @@ export class SceneDocument {
         oldAncestorId,
         newAncestorId,
         childId,
-        changedIds
+        changedIds,
       );
     });
   }
@@ -279,10 +282,10 @@ export class SceneDocument {
         new Expression(
           expression,
           oldNode.schema.inputTypes[inputName],
-          this.#createExpressionValidationContext(oldNode)
+          this.#createExpressionValidationContext(oldNode),
         ),
       inputName,
-      index
+      index,
     );
     this.#nodes.set(nodeId, newNode);
 
@@ -290,7 +293,7 @@ export class SceneDocument {
   }
 
   #createExpressionValidationContext(
-    node: Pick<NodeData, "parent">
+    node: Pick<NodeData, "parent">,
     // newNodes?: ReadonlyMap<string, NodeData>
   ): ExpressionValidationContext {
     return {
@@ -316,7 +319,7 @@ export class SceneDocument {
           const slotName = parentNode.schema.getScopedOutputSlot(outputName);
           if (slotName !== null && slotName !== parent.slotName) {
             throw new Error(
-              `Output '${nodeId}::${outputName}' is not exposed to this node.`
+              `Output '${nodeId}::${outputName}' is not exposed to this node.`,
             );
           }
           return parentNode.schema.outputTypes[outputName];

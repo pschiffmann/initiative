@@ -21,7 +21,7 @@ export function MuiDialog({
         setIsOpen((prev) => !prev);
       },
     }),
-    []
+    [],
   );
 
   return (

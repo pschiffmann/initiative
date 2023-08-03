@@ -4,11 +4,11 @@ import { NodeData, SceneDocument } from "../scene-data/index.js";
 export function useNode(document: SceneDocument, nodeId: string): NodeData {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
-    [document]
+    [document],
   );
   const getNode = useCallback(
     () => (document.hasNode(nodeId) ? document.getNode(nodeId) : null!),
-    [document, nodeId]
+    [document, nodeId],
   );
   return useSyncExternalStore(onChange, getNode);
 }
@@ -16,7 +16,7 @@ export function useNode(document: SceneDocument, nodeId: string): NodeData {
 export function useRootNodeId(document: SceneDocument) {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
-    [document]
+    [document],
   );
   const getRootNodeId = useCallback(() => document.getRootNodeId(), []);
   return useSyncExternalStore(onChange, getRootNodeId);
@@ -25,7 +25,7 @@ export function useRootNodeId(document: SceneDocument) {
 export function useSceneDocumentVersion(document: SceneDocument) {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
-    [document]
+    [document],
   );
   const getVersion = useCallback(() => document.getVersion(), []);
   return useSyncExternalStore(onChange, getVersion);

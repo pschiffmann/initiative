@@ -14,7 +14,7 @@ export const MuiTextFieldSchema = new NodeSchema(
         type: t.function(t.string())(),
       },
     },
-  }
+  },
 );
 
 export type MuiTextFieldSchema = typeof MuiTextFieldSchema;

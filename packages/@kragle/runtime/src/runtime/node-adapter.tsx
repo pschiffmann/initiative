@@ -19,7 +19,7 @@ import { useNode } from "./use-scene-document.js";
 
 export function createNodeAdapterComponent(
   runtime: SceneRuntime,
-  nodeId: string
+  nodeId: string,
 ) {
   const document = runtime.document;
   const nodeData = document.getNode(nodeId);
@@ -49,7 +49,7 @@ export function createNodeAdapterComponent(
 
 export function createOutputsProviderComponent(
   schema: NodeSchema,
-  nodeId: string
+  nodeId: string,
 ) {
   const result: FunctionComponent<NodeOutputs> = ({ children, ...outputs }) => {
     return (
@@ -94,7 +94,7 @@ interface SlotPropValue {
 
 function useSlotsPropValue(
   slotComponents: SlotComponents,
-  nodeData: NodeData
+  nodeData: NodeData,
 ): SlotPropValue {
   return $Object.map(slotComponents, (slotName, Component) => ({
     size: nodeData.collectionSlotSizes[slotName],

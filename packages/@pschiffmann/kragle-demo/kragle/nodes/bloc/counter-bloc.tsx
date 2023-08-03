@@ -20,7 +20,7 @@ export function CounterBloc({
         setN(0);
       },
     }),
-    []
+    [],
   );
 
   return (

@@ -136,10 +136,10 @@ function FnCall_Adapter() {
 }
 
 const FnCall$valueContext = createContext<OutputTypes<TryCallSchema>["value"]>(
-  null!
+  null!,
 );
 const FnCall$errorContext = createContext<OutputTypes<TryCallSchema>["error"]>(
-  null!
+  null!,
 );
 
 function FnCall_onSuccess({

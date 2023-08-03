@@ -11,5 +11,5 @@ export const Operators$not: OperatorsMembers["or"] = (a) => !a;
 export const Operators$ternary: OperatorsMembers["ternary"] = (
   condition,
   thenValue,
-  elseValue
+  elseValue,
 ) => (condition ? thenValue : elseValue);

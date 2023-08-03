@@ -15,7 +15,7 @@ export const ArticleRepositorySchema = new NodeSchema(
     slots: {
       child: {},
     },
-  }
+  },
 );
 
 export type ArticleRepositorySchema = typeof ArticleRepositorySchema;

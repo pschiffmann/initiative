@@ -101,7 +101,7 @@ export class Workspace {
     });
     const jsonFileWritable = await jsonFile.createWritable();
     await jsonFileWritable.write(
-      JSON.stringify(sceneDocumentToJson(document), null, 2) + "\n"
+      JSON.stringify(sceneDocumentToJson(document), null, 2) + "\n",
     );
     await jsonFileWritable.close();
 

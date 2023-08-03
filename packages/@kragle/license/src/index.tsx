@@ -6,7 +6,7 @@ const publicKey = await crypto.subtle.importKey(
   publicKeyJwk,
   algorithm,
   false,
-  ["verify"]
+  ["verify"],
 );
 
 export interface LicenseProperties {
@@ -23,7 +23,7 @@ export interface LicenseProperties {
 }
 
 export async function decodeLicenseKey(
-  jwt: string
+  jwt: string,
 ): Promise<LicenseProperties | null> {
   const parts = jwt.split(".");
   if (parts.length !== 3) return null;
@@ -33,12 +33,12 @@ export async function decodeLicenseKey(
       publicKey.algorithm.name,
       publicKey,
       base64url.decode(signature64),
-      new TextEncoder().encode(`${header64}.${payload64}`)
+      new TextEncoder().encode(`${header64}.${payload64}`),
     );
     if (!verified) return null;
 
     const payload = JSON.parse(
-      new TextDecoder().decode(base64url.decode(payload64))
+      new TextDecoder().decode(base64url.decode(payload64)),
     );
     return { subject: payload.sub, issuedAt: new Date(payload.iat * 1000) };
   } catch (e) {

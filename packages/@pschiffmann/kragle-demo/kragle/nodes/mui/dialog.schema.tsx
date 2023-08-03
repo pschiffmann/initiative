@@ -26,7 +26,7 @@ export const MuiDialogSchema = new NodeSchema(
       trigger: {},
       content: {},
     },
-  }
+  },
 );
 
 export type MuiDialogSchema = typeof MuiDialogSchema;

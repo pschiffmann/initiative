@@ -5,7 +5,10 @@ import {
 } from "../validate-names.js";
 
 export class LibrarySchema<M extends t.KragleTypeRecord = {}> {
-  constructor(readonly name: string, members: M) {
+  constructor(
+    readonly name: string,
+    members: M,
+  ) {
     validateLibraryName(name);
 
     const canonicalizedMembers: Record<string, t.KragleType> = {};

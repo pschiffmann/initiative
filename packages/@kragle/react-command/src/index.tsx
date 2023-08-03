@@ -17,7 +17,7 @@ export class CommandController<T> implements CommandStream<T> {
   listen(listener: Listener<T>): Unsubscribe {
     if (this.#listeners.has(listener)) {
       throw new Error(
-        "'listener' is already registered with this CommandStream."
+        "'listener' is already registered with this CommandStream.",
       );
     }
     this.#listeners.add(listener);
@@ -45,10 +45,10 @@ export class CommandController<T> implements CommandStream<T> {
 export function useAcceptCommands<T>(
   commandStream: CommandStream<T> | undefined,
   listener: Listener<T>,
-  deps?: readonly any[]
+  deps?: readonly any[],
 ) {
   useEffect(
     () => commandStream?.listen(listener),
-    deps ? [commandStream, ...deps] : [commandStream]
+    deps ? [commandStream, ...deps] : [commandStream],
   );
 }

@@ -55,7 +55,7 @@ export type OutputsProviderProps<nodeSchema extends NodeSchema> =
 
 export type SlotComponentProps<
   nodeSchema extends NodeSchema,
-  slotName extends string
+  slotName extends string,
 > = nodeSchema extends NodeSchema<any, any, infer S>
   ? slotName extends keyof S
     ? (S[slotName]["inputs"] extends {} ? { readonly index: number } : {}) &

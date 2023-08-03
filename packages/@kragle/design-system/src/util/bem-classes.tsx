@@ -30,7 +30,7 @@ export function bemClasses(block: string): BemClasses {
 
 function prependExternal(
   result: string,
-  external: Modifier | Modifier[]
+  external: Modifier | Modifier[],
 ): string {
   if (!external) return result;
   if (!Array.isArray(external)) {

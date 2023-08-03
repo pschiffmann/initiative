@@ -67,7 +67,7 @@ function generateNode(
   nodes: Record<string, NodeJson>,
   ancestorOutputs: readonly ExpressionJson[],
   nodeId: string,
-  maxDepth: number
+  maxDepth: number,
 ) {
   const schema = schemas[randomInt(schemas.length)];
   const inputs: Record<string, ExpressionJson> = {};
@@ -102,7 +102,7 @@ function generateNode(
 }
 
 function generateSchemasArray(
-  schemas: Iterable<[NodeSchema, number]>
+  schemas: Iterable<[NodeSchema, number]>,
 ): NodeSchema[] {
   const result: NodeSchema[] = [];
   for (const [schema, repeat] of schemas) {

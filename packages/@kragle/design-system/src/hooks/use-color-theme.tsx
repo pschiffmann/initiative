@@ -11,7 +11,7 @@ export function useColorTheme(
   brandColor = "#00796B",
   ctaColor = "#958DA5",
   errorColor = "#B3261E",
-  neutralColor = "#939094"
+  neutralColor = "#939094",
 ): void {
   useEffect(() => {
     const element = ref.current!;
@@ -22,7 +22,7 @@ export function useColorTheme(
     for (const [name, value] of Object.entries(brandColorTokens[scheme])) {
       element.style.setProperty(
         `--kragle-color-${name}`,
-        hexFromArgb(brandPalette.tone(value))
+        hexFromArgb(brandPalette.tone(value)),
       );
     }
 
@@ -30,7 +30,7 @@ export function useColorTheme(
     for (const [name, value] of Object.entries(ctaColorTokens[scheme])) {
       element.style.setProperty(
         `--kragle-color-${name}`,
-        hexFromArgb(ctaPalette.tone(value))
+        hexFromArgb(ctaPalette.tone(value)),
       );
     }
 
@@ -38,7 +38,7 @@ export function useColorTheme(
     for (const [name, value] of Object.entries(errorColorTokens[scheme])) {
       element.style.setProperty(
         `--kragle-color-${name}`,
-        hexFromArgb(errorPalette.tone(value))
+        hexFromArgb(errorPalette.tone(value)),
       );
     }
 
@@ -46,7 +46,7 @@ export function useColorTheme(
     for (const [name, value] of Object.entries(neutralColorTokens[scheme])) {
       element.style.setProperty(
         `--kragle-color-${name}`,
-        hexFromArgb(neutralPalette.tone(value))
+        hexFromArgb(neutralPalette.tone(value)),
       );
     }
   }, [ref, scheme, brandColor, ctaColor, errorColor, neutralColor]);

@@ -9,17 +9,21 @@ async function main() {
       publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
     },
     true,
-    ["sign", "verify"]
+    ["sign", "verify"],
   );
 
   console.log("public key:");
   console.log(
-    JSON.stringify(await webcrypto.subtle.exportKey("jwk", publicKey), null, 2)
+    JSON.stringify(await webcrypto.subtle.exportKey("jwk", publicKey), null, 2),
   );
 
   console.log("private key:");
   console.log(
-    JSON.stringify(await webcrypto.subtle.exportKey("jwk", privateKey), null, 2)
+    JSON.stringify(
+      await webcrypto.subtle.exportKey("jwk", privateKey),
+      null,
+      2,
+    ),
   );
 }
 

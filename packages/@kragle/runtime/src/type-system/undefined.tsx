@@ -19,7 +19,7 @@ function kragleUndefined(): KragleUndefined {
 }
 
 function kragleOptional<T extends KragleType>(
-  type: T
+  type: T,
 ): t.Union<readonly [T, t.Undefined]> {
   return t.union(type, t.undefined());
 }

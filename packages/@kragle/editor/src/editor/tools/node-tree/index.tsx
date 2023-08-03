@@ -28,7 +28,7 @@ export function NodeTree({
   className,
 }: NodeTreeProps) {
   const [dataFlowInspectorController] = useState(
-    () => new CommandController<DialogCommand>()
+    () => new CommandController<DialogCommand>(),
   );
 
   const rootNodeId = useRootNodeId(document);

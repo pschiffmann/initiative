@@ -32,7 +32,7 @@ export const EditArticleBlocSchema = new NodeSchema(
     slots: {
       child: {},
     },
-  }
+  },
 );
 
 export type EditArticleBlocSchema = typeof EditArticleBlocSchema;

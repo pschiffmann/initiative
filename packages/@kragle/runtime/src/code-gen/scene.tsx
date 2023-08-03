@@ -17,7 +17,7 @@ export function generateScene(document: SceneDocument): string {
  */
 function sanitizeSceneName(name: string): string {
   return capitalize(
-    name.replaceAll(/[_-].?/gi, (m) => capitalize(m.substring(1)))
+    name.replaceAll(/[_-].?/gi, (m) => capitalize(m.substring(1))),
   );
 }
 

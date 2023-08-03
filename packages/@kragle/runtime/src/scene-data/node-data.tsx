@@ -46,7 +46,7 @@ export class NodeData {
     readonly inputs: { readonly [inputName: string]: Expression },
     readonly slots: NodeJson["slots"],
     readonly collectionSlotSizes: { readonly [slotName: string]: number },
-    readonly parent: NodeParent | null
+    readonly parent: NodeParent | null,
   ) {
     const invalidInputs = new Set<string>(
       this.forEachInput((expression, type, inputName, index) => {
@@ -57,7 +57,7 @@ export class NodeData {
           return null;
         }
         return index === undefined ? inputName : `${inputName}::${index}`;
-      }).filter((inputName): inputName is string => !!inputName)
+      }).filter((inputName): inputName is string => !!inputName),
     );
     const missingSlots = new Set<string>();
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
@@ -92,8 +92,8 @@ export class NodeData {
       expression: Expression | null,
       type: t.KragleType,
       inputName: string,
-      index?: number
-    ) => R
+      index?: number,
+    ) => R,
   ): R[] {
     const result: R[] = [];
     this.schema.forEachInput((type, inputName, slotName) => {
@@ -124,7 +124,7 @@ export class NodeData {
    * -1 passed as `index`.
    */
   forEachSlot<R>(
-    callback: (childId: string | null, slotName: string, index?: number) => R
+    callback: (childId: string | null, slotName: string, index?: number) => R,
   ): R[] {
     const result: R[] = [];
     this.schema.forEachSlot((slotName, { isCollectionSlot }) => {
@@ -146,7 +146,7 @@ export class NodeData {
 
   forEachChildInSlot<R>(
     slotName: string,
-    callback: (childId: string, index: number) => R
+    callback: (childId: string, index: number) => R,
   ): R[] {
     const result: R[] = [];
     if (this.schema.isCollectionSlot(slotName)) {
@@ -163,7 +163,7 @@ export class NodeData {
   setInput(
     expression: Expression | null,
     inputName: string,
-    index?: number
+    index?: number,
   ): NodeData {
     let inputKey: string;
     const collectionSlot = this.schema.getCollectionInputSlot(inputName);
@@ -194,14 +194,14 @@ export class NodeData {
       inputs,
       this.slots,
       this.collectionSlotSizes,
-      this.parent
+      this.parent,
     );
   }
 
   addChild(
     childId: string,
     slotName: string,
-    index = this.collectionSlotSizes[slotName]
+    index = this.collectionSlotSizes[slotName],
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
     if (!this.schema.isCollectionSlot(slotName)) {
       const self = this.#addRegularChild(childId, slotName);
@@ -227,14 +227,14 @@ export class NodeData {
       this.inputs,
       { ...this.slots, [slotName]: childId },
       this.collectionSlotSizes,
-      this.parent
+      this.parent,
     );
   }
 
   #addCollectionChild(
     childId: string,
     slotName: string,
-    index: number
+    index: number,
   ): NodeData {
     const childCount = this.collectionSlotSizes[slotName];
     if (!Number.isInteger(index) || index < 0 || index > childCount) {
@@ -262,13 +262,13 @@ export class NodeData {
       inputs,
       slots,
       { ...this.collectionSlotSizes, [slotName]: childCount + 1 },
-      this.parent
+      this.parent,
     );
   }
 
   removeChild(
     slotName: string,
-    index?: number
+    index?: number,
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
     if (!this.schema.isCollectionSlot(slotName)) {
       const self = this.#removeRegularChild(slotName);
@@ -295,7 +295,7 @@ export class NodeData {
       this.inputs,
       slots,
       this.collectionSlotSizes,
-      this.parent
+      this.parent,
     );
   }
 
@@ -334,7 +334,7 @@ export class NodeData {
       inputs,
       slots,
       { ...this.collectionSlotSizes, [slotName]: childCount - 1 },
-      this.parent
+      this.parent,
     );
   }
 
@@ -349,7 +349,7 @@ export class NodeData {
       this.inputs,
       { ...this.slots, [slotKey]: childId },
       this.collectionSlotSizes,
-      this.parent
+      this.parent,
     );
   }
 
@@ -360,7 +360,7 @@ export class NodeData {
   // }
 
   rename(
-    id: string
+    id: string,
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
     validateNodeId(id);
     const self = new NodeData(
@@ -369,7 +369,7 @@ export class NodeData {
       this.inputs,
       this.slots,
       this.collectionSlotSizes,
-      this.parent
+      this.parent,
     );
     const movedChildren: Record<string, NodeParent> = {};
     self.forEachSlot((childId, slotName, index) => {
@@ -386,7 +386,7 @@ export class NodeData {
       this.inputs,
       this.slots,
       this.collectionSlotSizes,
-      parent
+      parent,
     );
   }
 
@@ -395,7 +395,7 @@ export class NodeData {
       type: this.type,
       inputs: $Object.map(
         this.inputs,
-        (inputKey, expression) => expression.json
+        (inputKey, expression) => expression.json,
       ),
       slots: this.slots,
     };
@@ -404,7 +404,7 @@ export class NodeData {
   static empty(
     schema: NodeSchema,
     id: string,
-    parent: NodeParent | null
+    parent: NodeParent | null,
   ): NodeData {
     validateNodeId(id);
     const collectionSlotSizes: { [slotName: string]: number } = {};

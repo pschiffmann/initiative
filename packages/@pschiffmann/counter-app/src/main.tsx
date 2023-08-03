@@ -9,5 +9,5 @@ root.render(
     <ThemeProvider>
       <App />
     </ThemeProvider>
-  </StrictMode>
+  </StrictMode>,
 );

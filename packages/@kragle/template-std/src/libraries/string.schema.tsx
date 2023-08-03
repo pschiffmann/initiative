@@ -5,7 +5,7 @@ export const StringSchema = new LibrarySchema("@kragle/template-std::String", {
     t.any(),
     t.any(),
     t.optional(t.any()),
-    t.optional(t.any())
+    t.optional(t.any()),
   )(t.string()),
   length: t.function(t.string())(t.number()),
 });

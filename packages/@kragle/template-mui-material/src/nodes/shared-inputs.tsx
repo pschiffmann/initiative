@@ -30,8 +30,8 @@ export const surfaceInputs = {
         t.number(21),
         t.number(22),
         t.number(23),
-        t.number(24)
-      )
+        t.number(24),
+      ),
     ),
   },
   outlined: {

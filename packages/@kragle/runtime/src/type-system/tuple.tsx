@@ -2,7 +2,7 @@ import * as t from "./index.js";
 import { KragleType } from "./kragle-type.js";
 
 class KragleTuple<
-  E extends t.KragleTypeArray = t.KragleTypeArray
+  E extends t.KragleTypeArray = t.KragleTypeArray,
 > extends KragleType<t.UnwrapArray<E>> {
   constructor(readonly elements: E) {
     if (elements.length === 0) {
@@ -14,14 +14,14 @@ class KragleTuple<
   protected override _isAssignableTo(other: KragleType): boolean {
     if (t.Array.is(other)) {
       return this.elements.every((element) =>
-        element.isAssignableTo(other.element)
+        element.isAssignableTo(other.element),
       );
     }
     if (KragleTuple.is(other)) {
       return (
         this.elements.length === other.elements.length &&
         this.elements.every((element, i) =>
-          element.isAssignableTo(other.elements[i])
+          element.isAssignableTo(other.elements[i]),
         )
       );
     }

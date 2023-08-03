@@ -5,7 +5,7 @@ import { AncestorOutputs } from "./node-outputs.js";
 export function evaluateExpression(
   expression: ExpressionJson,
   definitions: Definitions,
-  ancestorOutputs: AncestorOutputs
+  ancestorOutputs: AncestorOutputs,
 ): any {
   switch (expression.type) {
     case "string-literal":
@@ -24,13 +24,13 @@ export function evaluateExpression(
       return evaluateExpression(
         expression.fn,
         definitions,
-        ancestorOutputs
+        ancestorOutputs,
       )(
         ...expression.args.map((arg) =>
           arg
             ? evaluateExpression(arg, definitions, ancestorOutputs)
-            : undefined
-        )
+            : undefined,
+        ),
       );
     default:
       throw new Error("Unimplemented");

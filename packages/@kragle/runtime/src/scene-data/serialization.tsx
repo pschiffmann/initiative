@@ -14,7 +14,7 @@ export interface SceneJson {
 export function sceneDocumentFromJson(
   definitions: Definitions,
   name: string,
-  sceneJson: SceneJson
+  sceneJson: SceneJson,
 ): { errors?: string[]; document?: SceneDocument } {
   const errors: string[] = [];
   const document = new SceneDocument(name, definitions);
@@ -32,7 +32,7 @@ export function sceneDocumentFromJson(
 
   function discoverNode(
     nodeId: string,
-    parent?: Omit<NodeParent, "index">
+    parent?: Omit<NodeParent, "index">,
   ): boolean {
     const nodeJson = sceneJson.nodes[nodeId];
     if (!isObject(nodeJson, nodeJsonSchema, `Node '${nodeId}'`, errors)) {
@@ -49,7 +49,7 @@ export function sceneDocumentFromJson(
       return true;
     } catch (e) {
       errors.push(
-        `Can't create node '${nodeId}': ${e instanceof Error ? e.message : e}`
+        `Can't create node '${nodeId}': ${e instanceof Error ? e.message : e}`,
       );
       return false;
     }
@@ -77,7 +77,7 @@ export function sceneDocumentFromJson(
       } catch (e) {
         errors.push(
           `Can't set input '${inputKey}' of node '${nodeId}': ` +
-            `${e instanceof Error ? e.message : e}`
+            `${e instanceof Error ? e.message : e}`,
         );
       }
     }
@@ -201,12 +201,12 @@ function isObject<S extends ObjectSchema>(
   json: unknown,
   schema: S,
   prefix: string,
-  errors: string[]
+  errors: string[],
 ): json is UnwrapObjectSchema<S> {
   if (typeof json !== "object" || json === null) {
     errors.push(
       `${prefix} must be a JSON object, but got ` +
-        `'${json === null ? "null" : typeof json}'.`
+        `'${json === null ? "null" : typeof json}'.`,
     );
     return false;
   }
@@ -228,7 +228,7 @@ function isObject<S extends ObjectSchema>(
     if (typeof value !== expectedType) {
       errors.push(
         `${prefix} must contain a key '${expectedKey}' with type ` +
-          `${expectedType}, but got ${value === null ? "null" : typeof value}.`
+          `${expectedType}, but got ${value === null ? "null" : typeof value}.`,
       );
     }
   }
@@ -236,7 +236,7 @@ function isObject<S extends ObjectSchema>(
     errors.push(
       `${prefix} contains unrecognized keys ` +
         [...actualKeys].map((k) => JSON.stringify(k)).join(", ") +
-        "."
+        ".",
     );
   }
   return errorCountBefore === errors.length;
@@ -246,7 +246,7 @@ function isExpression(
   json: unknown,
   nodeId: string,
   inputKey: string,
-  errors: string[]
+  errors: string[],
 ): json is ExpressionJson {
   function visit(json: ExpressionJson, path = "") {
     const prefix =
@@ -263,7 +263,7 @@ function isExpression(
           Object.keys(expressionJsonSchemas)
             .map((s) => `'${s}'`)
             .join(", ") +
-          "."
+          ".",
       );
       return;
     }
@@ -286,7 +286,7 @@ function isExpression(
 function parseInputKey(
   nodeId: string,
   inputKey: string,
-  errors: string[]
+  errors: string[],
 ): { inputName?: string; index?: number } {
   if (!inputKey.match(nodePropPattern)) {
     errors.push(`Node '${nodeId}' contains invalid input '${inputKey}'.`);
@@ -299,7 +299,7 @@ function parseInputKey(
 function parseSlotKey(
   nodeId: string,
   slotKey: string,
-  errors: string[]
+  errors: string[],
 ): { slotName?: string; index?: number } {
   if (!slotKey.match(nodePropPattern)) {
     errors.push(`Node '${nodeId}' contains invalid slot '${slotKey}'.`);

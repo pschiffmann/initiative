@@ -6,9 +6,9 @@ export const TodoLibrary$getDescription: TodoLibraryMembers["getDescription"] =
   (todo) => todo.description;
 
 export const TodoLibrary$getCreatedAt: TodoLibraryMembers["getCreatedAt"] = (
-  todo
+  todo,
 ) => "Added on " + todo.createdAt.toLocaleString();
 
 export const TodoLibrary$getCompleted: TodoLibraryMembers["getCompleted"] = (
-  todo
+  todo,
 ) => todo.completed;
