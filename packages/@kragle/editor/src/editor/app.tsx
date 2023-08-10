@@ -1,4 +1,4 @@
-import { IconButton, bemClasses, useColorTheme } from "@kragle/design-system";
+import { IconButton, bemClasses, useColorTheme } from "#design-system";
 import { Definitions, SceneDocument } from "@kragle/runtime";
 import { useRef, useState } from "react";
 import { DefinitionsContext } from "./context.js";

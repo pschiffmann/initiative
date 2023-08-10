@@ -1,4 +1,4 @@
-import { Dialog, DialogCommand, bemClasses } from "@kragle/design-system";
+import { Dialog, DialogCommand, bemClasses } from "#design-system";
 import { CommandController } from "@kragle/react-command";
 
 const cls = bemClasses("kragle-data-flow-inspector");

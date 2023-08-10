@@ -8,7 +8,7 @@ import {
   SelectControl,
   TextFieldControl,
   bemClasses,
-} from "@kragle/design-system";
+} from "#design-system";
 import { CommandController } from "@kragle/react-command";
 import {
   BooleanLiteralExpressionJson,

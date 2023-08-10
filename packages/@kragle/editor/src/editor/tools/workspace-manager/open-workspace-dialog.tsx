@@ -5,7 +5,7 @@ import {
   DialogCommand,
   Typography,
   bemClasses,
-} from "@kragle/design-system";
+} from "#design-system";
 import { CommandController } from "@kragle/react-command";
 import { Workspace } from "./workspace.js";
 

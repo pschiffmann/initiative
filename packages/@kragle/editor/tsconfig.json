@@ -1,7 +1,6 @@
 {
   "extends": "@pschiffmann/std/tsconfig-base.json",
   "references": [
-    { "path": "../design-system" },
     { "path": "../license" },
     { "path": "../runtime" }
   ],

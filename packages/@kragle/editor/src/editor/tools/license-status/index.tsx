@@ -1,4 +1,4 @@
-import { DialogCommand, bemClasses } from "@kragle/design-system";
+import { DialogCommand, bemClasses } from "#design-system";
 import { CommandController } from "@kragle/react-command";
 import { useState } from "react";
 import { LicenseKeyDialog } from "./license-key-dialog.js";
@@ -12,7 +12,7 @@ export interface LicenseStatusProps {
 
 export function LicenseStatus({ className }: LicenseStatusProps) {
   const [dialogController] = useState(
-    () => new CommandController<DialogCommand>(),
+    () => new CommandController<DialogCommand>()
   );
 
   const { licenseData, saveLicenseKey } = useLicense();

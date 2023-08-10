@@ -1,4 +1,4 @@
-import { AlertDialogContent, Button, bemClasses } from "@kragle/design-system";
+import { AlertDialogContent, Button, bemClasses } from "#design-system";
 import { Expression, ExpressionJson, ExpressionPath, t } from "@kragle/runtime";
 import { controlComponents } from "./controls.js";
 

@@ -1,4 +1,4 @@
-import { IconButton, bemClasses } from "@kragle/design-system";
+import { IconButton, bemClasses } from "#design-system";
 import { CommandController } from "@kragle/react-command";
 import { SceneDocument, useNode } from "@kragle/runtime";
 import { memo, useState } from "react";
@@ -34,7 +34,7 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
   }
 
   const [createNodeDialogController] = useState(
-    () => new CommandController<string>(),
+    () => new CommandController<string>()
   );
 
   return (

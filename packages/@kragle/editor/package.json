@@ -4,18 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sass": "sass styles/main.scss dist/editor/styles.css -w -I ../../"
+    "sass": "sass styles/main.scss dist/editor/styles.css -w"
   },
   "exports": {
     ".": "./dist/index.js",
     "./styles.css": "./dist/editor/styles.css"
   },
+  "imports": {
+    "#design-system": "./dist/design-system/index.js"
+  },
   "sideEffects": false,
   "dependencies": {
-    "@kragle/design-system": "^0.1.0",
     "@kragle/license": "^0.1.0",
     "@kragle/react-command": "^0.1.0",
     "@kragle/runtime": "^0.1.0",
+    "@material/material-color-utilities": "^0.2.6",
     "idb-keyval": "^6.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

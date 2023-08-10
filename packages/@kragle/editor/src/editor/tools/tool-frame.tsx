@@ -1,4 +1,4 @@
-import { bemClasses } from "@kragle/design-system";
+import { bemClasses } from "#design-system";
 import { ReactNode } from "react";
 
 const cls = bemClasses("kragle-tool-frame");

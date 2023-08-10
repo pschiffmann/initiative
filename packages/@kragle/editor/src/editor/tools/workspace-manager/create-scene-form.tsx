@@ -4,7 +4,7 @@ import {
   DialogCommand,
   TextFieldControl,
   bemClasses,
-} from "@kragle/design-system";
+} from "#design-system";
 import { CommandController } from "@kragle/react-command";
 import { SceneDocument, validateSceneName } from "@kragle/runtime";
 import { useContext, useState } from "react";
