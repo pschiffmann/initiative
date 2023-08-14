@@ -1,4 +1,4 @@
-import { LicenseProperties, decodeLicenseKey } from "@kragle/license";
+import { LicenseProperties, decodeLicenseKey } from "#license";
 import { get, set } from "idb-keyval";
 import { useCallback, useEffect, useState } from "react";
 

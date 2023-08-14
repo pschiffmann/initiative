@@ -11,11 +11,11 @@
     "./styles.css": "./dist/editor/styles.css"
   },
   "imports": {
-    "#design-system": "./dist/design-system/index.js"
+    "#design-system": "./dist/design-system/index.js",
+    "#license": "./dist/license/index.js"
   },
   "sideEffects": false,
   "dependencies": {
-    "@kragle/license": "^0.1.0",
     "@kragle/react-command": "^0.1.0",
     "@kragle/runtime": "^0.1.0",
     "@material/material-color-utilities": "^0.2.6",

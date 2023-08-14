@@ -1,0 +1,2 @@
+- Generate new keys: `node ./dist/license/generate-key.js`, then save them in `src/license/keys.tsx`
+- Generate license key: `node ./dist/license/generate-license.js`

@@ -1,9 +1,6 @@
 {
   "extends": "@pschiffmann/std/tsconfig-base.json",
-  "references": [
-    { "path": "../license" },
-    { "path": "../runtime" }
-  ],
+  "references": [{ "path": "../runtime" }],
   "include": ["src/**/*"],
   "compilerOptions": {
     "rootDir": "src/",

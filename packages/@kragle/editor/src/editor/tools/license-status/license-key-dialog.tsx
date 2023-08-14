@@ -8,7 +8,7 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { LicenseProperties, decodeLicenseKey } from "@kragle/license";
+import { LicenseProperties, decodeLicenseKey } from "#license";
 import { CommandController } from "@kragle/react-command";
 import { useEffect, useState } from "react";
 
@@ -76,7 +76,7 @@ export function LicenseKeyDialog({
           className={cls.element(
             "container",
             null,
-            kind === "community" && "selected"
+            kind === "community" && "selected",
           )}
         >
           <div className={cls.element("container-title")}>
@@ -97,7 +97,7 @@ export function LicenseKeyDialog({
             "container",
             null,
             kind === "personal-expired" && "expired",
-            kind === "personal" && "selected"
+            kind === "personal" && "selected",
           )}
         >
           <div className={cls.element("container-title")}>
