@@ -9,7 +9,6 @@ import {
   TextFieldControl,
   bemClasses,
 } from "#design-system";
-import { CommandController } from "@kragle/react-command";
 import {
   BooleanLiteralExpressionJson,
   EntityLiteralExpressionJson,
@@ -23,8 +22,9 @@ import {
   SceneDocument,
   SceneInputExpressionJson,
   StringLiteralExpressionJson,
-  t,
-} from "@kragle/runtime";
+} from "#shared";
+import { CommandController } from "@kragle/react-command";
+import { t } from "@kragle/runtime";
 import { ComponentType, useState } from "react";
 import { FunctionExpressionBuilder } from "./function-expression-builder.js";
 import { useInputOptions } from "./use-input-options.js";

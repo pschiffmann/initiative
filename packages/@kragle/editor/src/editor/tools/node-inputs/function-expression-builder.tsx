@@ -1,5 +1,6 @@
 import { AlertDialogContent, Button, bemClasses } from "#design-system";
-import { Expression, ExpressionJson, ExpressionPath, t } from "@kragle/runtime";
+import { Expression, ExpressionJson, ExpressionPath } from "#shared";
+import { t } from "@kragle/runtime";
 import { controlComponents } from "./controls.js";
 
 const cls = bemClasses("kragle-function-expression-builder");

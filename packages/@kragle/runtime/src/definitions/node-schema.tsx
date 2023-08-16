@@ -1,4 +1,3 @@
-import { NodeJson } from "../scene-data/node-data.js";
 import * as t from "../type-system/index.js";
 import {
   validateNodeInputName,
@@ -55,7 +54,7 @@ export interface NodeSchemaSlot {
  * This callback can be used to implement custom validation logic. It is only
  * called if `nodeJson` has passed the type system based validation.
  */
-export type ValidateNode = (nodeJson: NodeJson) => string | null;
+export type ValidateNode = (nodeJson: unknown /*NodeJson*/) => string | null;
 
 //
 // NodeSchema

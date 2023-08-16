@@ -1,4 +1,4 @@
-import { SceneDocument } from "@kragle/runtime";
+import { SceneDocument } from "#shared";
 import { resolveUsedImports as resolveImports } from "./imports.js";
 import { generateNodeRuntime } from "./node.js";
 import { generateEmptyScene, generateScene } from "./scene.js";

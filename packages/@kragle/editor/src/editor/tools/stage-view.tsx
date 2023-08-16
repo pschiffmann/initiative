@@ -1,10 +1,11 @@
 import { bemClasses } from "#design-system";
-import { SceneDocument, sceneDocumentToJson } from "@kragle/runtime";
-import { useEffect } from "react";
 import {
   ConnectToEditorRequest,
+  SceneDocument,
   StageConnectionCommand,
-} from "../../shared/stage-connection-command.js";
+  sceneDocumentToJson,
+} from "#shared";
+import { useEffect } from "react";
 
 const cls = bemClasses("kragle-stage-view");
 
@@ -39,7 +40,7 @@ function useStageConnection(document: SceneDocument) {
         } satisfies StageConnectionCommand);
         ports.push(data.port);
       },
-      { signal: controller.signal }
+      { signal: controller.signal },
     );
 
     const unsubscribeFromDocument = document.listen("patch", (patch) => {

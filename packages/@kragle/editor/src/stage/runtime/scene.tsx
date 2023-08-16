@@ -1,4 +1,4 @@
-import { useRootNodeId } from "../../shared/use-scene-document.js";
+import { useRootNodeId } from "#shared";
 import { SceneRuntime } from "./scene-runtime.js";
 
 export interface SceneProps {

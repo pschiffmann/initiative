@@ -1,4 +1,4 @@
-import { Definitions } from "../definitions/resolve-definitions.js";
+import { Definitions } from "@kragle/runtime";
 import { ExpressionJson } from "./expression.js";
 import { NodeJson, NodeParent } from "./node-data.js";
 import { SceneDocument } from "./scene-document.js";

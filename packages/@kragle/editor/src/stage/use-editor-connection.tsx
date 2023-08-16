@@ -1,8 +1,5 @@
-import {
-  Definitions,
-  SceneDocument,
-  sceneDocumentFromJson,
-} from "@kragle/runtime";
+import { SceneDocument, sceneDocumentFromJson } from "#shared";
+import { Definitions } from "@kragle/runtime";
 import * as $Promise from "@pschiffmann/std/promise";
 import { useEffect, useState } from "react";
 import {

@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./code-gen-helpers": "./dist/code-gen-helpers.js"
+    "./code-gen-helpers": "./dist/code-gen-helpers.js",
+    "./internals": "./dist/internals.js"
   },
   "sideEffects": false,
   "scripts": {

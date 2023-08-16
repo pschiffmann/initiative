@@ -1,4 +1,4 @@
-import { Definitions, NodeSchema } from "../definitions/index.js";
+import { Definitions, NodeSchema } from "@kragle/runtime";
 import {
   Expression,
   ExpressionJson,

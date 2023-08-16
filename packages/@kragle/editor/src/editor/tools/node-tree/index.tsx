@@ -1,7 +1,6 @@
 import { Button, DialogCommand, IconButton, bemClasses } from "#design-system";
-import { useRootNodeId } from "#shared";
+import { SceneDocument, useRootNodeId } from "#shared";
 import { CommandController } from "@kragle/react-command";
-import { SceneDocument } from "@kragle/runtime";
 import { useCallback, useState } from "react";
 import { DataFlowInspector } from "../data-flow-inspector/index.js";
 import { ToolFrame } from "../tool-frame.js";

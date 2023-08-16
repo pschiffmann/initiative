@@ -1,6 +1,6 @@
+import { useNode } from "#shared";
 import { NodeSchema } from "@kragle/runtime";
 import { ComponentType, FunctionComponent } from "react";
-import { useNode } from "../../shared/use-scene-document.js";
 import { NodeOutputs, NodeOutputsProvider } from "./node-outputs.js";
 import { SceneRuntime } from "./scene-runtime.js";
 

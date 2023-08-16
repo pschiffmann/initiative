@@ -1,4 +1,5 @@
-import { Definitions, ExpressionJson } from "@kragle/runtime";
+import { ExpressionJson } from "#shared";
+import { Definitions } from "@kragle/runtime";
 import { AncestorOutputs } from "./node-outputs.js";
 
 export function evaluateExpression(

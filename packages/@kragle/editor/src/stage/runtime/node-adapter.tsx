@@ -1,4 +1,5 @@
-import { Definitions, NodeData, NodeSchema } from "@kragle/runtime";
+import { NodeData } from "#shared";
+import { Definitions, NodeSchema } from "@kragle/runtime";
 import * as $Object from "@pschiffmann/std/object";
 import { ComponentType, FunctionComponent, useContext } from "react";
 import { useNode } from "../../shared/use-scene-document.js";

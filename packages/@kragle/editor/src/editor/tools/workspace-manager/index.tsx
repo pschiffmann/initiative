@@ -6,8 +6,8 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
+import { SceneDocument, sceneDocumentFromJson } from "#shared";
 import { CommandController } from "@kragle/react-command";
-import { SceneDocument, sceneDocumentFromJson } from "@kragle/runtime";
 import { useContext, useState } from "react";
 import { DefinitionsContext } from "../../context.js";
 import { ToolFrame } from "../tool-frame.js";
@@ -33,10 +33,10 @@ export function WorkspaceManager({
   const [workspace, setWorkspace] = useWorkspace();
 
   const [openWorkspaceDialogController] = useState(
-    () => new CommandController<DialogCommand>()
+    () => new CommandController<DialogCommand>(),
   );
   const [createSceneDialogController] = useState(
-    () => new CommandController<DialogCommand>()
+    () => new CommandController<DialogCommand>(),
   );
 
   const definitions = useContext(DefinitionsContext);
@@ -46,11 +46,11 @@ export function WorkspaceManager({
       const { errors, document } = sceneDocumentFromJson(
         definitions,
         name,
-        sceneJson
+        sceneJson,
       );
       if (errors) {
         alert(
-          "The scene.json file contains errors. Check the dev tools console."
+          "The scene.json file contains errors. Check the dev tools console.",
         );
         console.error({ errors });
       } else {
@@ -140,7 +140,7 @@ export function WorkspaceManager({
                 "scene",
                 null,
                 document?.name === scene && "selected",
-                document && document.name !== scene && "disabled"
+                document && document.name !== scene && "disabled",
               )}
               onClick={document ? undefined : () => openScene(scene)}
             >

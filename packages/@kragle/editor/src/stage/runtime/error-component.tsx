@@ -1,4 +1,4 @@
-import { NodeData } from "@kragle/runtime";
+import { NodeData } from "#shared";
 import { CSSProperties } from "react";
 
 const rootStyle: CSSProperties = {

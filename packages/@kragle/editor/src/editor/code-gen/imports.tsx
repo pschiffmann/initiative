@@ -1,4 +1,4 @@
-import { SceneDocument } from "@kragle/runtime";
+import { SceneDocument } from "#shared";
 
 export interface ImportNames {
   /**

@@ -1,5 +1,5 @@
-import { NodeData, SceneDocument } from "@kragle/runtime";
 import { useCallback, useSyncExternalStore } from "react";
+import { NodeData, SceneDocument } from "./scene-data/index.js";
 
 export function useNode(document: SceneDocument, nodeId: string): NodeData {
   const onChange = useCallback(

@@ -1,4 +1,4 @@
-import { ExpressionJson, NodeData, SceneDocument } from "@kragle/runtime";
+import { ExpressionJson, NodeData, SceneDocument } from "#shared";
 import { ImportNames } from "./imports.js";
 
 export function generateNodeRuntime(

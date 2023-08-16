@@ -7,12 +7,13 @@ import {
   TextFieldControl,
   bemClasses,
 } from "#design-system";
+import { SceneDocument } from "#shared";
 import {
   CommandController,
   CommandStream,
   useAcceptCommands,
 } from "@kragle/react-command";
-import { NodeSchema, SceneDocument, validateNodeId } from "@kragle/runtime";
+import { NodeSchema, validateNodeId } from "@kragle/runtime";
 import { useMemo, useState } from "react";
 
 const cls = bemClasses("kragle-create-node-dialog");
@@ -37,7 +38,7 @@ export function CreateNodeDialog({
 
   const nodeTypes = useMemo(
     () => [...document.definitions.nodes.values()].map((d) => d.schema),
-    [document]
+    [document],
   );
 
   const [nodeType, setNodeType] = useState<NodeSchema | null>(null);

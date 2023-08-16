@@ -1,4 +1,4 @@
-import { SceneDocument } from "@kragle/runtime";
+import { SceneDocument } from "#shared";
 import * as $Map from "@pschiffmann/std/map";
 import { ComponentType } from "react";
 import { createNodeAdapterComponent } from "./node-adapter.js";

@@ -1,4 +1,4 @@
-import * as t from "../type-system/index.js";
+import { t } from "@kragle/runtime";
 
 /**
  * Expression serialization format.

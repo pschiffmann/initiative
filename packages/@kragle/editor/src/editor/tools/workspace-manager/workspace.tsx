@@ -5,8 +5,8 @@ import {
   SceneDocument,
   Unsubscribe,
   sceneDocumentToJson,
-  validateSceneName,
-} from "@kragle/runtime";
+} from "#shared";
+import { validateSceneName } from "@kragle/runtime";
 
 export type WorkspaceState =
   | "initializing"

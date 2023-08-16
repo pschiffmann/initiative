@@ -1,4 +1,4 @@
-import { SceneDocument } from "@kragle/runtime";
+import { SceneDocument } from "#shared";
 
 export function generateEmptyScene(name: string): string {
   return `export function ${sanitizeSceneName(name)}() {

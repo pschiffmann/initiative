@@ -5,8 +5,9 @@ import {
   TextFieldControl,
   bemClasses,
 } from "#design-system";
+import { SceneDocument } from "#shared";
 import { CommandController } from "@kragle/react-command";
-import { SceneDocument, validateSceneName } from "@kragle/runtime";
+import { validateSceneName } from "@kragle/runtime";
 import { useContext, useState } from "react";
 import { DefinitionsContext } from "../../context.js";
 import { Workspace } from "./workspace.js";
