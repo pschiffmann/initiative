@@ -1,0 +1,95 @@
+{
+  "rootNode": "ArticleRepository1",
+  "nodes": {
+    "ArticleRepository1": {
+      "type": "@pschiffmann/initiative-demo::ArticleRepository",
+      "inputs": {},
+      "slots": {
+        "child": "MuiStack1"
+      }
+    },
+    "MuiStack1": {
+      "type": "@pschiffmann/initiative-demo::MuiStack",
+      "inputs": {
+        "flexDirection": {
+          "type": "string-literal",
+          "value": "column"
+        }
+      },
+      "slots": {
+        "child::0": "IterateArticles",
+        "child::1": "FnCall"
+      }
+    },
+    "IterateArticles": {
+      "type": "@pschiffmann/initiative-demo::Repeat",
+      "inputs": {
+        "collection": {
+          "type": "node-output",
+          "nodeId": "ArticleRepository1",
+          "outputName": "articles"
+        }
+      },
+      "slots": {
+        "child": "ArticleName"
+      }
+    },
+    "FnCall": {
+      "type": "@pschiffmann/initiative-demo::TryCall",
+      "inputs": {
+        "callable": {
+          "type": "library-member",
+          "libraryName": "@pschiffmann/initiative-demo::Article",
+          "memberName": "getName"
+        }
+      },
+      "slots": {
+        "onSuccess": "FnCallResult",
+        "onError": "FnCallError"
+      }
+    },
+    "ArticleName": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "function-call",
+          "fn": {
+            "type": "library-member",
+            "libraryName": "@pschiffmann/initiative-demo::Article",
+            "memberName": "getName"
+          },
+          "args": [
+            {
+              "type": "node-output",
+              "nodeId": "IterateArticles",
+              "outputName": "item"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "FnCallResult": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "FnCall",
+          "outputName": "value"
+        }
+      },
+      "slots": {}
+    },
+    "FnCallError": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "FnCall",
+          "outputName": "error"
+        }
+      },
+      "slots": {}
+    }
+  }
+}

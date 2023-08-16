@@ -1,0 +1,15 @@
+{
+  "extends": "@pschiffmann/std/tsconfig-base.json",
+  "references": [
+    { "path": "../../@initiativejs/ide" },
+    { "path": "../../@initiativejs/schema" }
+  ],
+  "include": ["initiative/**/*", "src/**/*", "initiative/scenes/*.json"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "tsc-build/",
+    "tsBuildInfoFile": "tsc-build/.tsbuildinfo",
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  }
+}

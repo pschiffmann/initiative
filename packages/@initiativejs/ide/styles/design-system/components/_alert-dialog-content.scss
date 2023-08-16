@@ -1,0 +1,20 @@
+@use "../typography";
+
+.initiative-alert-dialog-content {
+  &__title {
+    padding: 24px 20px 8px;
+    @include typography.role("headline-small");
+  }
+
+  &__body {
+    padding: 8px 20px;
+    @include typography.role("body-medium");
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: end;
+    gap: 8px;
+    padding: 8px;
+  }
+}

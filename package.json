@@ -1,8 +1,8 @@
 {
-  "name": "kragle-monorepo",
+  "name": "initiative-monorepo",
   "private": true,
   "workspaces": [
-    "packages/@kragle/*",
+    "packages/@initiativejs/*",
     "packages/@pschiffmann/*"
   ],
   "scripts": {

@@ -1,0 +1,23 @@
+@use "../../design-system/color";
+@use "../../design-system/typography";
+
+.initiative-stage-view {
+  display: grid;
+  grid: "main" 1fr /1fr;
+  padding: 8px;
+  background-color: color.role("surface-container");
+  border-radius: 8px;
+
+  &__iframe {
+    grid-area: main;
+    place-self: stretch;
+    border-radius: 4px;
+
+    // Don't adjust the background color to the editor color scheme, because the
+    // stage is not aware of it.
+    background-color: #fff;
+
+    // reset browser defaults
+    border: 0;
+  }
+}

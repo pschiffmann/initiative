@@ -1,0 +1,34 @@
+{
+  "name": "@initiativejs/ide",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sass": "sass styles/main.scss dist/ide/styles.css -w"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./styles.css": "./dist/ide/styles.css"
+  },
+  "imports": {
+    "#code-gen": "./dist/ide/code-gen/index.js",
+    "#design-system": "./dist/ide/design-system/index.js",
+    "#license": "./dist/ide/license/index.js",
+    "#shared": "./dist/shared/index.js"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@initiativejs/react-command": "^0.1.0",
+    "@initiativejs/schema": "^0.1.0",
+    "@material/material-color-utilities": "^0.2.6",
+    "idb-keyval": "^6.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
+    "@types/wicg-file-system-access": "^2020.9.6",
+    "sass": "^1.62.1"
+  }
+}

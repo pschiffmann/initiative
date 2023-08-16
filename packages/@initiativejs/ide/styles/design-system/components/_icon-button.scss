@@ -1,0 +1,48 @@
+@use "../typography";
+@use "../color";
+
+.initiative-icon-button {
+  // Public
+  --initiative-icon-button-color: #{color.role("on-surface")};
+  --initiative-icon-button-density: 0;
+
+  // Private
+  --initiative-icon-button-state-layer-opacity: 0%;
+  &:not([disabled]):is(:focus-visible, :hover) {
+    --initiative-icon-button-state-layer-opacity: 8%;
+  }
+  &:not([disabled]):active {
+    --initiative-icon-button-state-layer-opacity: 12%;
+  }
+
+  width: calc(24px + var(--initiative-icon-button-density) * 4px);
+  height: calc(24px + var(--initiative-icon-button-density) * 4px);
+  display: grid;
+  grid: "main" 1fr / 1fr;
+  place-items: center;
+  overflow: hidden;
+
+  border-radius: 4px;
+  background-color: color-mix(
+    in srgb,
+    transparent,
+    var(--initiative-icon-button-color)
+      var(--initiative-icon-button-state-layer-opacity)
+  );
+  color: var(--initiative-icon-button-color);
+  user-select: none;
+
+  // Reset browser defaults
+  padding: 0;
+  border: none;
+  outline: none;
+
+  &:is([disabled]) {
+    opacity: 0.38;
+  }
+
+  &__icon {
+    grid-area: main;
+    --initiative-material-icon-density: -2;
+  }
+}

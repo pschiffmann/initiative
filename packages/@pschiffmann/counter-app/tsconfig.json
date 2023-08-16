@@ -1,11 +1,11 @@
 {
   "extends": "@pschiffmann/std/tsconfig-base.json",
   "references": [
-    { "path": "../../@kragle/editor" },
-    { "path": "../../@kragle/template-mui-material" },
-    { "path": "../../@kragle/template-std" }
+    { "path": "../../@initiativejs/ide" },
+    { "path": "../../@initiativejs/template-mui-material" },
+    { "path": "../../@initiativejs/template-std" }
   ],
-  "include": ["kragle/**/*", "src/**/*"],
+  "include": ["initiative/**/*", "src/**/*"],
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "tsc-build/",

@@ -1,0 +1,55 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
+@use "function-expression-builder";
+
+.initiative-node-inputs {
+  &__empty-state {
+    display: grid;
+    place-items: center;
+    @include typography.role("body-medium");
+    color: color.role("on-surface-deemphasized");
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    overflow: auto;
+  }
+
+  &__card {
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: color.role("surface-container-highest");
+  }
+
+  &__card-label {
+    @include typography.role("label-small");
+    @include typography.no-wrap();
+    color: color.role("on-surface-deemphasized");
+  }
+
+  &__card-value {
+    @include typography.role("body-medium");
+    @include typography.no-wrap();
+    color: color.role("on-surface");
+  }
+
+  &__slot-section {
+    flex: 0 0 auto;
+    margin-top: 16px;
+    border-top: 1px solid color.role("divider");
+    padding-top: 16px;
+    @include typography.role("title-medium");
+    @include typography.no-wrap();
+  }
+
+  &__child-id {
+    @include typography.role("title-small");
+    @include typography.no-wrap();
+    color: color.role("on-surface-deemphasized");
+  }
+}

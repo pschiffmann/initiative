@@ -1,0 +1,10 @@
+@use "../../../design-system/color";
+
+.initiative-create-scene-form {
+  width: 600px;
+
+  &__create-button {
+    --initiative-button-fill-color: #{color.role("brand")};
+    --initiative-button-stroke-color: #{color.role("on-brand")};
+  }
+}

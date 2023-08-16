@@ -1,0 +1,342 @@
+{
+  "rootNode": "Translations",
+  "nodes": {
+    "Translations": {
+      "type": "@pschiffmann/initiative-demo::I18n",
+      "inputs": {},
+      "slots": {
+        "child": "ArticleRepository"
+      }
+    },
+    "ArticleRepository": {
+      "type": "@pschiffmann/initiative-demo::ArticleRepository",
+      "inputs": {},
+      "slots": {
+        "child": "PageLayout"
+      }
+    },
+    "PageLayout": {
+      "type": "@pschiffmann/initiative-demo::MuiStack",
+      "inputs": {
+        "flexDirection": {
+          "type": "string-literal",
+          "value": "column"
+        },
+        "gap": {
+          "type": "number-literal",
+          "value": 3
+        },
+        "alignSelf::1": {
+          "type": "string-literal",
+          "value": "end"
+        }
+      },
+      "slots": {
+        "child::0": "PageTitle",
+        "child::1": "NewArticleDialog",
+        "child::2": "ArticlesTable"
+      }
+    },
+    "PageTitle": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "variant": {
+          "type": "string-literal",
+          "value": "h3"
+        },
+        "text": {
+          "type": "function-call",
+          "fn": {
+            "type": "node-output",
+            "nodeId": "Translations",
+            "outputName": "translate"
+          },
+          "args": [
+            {
+              "type": "string-literal",
+              "value": "scene-title"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "NewArticleDialog": {
+      "type": "@pschiffmann/initiative-demo::MuiDialog",
+      "inputs": {
+        "title": {
+          "type": "string-literal",
+          "value": "New Article"
+        }
+      },
+      "slots": {
+        "trigger": "NewArticleButton",
+        "content": "NewArticleBloc"
+      }
+    },
+    "ArticlesTable": {
+      "type": "@pschiffmann/initiative-demo::MuiTable",
+      "inputs": {
+        "rows": {
+          "type": "node-output",
+          "nodeId": "ArticleRepository",
+          "outputName": "articles"
+        },
+        "getRowKey": {
+          "type": "library-member",
+          "libraryName": "@pschiffmann/initiative-demo::Article",
+          "memberName": "getId"
+        },
+        "header::0": {
+          "type": "string-literal",
+          "value": "Id"
+        },
+        "header::1": {
+          "type": "string-literal",
+          "value": "Name"
+        },
+        "header::2": {
+          "type": "string-literal",
+          "value": "Price"
+        },
+        "header::3": {
+          "type": "string-literal",
+          "value": "Action"
+        },
+        "align::2": {
+          "type": "string-literal",
+          "value": "right"
+        }
+      },
+      "slots": {
+        "column::0": "IdColumn",
+        "column::1": "NameColumn",
+        "column::2": "PriceColumn",
+        "column::3": "EditColumn"
+      }
+    },
+    "NewArticleButton": {
+      "type": "@pschiffmann/initiative-demo::MuiButton",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Add new"
+        },
+        "variant": {
+          "type": "string-literal",
+          "value": "contained"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "NewArticleDialog",
+          "outputName": "open"
+        }
+      },
+      "slots": {}
+    },
+    "NewArticleBloc": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "string-literal",
+          "value": "Under construction"
+        }
+      },
+      "slots": {}
+    },
+    "IdColumn": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "function-call",
+          "fn": {
+            "type": "library-member",
+            "libraryName": "@pschiffmann/initiative-demo::Article",
+            "memberName": "getId"
+          },
+          "args": [
+            {
+              "type": "node-output",
+              "nodeId": "ArticlesTable",
+              "outputName": "row"
+            }
+          ]
+        },
+        "variant": {
+          "type": "string-literal",
+          "value": "body2"
+        }
+      },
+      "slots": {}
+    },
+    "NameColumn": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "function-call",
+          "fn": {
+            "type": "library-member",
+            "libraryName": "@pschiffmann/initiative-demo::Article",
+            "memberName": "getName"
+          },
+          "args": [
+            {
+              "type": "node-output",
+              "nodeId": "ArticlesTable",
+              "outputName": "row"
+            }
+          ]
+        },
+        "variant": {
+          "type": "string-literal",
+          "value": "body2"
+        }
+      },
+      "slots": {}
+    },
+    "PriceColumn": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "function-call",
+          "fn": {
+            "type": "library-member",
+            "libraryName": "@pschiffmann/initiative-demo::Article",
+            "memberName": "getFormattedPrice"
+          },
+          "args": [
+            {
+              "type": "node-output",
+              "nodeId": "ArticlesTable",
+              "outputName": "row"
+            }
+          ]
+        },
+        "variant": {
+          "type": "string-literal",
+          "value": "body2"
+        }
+      },
+      "slots": {}
+    },
+    "EditColumn": {
+      "type": "@pschiffmann/initiative-demo::MuiDialog",
+      "inputs": {
+        "title": {
+          "type": "string-literal",
+          "value": "Edit Article"
+        }
+      },
+      "slots": {
+        "trigger": "EditArticleButton",
+        "content": "EditArticleBloc"
+      }
+    },
+    "EditArticleButton": {
+      "type": "@pschiffmann/initiative-demo::MuiButton",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Edit"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "EditColumn",
+          "outputName": "open"
+        }
+      },
+      "slots": {}
+    },
+    "EditArticleBloc": {
+      "type": "@pschiffmann/initiative-demo::EditArticleBloc",
+      "inputs": {
+        "article": {
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row"
+        },
+        "updateArticle": {
+          "type": "node-output",
+          "nodeId": "ArticleRepository",
+          "outputName": "updateArticle"
+        }
+      },
+      "slots": {
+        "child": "EditArticleFormLayout"
+      }
+    },
+    "EditArticleFormLayout": {
+      "type": "@pschiffmann/initiative-demo::MuiStack",
+      "inputs": {
+        "flexDirection": {
+          "type": "string-literal",
+          "value": "column"
+        },
+        "gap": {
+          "type": "number-literal",
+          "value": 3
+        }
+      },
+      "slots": {
+        "child::0": "EditArticleNameTextField",
+        "child::1": "EditArticlePriceTextField",
+        "child::2": "UpdateArticleButton"
+      }
+    },
+    "EditArticleNameTextField": {
+      "type": "@pschiffmann/initiative-demo::MuiTextField",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Name"
+        },
+        "value": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "name"
+        },
+        "onChange": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "updateName"
+        }
+      },
+      "slots": {}
+    },
+    "EditArticlePriceTextField": {
+      "type": "@pschiffmann/initiative-demo::MuiTextField",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Price"
+        },
+        "value": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "price"
+        },
+        "onChange": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "updatePrice"
+        }
+      },
+      "slots": {}
+    },
+    "UpdateArticleButton": {
+      "type": "@pschiffmann/initiative-demo::MuiButton",
+      "inputs": {
+        "label": {
+          "type": "string-literal",
+          "value": "Save"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "EditArticleBloc",
+          "outputName": "save"
+        }
+      },
+      "slots": {}
+    }
+  }
+}

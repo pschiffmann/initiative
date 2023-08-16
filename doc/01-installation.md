@@ -2,4 +2,4 @@
 
 ## Start with a template
 
-## Add Kragle to an existing project
+## Add InitiativeJS to an existing project

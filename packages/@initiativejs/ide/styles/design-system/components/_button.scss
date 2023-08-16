@@ -1,0 +1,50 @@
+@use "../typography";
+@use "../color";
+
+.initiative-button {
+  // Public
+  --initiative-button-fill-color: #{color.role("surface")};
+  --initiative-button-stroke-color: #{color.role("on-surface")};
+
+  // Private
+  --initiative-button-state-layer-opacity: 0%;
+  &:not([disabled]):is(:focus-visible, :hover) {
+    --initiative-button-state-layer-opacity: 8%;
+  }
+  &:not([disabled]):active {
+    --initiative-button-state-layer-opacity: 12%;
+  }
+
+  min-width: 64px;
+  height: 32px;
+  display: grid;
+  grid: "main" 1fr / 1fr;
+  place-items: center;
+  overflow: hidden;
+
+  border-radius: 4px;
+  background-color: color-mix(
+    in srgb,
+    var(--initiative-button-fill-color),
+    var(--initiative-button-stroke-color)
+      var(--initiative-button-state-layer-opacity)
+  );
+  color: var(--initiative-button-stroke-color);
+  user-select: none;
+
+  // Reset browser defaults
+  padding: 0;
+  border: none;
+  outline: none;
+
+  &:is([disabled]) {
+    opacity: 0.38;
+  }
+
+  &__label {
+    grid-area: main;
+    padding-inline: 12px;
+    @include typography.role("label-large");
+    @include typography.no-wrap();
+  }
+}

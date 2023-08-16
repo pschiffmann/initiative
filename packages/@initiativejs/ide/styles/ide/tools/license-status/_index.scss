@@ -1,0 +1,11 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
+@use "license-key-dialog";
+
+.initiative-license-status {
+  color: color.role("on-surface-deemphasized");
+  @include typography.role("label-small");
+  text-decoration: underline;
+  cursor: pointer;
+}

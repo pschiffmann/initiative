@@ -1,4 +1,6 @@
-# Kragle
+# InitiativeJS
+
+# Initiative.js
 
 <!-- The React framework that let's you separate your business logic, UI state, and style props, then compose everything without writing any boilerplate code. -->
 
@@ -25,7 +27,7 @@ function ShoppingCartItem({ item }) {
   const deleteItemMutation = useDeleteItemMutation();
   const deleteItem = useCallback(
     () => deleteItemMutation(id),
-    [(id, deleteItemMutation)]
+    [(id, deleteItemMutation)],
   );
 
   const { t } = useTranslation();
@@ -136,7 +138,7 @@ function ShoppingCartItem({ item }) {
 </tbody>
 </table>
 
-For comparison, here is the same component implemented with Kragle:
+For comparison, here is the same component implemented with InitiativeJS:
 
 ```ts
 function ShoppingCartItemBloc({ item, slots, OutputsProvider }) {
@@ -145,7 +147,7 @@ function ShoppingCartItemBloc({ item, slots, OutputsProvider }) {
   const deleteItemMutation = useDeleteItemMutation();
   const deleteItem = useCallback(
     () => deleteItemMutation(id),
-    [(id, deleteItemMutation)]
+    [(id, deleteItemMutation)],
   );
 
   return (
@@ -161,21 +163,21 @@ _Wait, what happened to the JSX?_
 The code you want to focus on during development, debugging and review is the business logic.
 But often times, component composition code and style props make up the overwhelming part of your component files, creating noise and distracting from the relevant lines of code.
 
-Kragle is built around a key observation: Unlike business logic code, component composition code is very standardized – so much so that it can easily be auto-generated.
+InitiativeJS is built around a key observation: Unlike business logic code, component composition code is very standardized – so much so that it can easily be auto-generated.
 All you need is a way to describe your UI structure to the code generator.
 
-And that's where the Kragle editor comes into play.
+And that's where the InitiativeJS editor comes into play.
 The editor is a core part of the framework that let's you compose and style your existing React components into pages and views.
 
 <div style="height: 500px; background-color: #eee; display: grid; place-items: center">image placeholder</div>
 
-The editor generates standard React code – here's an [example output](./packages/@pschiffmann/kragle-demo/kragle/scenes/article-management/scene.tsx).
+The editor generates standard React code – here's an [example output](./packages/@pschiffmann/InitiativeJS-demo/InitiativeJS/scenes/article-management/scene.tsx).
 The generated file exports a React component that you can import and render anywhere in your app.
 The component has the exact same behaviour as hand-written code, but you save yourself the tedious typing work, and keep your business logic free from UI clutter.
 
-### Kragle at a glance
+### InitiativeJS at a glance
 
-Kragle is ...
+InitiativeJS is ...
 
 - An API layer for building isolated components.
   Declare schemas for your components that describe the component inputs and outputs – i.e. what data must be passed into your component through props, and what data your component exposes to its subtree (through an `<OutputsProvider />`).
@@ -193,7 +195,7 @@ Kragle is ...
   Scenes are saved as tsx files and stored in your git repository.
   The generated code uses the schema types as well, so TypeScript will detect breaking changes in your generated scenes after you edit a schema or update an npm package.
 
-Check out the **[tutorial](./doc/01-installation.md)** to learn how Kragle works in detail.
+Check out the **[tutorial](./doc/01-installation.md)** to learn how InitiativeJS works in detail.
 
 ## Pricing and license terms
 
@@ -201,32 +203,32 @@ Refer to the [license](./LICENSE) for full details, but here is a quick summary.
 
 ### For app developers
 
-Kragle is free to use for for personal use and open source projects.
-You may also install and try out Kragle for evaluation purposes.
+InitiativeJS is free to use for for personal use and open source projects.
+You may also install and try out InitiativeJS for evaluation purposes.
 
-If you use Kragle in a commercial product, each developer on your team that uses the Kragle Editor must [purchase a license](TODO).
+If you use InitiativeJS in a commercial product, each developer on your team that uses the InitiativeJS Editor must [purchase a license](TODO).
 Licenses come with 12 months of updates from the date of purchase.
-You may continue to use all versions of Kragle that were released during that time period, but upgrading to later Kragle versions requires a new license.
+You may continue to use all versions of InitiativeJS that were released during that time period, but upgrading to later InitiativeJS versions requires a new license.
 
 Both community and commercial license allow you to ship generated scene code to production.
-However, you're not permitted to ship code to production that was imported from `@kragle/runtime` – like `NodeSchema` and `t.Type`.
+However, you're not permitted to ship code to production that was imported from `@initiativejs/schema` – like `NodeSchema` and `t.Type`.
 Refer to the [docs](./docs/01-installation.md) to learn how you can configure your bundler to exclude these files from production builds.
 
 ### For npm package authors
 
-Building reusable Kragle nodes, types and libraries and publishing them as npm packages is free.
+Building reusable InitiativeJS nodes, types and libraries and publishing them as npm packages is free.
 You can publish your package under any license you like, be it open source or for-profit.
 
-When bundling your package code before publishing, make sure that your bundle doesn't include code from `@kragle/runtime` – like `NodeSchema` or `t.Type`.
-Instead, your code may only include import statements to the `@kragle/runtime` package.
+When bundling your package code before publishing, make sure that your bundle doesn't include code from `@initiativejs/schema` – like `NodeSchema` or `t.Type`.
+Instead, your code may only include import statements to the `@initiativejs/schema` package.
 Refer to the [docs](./docs/01-installation.md) to learn how you can configure your bundler to exclude these files from production builds.
 
 ## Contributing
 
 The best way you can contribute to the project right now is by sharing your feedback with us.
 Please tell us about anything you're unhappy with – everything from minor inconveniences to full showstoppers.
-Browse our [Github issue tracker](https://github.com/pschiffmann/kragle.ts/issues) and upvote issues (by responding with 👍), comment your own requirements and ideas, or open a new issue.
+Browse our [Github issue tracker](https://github.com/pschiffmann/InitiativeJS.ts/issues) and upvote issues (by responding with 👍), comment your own requirements and ideas, or open a new issue.
 
 If you want to contribute code or documentation, that awesome!
 But before you start working on a PR, please talk to us first.
-For local development and debugging, follow the setup instructions [here](https://github.com/pschiffmann/kragle.ts/blob/main/doc/local-development.md).
+For local development and debugging, follow the setup instructions [here](https://github.com/pschiffmann/InitiativeJS.ts/blob/main/doc/local-development.md).

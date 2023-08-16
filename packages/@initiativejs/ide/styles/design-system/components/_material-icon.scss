@@ -1,0 +1,5 @@
+.initiative-material-icon {
+  --initiative-material-icon-density: 0;
+
+  font-size: calc(1.5rem + var(--initiative-material-icon-density) * 0.25rem);
+}

@@ -1,0 +1,18 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
+@use "node-tree-element";
+@use "create-node-dialog";
+
+.initiative-node-tree {
+  &__nodes {
+    padding: 8px;
+    overflow: auto;
+  }
+
+  &__create-root-node-button {
+    --initiative-button-fill-color: #{color.role("brand")};
+    --initiative-button-stroke-color: #{color.role("on-brand")};
+    place-self: center;
+  }
+}
