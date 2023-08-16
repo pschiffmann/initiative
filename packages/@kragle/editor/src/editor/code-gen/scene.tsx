@@ -1,4 +1,4 @@
-import { SceneDocument } from "../scene-data/index.js";
+import { SceneDocument } from "@kragle/runtime";
 
 export function generateEmptyScene(name: string): string {
   return `export function ${sanitizeSceneName(name)}() {

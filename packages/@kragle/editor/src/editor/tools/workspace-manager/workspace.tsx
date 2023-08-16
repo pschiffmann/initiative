@@ -1,9 +1,9 @@
+import { generateCodeForScene } from "#code-gen";
 import {
   Listener,
   Listeners,
   SceneDocument,
   Unsubscribe,
-  generateCodeForScene,
   sceneDocumentToJson,
   validateSceneName,
 } from "@kragle/runtime";

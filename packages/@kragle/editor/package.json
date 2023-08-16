@@ -11,6 +11,7 @@
     "./styles.css": "./dist/editor/styles.css"
   },
   "imports": {
+    "#code-gen": "./dist/editor/code-gen/index.js",
     "#design-system": "./dist/editor/design-system/index.js",
     "#license": "./dist/editor/license/index.js"
   },
