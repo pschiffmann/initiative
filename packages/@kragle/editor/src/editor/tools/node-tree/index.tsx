@@ -1,6 +1,7 @@
 import { Button, DialogCommand, IconButton, bemClasses } from "#design-system";
+import { useRootNodeId } from "#shared";
 import { CommandController } from "@kragle/react-command";
-import { SceneDocument, useRootNodeId } from "@kragle/runtime";
+import { SceneDocument } from "@kragle/runtime";
 import { useCallback, useState } from "react";
 import { DataFlowInspector } from "../data-flow-inspector/index.js";
 import { ToolFrame } from "../tool-frame.js";
@@ -23,7 +24,7 @@ export function NodeTree({
   className,
 }: NodeTreeProps) {
   const [dataFlowInspectorController] = useState(
-    () => new CommandController<DialogCommand>()
+    () => new CommandController<DialogCommand>(),
   );
 
   const rootNodeId = useRootNodeId(document);

@@ -1,8 +1,8 @@
+import { NodeSchema } from "@kragle/runtime";
 import { ComponentType, FunctionComponent } from "react";
-import { NodeSchema } from "../definitions/index.js";
+import { useNode } from "../../shared/use-scene-document.js";
 import { NodeOutputs, NodeOutputsProvider } from "./node-outputs.js";
 import { SceneRuntime } from "./scene-runtime.js";
-import { useNode } from "./use-scene-document.js";
 
 export interface SlotComponents {
   readonly [slotName: string]:

@@ -1,4 +1,5 @@
-import { Definitions, Scene } from "@kragle/runtime";
+import { Definitions } from "@kragle/runtime";
+import { Scene } from "./runtime/index.js";
 import { useEditorConnection } from "./use-editor-connection.js";
 
 export interface StageProps {

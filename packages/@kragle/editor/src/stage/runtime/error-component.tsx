@@ -1,5 +1,5 @@
+import { NodeData } from "@kragle/runtime";
 import { CSSProperties } from "react";
-import { NodeData } from "../scene-data/index.js";
 
 const rootStyle: CSSProperties = {
   padding: 8,

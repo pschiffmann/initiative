@@ -1,6 +1,6 @@
+import { SceneDocument } from "@kragle/runtime";
 import * as $Map from "@pschiffmann/std/map";
 import { ComponentType } from "react";
-import { SceneDocument } from "../scene-data/index.js";
 import { createNodeAdapterComponent } from "./node-adapter.js";
 
 export class SceneRuntime {

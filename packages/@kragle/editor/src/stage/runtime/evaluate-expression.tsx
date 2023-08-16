@@ -1,5 +1,4 @@
-import { Definitions } from "../definitions/index.js";
-import { ExpressionJson } from "../scene-data/index.js";
+import { Definitions, ExpressionJson } from "@kragle/runtime";
 import { AncestorOutputs } from "./node-outputs.js";
 
 export function evaluateExpression(

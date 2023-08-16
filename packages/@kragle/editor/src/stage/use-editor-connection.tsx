@@ -1,7 +1,6 @@
 import {
   Definitions,
   SceneDocument,
-  SceneRuntime,
   sceneDocumentFromJson,
 } from "@kragle/runtime";
 import * as $Promise from "@pschiffmann/std/promise";
@@ -10,6 +9,7 @@ import {
   ConnectToEditorRequest,
   StageConnectionCommand,
 } from "../shared/stage-connection-command.js";
+import { SceneRuntime } from "./runtime/index.js";
 
 export function useEditorConnection(definitions: Definitions) {
   const [runtime, setRuntime] = useState<SceneRuntime>();

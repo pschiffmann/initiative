@@ -1,5 +1,5 @@
+import { NodeSchema } from "@kragle/runtime";
 import { ReactNode, createContext, useContext } from "react";
-import { NodeSchema } from "../definitions/index.js";
 
 export type NodeOutputs = { readonly [outputName: string]: any };
 export type AncestorOutputs = { readonly [outputId: string]: any };

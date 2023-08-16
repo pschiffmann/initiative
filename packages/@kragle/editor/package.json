@@ -13,7 +13,8 @@
   "imports": {
     "#code-gen": "./dist/editor/code-gen/index.js",
     "#design-system": "./dist/editor/design-system/index.js",
-    "#license": "./dist/editor/license/index.js"
+    "#license": "./dist/editor/license/index.js",
+    "#shared": "./dist/shared/index.js"
   },
   "sideEffects": false,
   "dependencies": {

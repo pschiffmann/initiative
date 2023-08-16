@@ -1,5 +1,6 @@
 import { bemClasses } from "#design-system";
-import { SceneDocument, useNode } from "@kragle/runtime";
+import { useNode } from "#shared";
+import { SceneDocument } from "@kragle/runtime";
 import { Fragment } from "react";
 import { ToolFrame } from "../tool-frame.js";
 import { NodeInputControl } from "./controls.js";
@@ -56,7 +57,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
                 nodeData={nodeData}
                 inputName={inputName}
               />
-            )
+            ),
         )}
 
         {nodeData.schema.forEachSlot(
@@ -84,7 +85,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
                   </Fragment>
                 ))}
               </Fragment>
-            )
+            ),
         )}
       </div>
     </AncestorOutputsProvider>

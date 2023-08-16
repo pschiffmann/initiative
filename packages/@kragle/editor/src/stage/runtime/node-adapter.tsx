@@ -1,7 +1,7 @@
+import { Definitions, NodeData, NodeSchema } from "@kragle/runtime";
 import * as $Object from "@pschiffmann/std/object";
 import { ComponentType, FunctionComponent, useContext } from "react";
-import { Definitions, NodeSchema } from "../definitions/index.js";
-import { NodeData } from "../scene-data/index.js";
+import { useNode } from "../../shared/use-scene-document.js";
 import { ErrorComponent } from "./error-component.js";
 import { evaluateExpression } from "./evaluate-expression.js";
 import {
@@ -15,7 +15,6 @@ import {
   SlotComponents,
   createSlotComponents,
 } from "./slot-component.js";
-import { useNode } from "./use-scene-document.js";
 
 export function createNodeAdapterComponent(
   runtime: SceneRuntime,
