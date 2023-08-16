@@ -11,8 +11,8 @@
     "./styles.css": "./dist/editor/styles.css"
   },
   "imports": {
-    "#design-system": "./dist/design-system/index.js",
-    "#license": "./dist/license/index.js"
+    "#design-system": "./dist/editor/design-system/index.js",
+    "#license": "./dist/editor/license/index.js"
   },
   "sideEffects": false,
   "dependencies": {
