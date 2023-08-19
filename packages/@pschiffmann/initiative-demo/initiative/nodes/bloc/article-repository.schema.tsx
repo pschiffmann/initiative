@@ -6,10 +6,10 @@ export const ArticleRepositorySchema = new NodeSchema(
   {
     outputs: {
       articles: {
-        type: t.array(articleType),
+        type: t.array(articleType()),
       },
       updateArticle: {
-        type: t.function(articleType)(),
+        type: t.function(articleType())(),
       },
     },
     slots: {

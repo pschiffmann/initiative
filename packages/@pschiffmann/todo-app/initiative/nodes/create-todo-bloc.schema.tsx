@@ -6,7 +6,7 @@ export const CreateTodoBlocSchema = new NodeSchema(
   {
     inputs: {
       createTodo: {
-        type: t.function(todoItem)(),
+        type: t.function(todoItem())(),
       },
       closeDialog: {
         type: t.function()(),

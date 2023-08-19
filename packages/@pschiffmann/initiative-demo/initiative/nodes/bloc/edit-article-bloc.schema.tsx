@@ -6,10 +6,10 @@ export const EditArticleBlocSchema = new NodeSchema(
   {
     inputs: {
       article: {
-        type: articleType,
+        type: articleType(),
       },
       updateArticle: {
-        type: t.function(articleType)(),
+        type: t.function(articleType())(),
       },
     },
     outputs: {

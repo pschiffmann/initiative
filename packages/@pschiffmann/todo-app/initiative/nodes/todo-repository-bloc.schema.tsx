@@ -6,7 +6,7 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
   {
     outputs: {
       visibleTodos: {
-        type: t.array(todoItem),
+        type: t.array(todoItem()),
       },
       completedIds: {
         type: t.array(t.string()),
@@ -24,7 +24,7 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
         type: t.function()(),
       },
       createTodo: {
-        type: t.function(todoItem)(),
+        type: t.function(todoItem())(),
       },
       deleteTodo: {
         type: t.function(t.string())(t.function()()),
