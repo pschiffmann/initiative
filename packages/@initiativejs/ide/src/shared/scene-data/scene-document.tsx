@@ -297,9 +297,6 @@ export class SceneDocument {
     // newNodes?: ReadonlyMap<string, NodeData>
   ): ExpressionValidationContext {
     return {
-      getEntity: (entityName) => {
-        return this.definitions.entities.get(entityName) ?? null;
-      },
       getLibraryMemberType: (libraryName, memberName) => {
         return (
           this.definitions.libraries.get(libraryName)?.schema.members[

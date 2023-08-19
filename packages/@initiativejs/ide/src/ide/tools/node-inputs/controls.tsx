@@ -11,7 +11,6 @@ import {
 } from "#design-system";
 import {
   BooleanLiteralExpressionJson,
-  EntityLiteralExpressionJson,
   Expression,
   ExpressionJson,
   FunctionCallExpressionJson,
@@ -172,22 +171,6 @@ function BooleanLiteralControl({
   );
 }
 
-function EntityLiteralControl({
-  inputType,
-  json,
-  onChange,
-  ...props
-}: InputControlProps<EntityLiteralExpressionJson>) {
-  return (
-    <ButtonControl
-      adornmentIcon="build"
-      value={(inputType as t.Entity).literal!.format(json.value)}
-      onPress={() => alert("TODO: Open entity editor dialog")}
-      {...props}
-    />
-  );
-}
-
 function LibraryMemberControl({
   json,
   ...props
@@ -270,7 +253,6 @@ export const controlComponents = {
   "string-literal": StringLiteralControl,
   "number-literal": NumberLiteralControl,
   "boolean-literal": BooleanLiteralControl,
-  "entity-literal": EntityLiteralControl,
   "library-member": LibraryMemberControl,
   "scene-input": SceneInputControl,
   "node-output": NodeOutputControl,

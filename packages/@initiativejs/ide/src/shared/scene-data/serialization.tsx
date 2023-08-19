@@ -141,11 +141,6 @@ const expressionJsonSchemas = {
     type: "string",
     value: "boolean",
   },
-  "entity-literal": {
-    type: "string",
-    entityName: "string",
-    value: "unknown",
-  },
   "library-member": {
     type: "string",
     libraryName: "string",

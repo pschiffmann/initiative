@@ -7,7 +7,6 @@ export type ExpressionJson =
   | StringLiteralExpressionJson
   | NumberLiteralExpressionJson
   | BooleanLiteralExpressionJson
-  | EntityLiteralExpressionJson
   | LibraryMemberExpressionJson
   | SceneInputExpressionJson
   | NodeOutputExpressionJson
@@ -35,12 +34,6 @@ export interface NumberLiteralExpressionJson {
 export interface BooleanLiteralExpressionJson {
   readonly type: "boolean-literal";
   readonly value: boolean;
-}
-
-export interface EntityLiteralExpressionJson {
-  readonly type: "entity-literal";
-  readonly entityName: string;
-  readonly value: unknown;
 }
 
 export interface LibraryMemberExpressionJson {
@@ -183,10 +176,6 @@ export class Expression {
         case "number-literal":
         case "boolean-literal":
           return JSON.stringify(json.value);
-        case "entity-literal": {
-          const entity = types.get(json.entityName) as t.Entity | null;
-          return entity?.literal?.format(json) ?? json.entityName;
-        }
         case "node-output":
           return `<${json.nodeId}>.${json.outputName}`;
         case "scene-input":
@@ -207,8 +196,6 @@ export class Expression {
 }
 
 export interface ExpressionValidationContext {
-  getEntity(entityName: string): t.Entity | null;
-
   getLibraryMemberType(libraryName: string, memberName: string): t.Type | null;
 
   /**
@@ -245,8 +232,6 @@ function resolveTypes(
         return t.number(json.value);
       case "boolean-literal":
         return t.boolean(json.value);
-      case "entity-literal":
-        return ctx.getEntity(json.entityName);
       case "node-output":
         return ctx.getNodeOutputType(json.nodeId, json.outputName);
       case "scene-input":
@@ -289,16 +274,6 @@ function resolveErrors(
   ): string | null {
     const type = types.get(path || "/");
     switch (json.type) {
-      case "entity-literal":
-        if (!type) {
-          return `Entity '${json.entityName}' not found.`;
-        } else if (!(type as t.Entity).literal) {
-          return (
-            `Entity '${json.entityName}' doesn't support literal ` +
-            `expressions.`
-          );
-        }
-        break;
       case "library-member":
         if (!type) {
           return (

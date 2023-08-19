@@ -300,8 +300,6 @@ function provideValue(
       result += `)`;
       return result;
     }
-    case "entity-literal":
-      return JSON.stringify(exjson.value);
     case "scene-input":
     default:
       // NOT IMPLEMENTED
