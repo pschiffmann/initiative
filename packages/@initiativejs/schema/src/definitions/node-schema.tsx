@@ -18,6 +18,7 @@ interface NodeSchemaInit<
   readonly inputs?: I;
   readonly outputs?: O;
   readonly slots?: S;
+  readonly editor?: NodeSchemaEditor;
   readonly validate?: ValidateNode;
 }
 
@@ -48,6 +49,10 @@ export interface NodeSchemaSlot {
    */
   readonly inputs?: NodeSchemaInputs;
   readonly outputs?: NodeSchemaOutputs;
+}
+
+export interface NodeSchemaEditor {
+  readonly color?: string;
 }
 
 /**
@@ -126,8 +131,10 @@ export class NodeSchema<
     this.scopedOutputSlots = scopedOutputSlots;
     this.slotAttributes = slotAttributes;
     this.validate = init.validate;
+    this.editor = init.editor;
   }
 
+  readonly editor?: NodeSchemaEditor;
   readonly inputTypes: t.TypeRecord;
 
   /**

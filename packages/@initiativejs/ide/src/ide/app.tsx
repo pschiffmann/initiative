@@ -1,4 +1,9 @@
-import { IconButton, bemClasses, useColorTheme } from "#design-system";
+import {
+  ColorSchemeContext,
+  IconButton,
+  bemClasses,
+  useColorTheme,
+} from "#design-system";
 import { SceneDocument } from "#shared";
 import { Definitions } from "@initiativejs/schema";
 import { useRef, useState } from "react";
@@ -19,55 +24,57 @@ export function App({ definitions }: AppProps) {
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
-  const { rootRef, toggleColorScheme } = useApplyColorTheme();
+  const { rootRef, toggleColorScheme, colorScheme } = useApplyColorTheme();
 
   return (
     <DefinitionsContext.Provider value={definitions}>
-      <div ref={rootRef} className={cls.block()}>
-        <WorkspaceManager
-          className={cls.element("workspace-manager")}
-          document={document}
-          onDocumentChange={(document) => {
-            setSelectedNode(null);
-            setDocument(document);
-          }}
-        />
-        {document ? (
-          <>
-            <NodeTree
-              className={cls.element("node-tree")}
-              document={document}
-              selectedNode={selectedNode}
-              onSelectedNodeChange={setSelectedNode}
-            />
-            <StageView
-              className={cls.element("stage-view")}
-              document={document}
-            />
-            <NodeInputs
-              className={cls.element("node-inputs")}
-              document={document}
-              selectedNode={selectedNode}
-            />
-          </>
-        ) : (
-          <>
-            <EmptyTool position="node-tree" />
-            <EmptyTool position="stage-view" />
-            <EmptyTool position="node-inputs" />
-          </>
-        )}
-        <div className={cls.element("actions")}>
-          <IconButton
-            icon="dark_mode"
-            label="Toggle dark mode"
-            onPress={toggleColorScheme}
+      <ColorSchemeContext.Provider value={colorScheme}>
+        <div ref={rootRef} className={cls.block()}>
+          <WorkspaceManager
+            className={cls.element("workspace-manager")}
+            document={document}
+            onDocumentChange={(document) => {
+              setSelectedNode(null);
+              setDocument(document);
+            }}
           />
-          <IconButton icon="settings" label="Settings" disabled />
-          <IconButton icon="notifications" label="Announcements" disabled />
+          {document ? (
+            <>
+              <NodeTree
+                className={cls.element("node-tree")}
+                document={document}
+                selectedNode={selectedNode}
+                onSelectedNodeChange={setSelectedNode}
+              />
+              <StageView
+                className={cls.element("stage-view")}
+                document={document}
+              />
+              <NodeInputs
+                className={cls.element("node-inputs")}
+                document={document}
+                selectedNode={selectedNode}
+              />
+            </>
+          ) : (
+            <>
+              <EmptyTool position="node-tree" />
+              <EmptyTool position="stage-view" />
+              <EmptyTool position="node-inputs" />
+            </>
+          )}
+          <div className={cls.element("actions")}>
+            <IconButton
+              icon="dark_mode"
+              label="Toggle dark mode"
+              onPress={toggleColorScheme}
+            />
+            <IconButton icon="settings" label="Settings" disabled />
+            <IconButton icon="notifications" label="Announcements" disabled />
+          </div>
+          <LicenseStatus className={cls.element("license-status")} />
         </div>
-        <LicenseStatus className={cls.element("license-status")} />
-      </div>
+      </ColorSchemeContext.Provider>
     </DefinitionsContext.Provider>
   );
 }

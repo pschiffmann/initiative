@@ -1,10 +1,22 @@
-import { IconButton, bemClasses } from "#design-system";
-import { SceneDocument, useNode } from "#shared";
+import { ColorSchemeContext, IconButton, bemClasses } from "#design-system";
+import { NodeData, SceneDocument, useNode } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
-import { memo, useState } from "react";
+import {
+  TonalPalette,
+  argbFromHex,
+  hexFromArgb,
+} from "@material/material-color-utilities";
+import { memo, useContext, useMemo, useState } from "react";
 import { CreateNodeDialog } from "./create-node-dialog.js";
 
 const cls = bemClasses("initiative-node-tree-element");
+
+declare module "csstype" {
+  interface Properties {
+    "--initiative-node-tree-element-fill-color"?: string;
+    "--initiative-node-tree-element-stroke-color"?: string;
+  }
+}
 
 export interface NodeTreeElementProps {
   document: SceneDocument;
@@ -19,7 +31,21 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
   onSelectedNodeChange,
   nodeId,
 }: NodeTreeElementProps) {
-  const nodeData = useNode(document, nodeId);
+  const nodeData: NodeData = useNode(document, nodeId);
+  const nodeEditor = nodeData.schema.editor;
+  const colorScheme = useContext(ColorSchemeContext);
+  const style = useMemo(() => {
+    if (!nodeEditor?.color) return undefined;
+    const customPalette = TonalPalette.fromInt(argbFromHex(nodeEditor.color));
+    return {
+      "--initiative-node-tree-element-fill-color": hexFromArgb(
+        customPalette.tone(colorScheme !== "light" ? 20 : 80),
+      ),
+      "--initiative-node-tree-element-stroke-color": hexFromArgb(
+        customPalette!.tone(colorScheme !== "light" ? 80 : 20),
+      ),
+    };
+  }, [colorScheme]);
 
   const [collapsed, setCollapsed] = useState(new Set<string>());
   function toggleCollapsed(slotName: string) {
@@ -42,6 +68,7 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
       <div
         className={cls.element("node-id", null, selected && "selected")}
         onClick={toggleSelected}
+        style={style}
       >
         {nodeId}
       </div>

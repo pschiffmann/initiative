@@ -27,6 +27,9 @@ export const StackSchema = new NodeSchema(
         },
       },
     },
+    editor: {
+      color: "#010138",
+    },
   },
 );
 

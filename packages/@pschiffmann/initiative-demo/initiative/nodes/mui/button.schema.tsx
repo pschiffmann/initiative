@@ -37,6 +37,9 @@ export const MuiButtonSchema = new NodeSchema(
         type: t.function()(),
       },
     },
+    editor: {
+      color: "#e69138",
+    },
   },
 );
 

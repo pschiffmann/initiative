@@ -26,6 +26,9 @@ export const MuiDialogSchema = new NodeSchema(
       trigger: {},
       content: {},
     },
+    editor: {
+      color: "#e622f8",
+    },
   },
 );
 

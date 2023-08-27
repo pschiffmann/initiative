@@ -14,6 +14,9 @@ export const MuiTextFieldSchema = new NodeSchema(
         type: t.function(t.string())(),
       },
     },
+    editor: {
+      color: "#005008",
+    },
   },
 );
 

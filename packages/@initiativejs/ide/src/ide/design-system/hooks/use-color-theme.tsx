@@ -3,7 +3,9 @@ import {
   hexFromArgb,
   TonalPalette,
 } from "@material/material-color-utilities";
-import { RefObject, useEffect } from "react";
+import { createContext, RefObject, useEffect } from "react";
+
+export const ColorSchemeContext = createContext<"light" | "dark">("light");
 
 export function useColorTheme(
   ref: RefObject<HTMLElement>,
