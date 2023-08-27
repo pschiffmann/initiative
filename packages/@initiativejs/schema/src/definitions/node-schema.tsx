@@ -53,6 +53,7 @@ export interface NodeSchemaSlot {
 
 export interface NodeSchemaEditor {
   readonly color?: string;
+  readonly icon?: string;
 }
 
 /**

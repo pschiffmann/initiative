@@ -1,4 +1,10 @@
-import { ColorSchemeContext, IconButton, bemClasses } from "#design-system";
+import {
+  ColorSchemeContext,
+  IconButton,
+  MaterialIcon,
+  Typography,
+  bemClasses,
+} from "#design-system";
 import { NodeData, SceneDocument, useNode } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
 import {
@@ -66,11 +72,27 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
   return (
     <div className={cls.block()}>
       <div
-        className={cls.element("node-id", null, selected && "selected")}
+        className={cls.element(
+          "node-id-container",
+          null,
+          selected && "selected",
+        )}
         onClick={toggleSelected}
         style={style}
       >
-        {nodeId}
+        {nodeEditor?.icon !== undefined ? (
+          <MaterialIcon
+            icon={nodeEditor.icon}
+            className={cls.element("icon")}
+          />
+        ) : undefined}
+        <Typography
+          className={cls.element("node-id")}
+          variant="body-medium"
+          noWrap
+        >
+          {nodeId}
+        </Typography>
       </div>
       <ul className={cls.element("slots")}>
         {nodeData.schema.forEachSlot((slotName, { isCollectionSlot }) => {

@@ -27,6 +27,9 @@ export const MuiTypographySchema = new NodeSchema(
         ),
       },
     },
+    editor: {
+      icon: "text_fields",
+    },
   },
 );
 

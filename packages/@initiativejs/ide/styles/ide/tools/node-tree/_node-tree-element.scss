@@ -16,7 +16,7 @@
     content: "";
   }
 
-  &__node-id {
+  &__node-id-container {
     --initiative-node-tree-element-fill-color: transparent;
     --initiative-node-tree-element-stroke-color: #{color.role("on-surface")};
     --initiative-node-tree-element-state-layer-opacity: 0%;
@@ -29,6 +29,9 @@
     }
     position: relative;
     z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     padding: 4px 0 4px calc(var(--initiative-node-tree-depth) * 12px - 4px);
     background-color: color-mix(
       in srgb,
@@ -38,7 +41,6 @@
     );
 
     color: var(--initiative-node-tree-element-stroke-color);
-    @include typography.role("body-medium");
     border-radius: 4px;
 
     &--selected {
@@ -54,6 +56,10 @@
       border-top: 1px solid color.role("divider");
       content: "";
     }
+  }
+
+  &__icon {
+    --initiative-material-icon-density: -2;
   }
 
   &__slots {

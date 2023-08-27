@@ -39,6 +39,7 @@ export const MuiButtonSchema = new NodeSchema(
     },
     editor: {
       color: "#e69138",
+      icon: "bento",
     },
   },
 );
