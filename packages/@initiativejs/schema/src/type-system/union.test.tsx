@@ -32,13 +32,3 @@ describe("isAssignableTo():", () => {
     expect(t1.isAssignableTo(t2)).toBe(false);
   });
 });
-
-describe("normalize():", () => {
-  test("type `true | (false | number)` is flattened to `boolean | number`", () => {
-    expect(true).toBe(true);
-    return;
-    const t1 = t.union(t.boolean(true), t.union(t.boolean(false), t.number()));
-    const elements = [...t1.elements].sort();
-    expect(elements).toEqual([t.boolean(), t.number()]);
-  });
-});

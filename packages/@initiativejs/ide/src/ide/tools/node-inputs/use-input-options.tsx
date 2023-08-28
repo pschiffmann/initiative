@@ -92,12 +92,6 @@ export function useInputOptions(
           expression: { type: "number-literal", value: element.value },
         });
       }
-      if (t.Boolean.is(element) && element.value !== undefined) {
-        options.push({
-          label: `${element.value}`,
-          expression: { type: "boolean-literal", value: element.value },
-        });
-      }
     }
   }
 

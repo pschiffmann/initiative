@@ -1,36 +1,21 @@
-import * as t from "./index.js";
 import { Type } from "./type.js";
 
-class InitiativeBoolean<T extends boolean = boolean> extends Type<T> {
-  constructor(readonly value?: T) {
+class InitiativeBoolean extends Type<boolean> {
+  constructor() {
     super();
   }
 
-  override isAssignableTo(other: Type): boolean {
-    return this.value === undefined
-      ? t.union(t.boolean(true), t.boolean(false)).isAssignableTo(other)
-      : super.isAssignableTo(other);
-  }
-
   protected override _isAssignableTo(other: Type): boolean {
-    return (
-      InitiativeBoolean.is(other) &&
-      (other.value === undefined || other.value === this.value)
-    );
+    return other instanceof InitiativeBoolean;
   }
 
   override toString(): string {
-    return this.value === undefined ? "boolean" : `${this.value}`;
-  }
-
-  // Workaround for: https://github.com/microsoft/TypeScript/issues/17473
-  static is(t: Type): t is InitiativeBoolean {
-    return t instanceof InitiativeBoolean;
+    return "boolean";
   }
 }
 
-function initiativeBoolean<T extends boolean>(value?: T): InitiativeBoolean<T> {
-  return new InitiativeBoolean(value);
+function initiativeBoolean(): InitiativeBoolean {
+  return new InitiativeBoolean();
 }
 
 export { InitiativeBoolean as Boolean, initiativeBoolean as boolean };

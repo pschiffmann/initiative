@@ -231,7 +231,7 @@ function resolveTypes(
       case "number-literal":
         return t.number(json.value);
       case "boolean-literal":
-        return t.boolean(json.value);
+        return t.boolean();
       case "node-output":
         return ctx.getNodeOutputType(json.nodeId, json.outputName);
       case "scene-input":

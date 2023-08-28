@@ -8,7 +8,7 @@ export function resolveType(value: any): Type {
     case "number":
       return t.number(value);
     case "boolean":
-      return t.boolean(value);
+      return t.boolean();
     case "undefined":
       return t.undefined();
   }

@@ -29,8 +29,6 @@ class InitiativeUnion<T extends t.TypeArray = t.TypeArray> extends Type<
 
   override canonicalize(): Type {
     const result: Type[] = [];
-    let containsTrue = false;
-    let containsFalse = false;
 
     function addElement(element: t.Type) {
       for (const [i, other] of result.entries()) {
@@ -43,37 +41,13 @@ class InitiativeUnion<T extends t.TypeArray = t.TypeArray> extends Type<
       result.push(element);
     }
 
-    function addBoolean(element: t.Boolean) {
-      switch (element.value) {
-        case true:
-          containsTrue = true;
-          break;
-        case false:
-          containsFalse = true;
-          break;
-        case undefined:
-          containsTrue = containsFalse = true;
-          break;
-      }
-    }
-
     for (const element of this.elements.flatMap((e) => {
       const canonicalized = e.canonicalize();
       return InitiativeUnion.is(canonicalized)
         ? canonicalized.elements
         : [canonicalized];
     })) {
-      if (t.Boolean.is(element)) {
-        addBoolean(element);
-      } else {
-        addElement(element);
-      }
-    }
-
-    if (containsTrue || containsFalse) {
-      result.push(
-        t.boolean(containsTrue && containsFalse ? undefined : containsTrue),
-      );
+      addElement(element);
     }
 
     return result.length === 1 ? result[0] : new InitiativeUnion(result);
