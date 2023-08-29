@@ -281,7 +281,7 @@ export class SceneDocument {
       expression &&
         new Expression(
           expression,
-          oldNode.schema.inputTypes[inputName],
+          oldNode.schema.getInputAttributes(inputName).type,
           this.#createExpressionValidationContext(oldNode),
         ),
       inputName,
@@ -313,13 +313,14 @@ export class SceneDocument {
             continue;
           }
 
-          const slotName = parentNode.schema.getScopedOutputSlot(outputName);
-          if (slotName !== null && slotName !== parent.slotName) {
+          const { type, slot } =
+            parentNode.schema.getOutputAttributes(outputName);
+          if (slot && slot !== parent.slotName) {
             throw new Error(
               `Output '${nodeId}::${outputName}' is not exposed to this node.`,
             );
           }
-          return parentNode.schema.outputTypes[outputName];
+          return type;
         }
         throw new Error(`Node '${nodeId}' is not an ancestor of this node.`);
       },

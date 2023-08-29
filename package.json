@@ -9,7 +9,7 @@
     "format": "prettier -w packages/"
   },
   "dependencies": {
-    "@pschiffmann/std": "^0.3.2",
+    "@pschiffmann/std": "^0.3.4",
     "prettier": "3.0.1",
     "typescript": "^5.1.6"
   }

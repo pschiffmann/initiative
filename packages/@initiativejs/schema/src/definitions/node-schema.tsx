@@ -1,3 +1,4 @@
+import { ObjectMap } from "@pschiffmann/std/object-map";
 import * as t from "../type-system/index.js";
 import {
   validateNodeInputName,
@@ -11,9 +12,9 @@ import {
 //
 
 interface NodeSchemaInit<
-  I extends NodeSchemaInputs = {},
-  O extends NodeSchemaOutputs = {},
-  S extends NodeSchemaSlots = {},
+  I extends ObjectMap<InputInit> = {},
+  O extends ObjectMap<OutputInit> = {},
+  S extends ObjectMap<SlotInit> = {},
 > {
   readonly inputs?: I;
   readonly outputs?: O;
@@ -22,33 +23,16 @@ interface NodeSchemaInit<
   readonly validate?: ValidateNode;
 }
 
-export interface NodeSchemaInputs {
-  readonly [inputName: string]: NodeSchemaInput;
-}
+export type InputInit = Omit<InputAttributes, "slot">;
+export type OutputInit = Omit<OutputAttributes, "slot">;
 
-export interface NodeSchemaInput {
-  readonly type: t.Type;
-}
-
-export interface NodeSchemaOutputs {
-  readonly [inputName: string]: NodeSchemaOutput;
-}
-
-export interface NodeSchemaOutput {
-  readonly type: t.Type;
-}
-
-export interface NodeSchemaSlots {
-  readonly [slotName: string]: NodeSchemaSlot;
-}
-
-export interface NodeSchemaSlot {
+export interface SlotInit {
   /**
    * If a slot schema has an `inputs` key (even if it is empty), then that slot
    * is a collection slot and can accept any number of children, including 0.
    */
-  readonly inputs?: NodeSchemaInputs;
-  readonly outputs?: NodeSchemaOutputs;
+  readonly inputs?: ObjectMap<InputInit>;
+  readonly outputs?: ObjectMap<OutputInit>;
 }
 
 export interface NodeSchemaEditor {
@@ -67,9 +51,9 @@ export type ValidateNode = (nodeJson: unknown /*NodeJson*/) => string | null;
 //
 
 export class NodeSchema<
-  I extends NodeSchemaInputs = {},
-  O extends NodeSchemaOutputs = {},
-  S extends NodeSchemaSlots = {},
+  I extends ObjectMap<InputInit> = {},
+  O extends ObjectMap<OutputInit> = {},
+  S extends ObjectMap<SlotInit> = {},
 > {
   constructor(
     readonly name: string,
@@ -77,157 +61,129 @@ export class NodeSchema<
   ) {
     validateNodeSchemaName(name);
 
-    const canonicalizedInputTypes: Record<string, t.Type> = {};
-    for (const [inputName, { type }] of Object.entries(init.inputs ?? {})) {
+    const inputAttributes: Record<string, InputAttributes> = {};
+    for (const [inputName, attributes] of Object.entries(init.inputs ?? {})) {
       validateNodeInputName(name, inputName);
-      canonicalizedInputTypes[inputName] = type.canonicalize();
+      inputAttributes[inputName] = {
+        ...attributes,
+        type: attributes.type.canonicalize(),
+      };
     }
 
-    const canonicalizedOutputTypes: Record<string, t.Type> = {};
-    for (const [outputName, { type }] of Object.entries(init.outputs ?? {})) {
+    const outputAttributes: Record<string, OutputAttributes> = {};
+    for (const [outputName, attributes] of Object.entries(init.outputs ?? {})) {
       validateNodeOutputName(name, outputName);
-      canonicalizedOutputTypes[outputName] = type.canonicalize();
+      outputAttributes[outputName] = {
+        ...attributes,
+        type: attributes.type.canonicalize(),
+      };
     }
 
     const slotAttributes: Record<string, SlotAttributes> = {};
-    const collectionInputSlots: Record<string, string> = {};
-    const scopedOutputSlots: Record<string, string> = {};
-    for (const [slotName, slotSchema] of Object.entries(init.slots ?? {})) {
-      const { inputs = {}, outputs = {} } = slotSchema;
+    for (const [slotName, slotInit] of Object.entries(init.slots ?? {})) {
+      const { inputs = {}, outputs = {} } = slotInit;
       validateNodeSlotName(name, slotName);
       slotAttributes[slotName] = {
-        isCollectionSlot: !!slotSchema.inputs,
+        isCollectionSlot: !!slotInit.inputs,
         inputNames: Object.keys(inputs),
         outputNames: Object.keys(outputs),
       };
 
-      for (const [inputName, { type }] of Object.entries(inputs)) {
+      for (const [inputName, attributes] of Object.entries(inputs)) {
         validateNodeInputName(name, inputName);
-        if (canonicalizedInputTypes[inputName]) {
+        if (inputAttributes[inputName]) {
           throw new Error(
             `NodeSchema '${name}' must not contain multiple declarations of ` +
               `input '${inputName}'.`,
           );
         }
-        collectionInputSlots[inputName] = slotName;
-        canonicalizedInputTypes[inputName] = type.canonicalize();
+        inputAttributes[inputName] = {
+          ...attributes,
+          type: attributes.type.canonicalize(),
+          slot: slotName,
+        };
       }
 
-      for (const [outputName, { type }] of Object.entries(outputs)) {
+      for (const [outputName, attributes] of Object.entries(outputs)) {
         validateNodeOutputName(name, outputName);
-        if (canonicalizedOutputTypes[outputName]) {
+        if (outputAttributes[outputName]) {
           throw new Error(
             `NodeSchema '${name}' must not contain multiple declarations of ` +
               `output '${outputName}'.`,
           );
         }
-        scopedOutputSlots[outputName] = slotName;
-        canonicalizedOutputTypes[outputName] = type.canonicalize();
+        outputAttributes[outputName] = {
+          ...attributes,
+          type: attributes.type.canonicalize(),
+          slot: slotName,
+        };
       }
     }
 
-    this.inputTypes = canonicalizedInputTypes;
-    this.collectionInputSlots = collectionInputSlots;
-    this.outputTypes = canonicalizedOutputTypes;
-    this.scopedOutputSlots = scopedOutputSlots;
+    this.inputAttributes = inputAttributes;
+    this.outputAttributes = outputAttributes;
     this.slotAttributes = slotAttributes;
     this.validate = init.validate;
     this.editor = init.editor;
   }
 
   readonly editor?: NodeSchemaEditor;
-  readonly inputTypes: t.TypeRecord;
-
-  /**
-   * Map from collection input name to slot name it belongs to.
-   */
-  readonly collectionInputSlots: { readonly [inputName: string]: string };
-
-  readonly outputTypes: t.TypeRecord;
-
-  /**
-   * Map from scoped output name to slot name it belongs to.
-   */
-  readonly scopedOutputSlots: { readonly [outputName: string]: string };
-
+  readonly inputAttributes: ObjectMap<InputAttributes>;
+  readonly outputAttributes: ObjectMap<OutputAttributes>;
   readonly slotAttributes: { readonly [slotName: string]: SlotAttributes };
 
   readonly validate?: ValidateNode;
 
   /**
-   * Returns the slot name that `inputName` belongs to, or `null` if `inputName`
-   * is a regular input.
-   *
    * Throws an error if `inputName` doesn't exist.
    */
-  getCollectionInputSlot(inputName: string): string | null {
-    if (!this.inputTypes[inputName]) {
+  getInputAttributes(inputName: string): InputAttributes {
+    if (!this.inputAttributes[inputName]) {
       throw new Error(
         `Input '${inputName}' doesn't exist on schema '${this.name}'.`,
       );
     }
-    return this.collectionInputSlots[inputName] ?? null;
+    return this.inputAttributes[inputName];
   }
 
   /**
-   * Returns the slot name that `outputName` belongs to, or `null` if
-   * `outputName` is a regular output.
-   *
    * Throws an error if `outputName` doesn't exist.
    */
-  getScopedOutputSlot(outputName: string): string | null {
-    if (!this.outputTypes[outputName]) {
+  getOutputAttributes(outputName: string): OutputAttributes {
+    if (!this.outputAttributes[outputName]) {
       throw new Error(
         `Output '${outputName}' doesn't exist on schema '${this.name}'.`,
       );
     }
-    return this.scopedOutputSlots[outputName] ?? null;
+    return this.outputAttributes[outputName];
   }
 
   /**
-   * Calls `callback` for each input. If `inputName` is a collection input,
-   * `slotName` contains the slot name this input belongs to.
+   * Throws an error if `slotName` doesn't exist.
    */
-  forEachInput<R>(
-    callback: (type: t.Type, inputName: string, slotName?: string) => R,
-  ): R[] {
-    return Object.entries(this.inputTypes).map(([inputName, type]) =>
-      callback(type, inputName, this.collectionInputSlots[inputName]),
-    );
-  }
-
-  /**
-   * Calls `callback` for each input that belongs to `slotName`.
-   *
-   * Throws an error if `slotName` is not a collection slot.
-   */
-  forEachCollectionSlotInput<R>(
-    slotName: string,
-    callback: (type: t.Type, inputName: string) => R,
-  ): R[] {
-    const slotAttributes = this.slotAttributes[slotName];
-    if (!slotAttributes) {
-      throw new Error(`NodeSchema '${this.name}' has no slot '${slotName}'.`);
-    }
-    if (!slotAttributes.isCollectionSlot) {
-      throw new Error(
-        `Slot '${slotName}' of NodeSchema '${this.name}' is not a collection ` +
-          `slot.`,
-      );
-    }
-    return slotAttributes.inputNames.map((inputName) =>
-      callback(this.inputTypes[inputName], inputName),
-    );
-  }
-
-  isCollectionSlot(slotName: string): boolean {
-    const slotAttributes = this.slotAttributes[slotName];
-    if (!slotAttributes) {
+  getSlotAttributes(slotName: string): SlotAttributes {
+    if (!this.slotAttributes[slotName]) {
       throw new Error(
         `Slot '${slotName}' doesn't exist on schema '${this.name}'.`,
       );
     }
-    return slotAttributes.isCollectionSlot;
+    return this.slotAttributes[slotName];
+  }
+
+  forEachInput<R>(
+    callback: (inputName: string, attributes: InputAttributes) => R,
+  ): R[] {
+    return Object.entries(this.inputAttributes).map(([inputName, attributes]) =>
+      callback(inputName, attributes),
+    );
+  }
+
+  forEachOutput<R>(
+    callback: (outputName: string, attributes: OutputAttributes) => R,
+  ): R[] {
+    return Object.entries(this.outputAttributes).map(
+      ([outputName, attributes]) => callback(outputName, attributes),
+    );
   }
 
   forEachSlot<R>(
@@ -238,24 +194,36 @@ export class NodeSchema<
     );
   }
 
-  forEachOutput<R>(
-    callback: (type: t.Type, outputName: string, slotName?: string) => R,
-  ): R[] {
-    return Object.entries(this.outputTypes).map(([outputName, type]) =>
-      callback(type, outputName, this.scopedOutputSlots[outputName]),
+  hasRegularOutputs(): boolean {
+    return Object.values(this.outputAttributes).some(
+      (attributes) => !attributes.slot,
     );
   }
 
   hasSlots(): boolean {
     return Object.keys(this.slotAttributes).length !== 0;
   }
+}
 
-  hasRegularOutputs(): boolean {
-    return (
-      Object.keys(this.outputTypes).length >
-      Object.keys(this.scopedOutputSlots).length
-    );
-  }
+export interface InputAttributes {
+  readonly type: t.Type;
+  readonly optional?: boolean;
+  readonly doc?: string;
+
+  /**
+   * If this is a collection input, contains the slot name.
+   */
+  readonly slot?: string;
+}
+
+export interface OutputAttributes {
+  readonly type: t.Type;
+  readonly doc?: string;
+
+  /**
+   * If this is a scoped output, contains the slot name.
+   */
+  readonly slot?: string;
 }
 
 export interface SlotAttributes {

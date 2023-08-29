@@ -23,8 +23,8 @@ export function NodeOutputsProvider({
 }: NodeOutputsProviderProps) {
   const ancestorOutputs = useContext(AncestorOutputsContext);
   const mergedOutputs = { ...ancestorOutputs };
-  schema.forEachOutput((type, outputName, slotName2) => {
-    if (slotName !== slotName2) return;
+  schema.forEachOutput((outputName, { type, slot }) => {
+    if (slotName !== slot) return;
     mergedOutputs[`${nodeId}::${outputName}`] = outputs[outputName];
   });
   return (

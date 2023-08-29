@@ -95,9 +95,9 @@ export class NodeData {
     ) => R,
   ): R[] {
     const result: R[] = [];
-    this.schema.forEachInput((type, inputName, slotName) => {
-      if (slotName) {
-        const childCount = this.collectionSlotSizes[slotName];
+    this.schema.forEachInput((inputName, { type, slot }) => {
+      if (slot) {
+        const childCount = this.collectionSlotSizes[slot];
         if (childCount === 0) {
           result.push(callback(null, type, inputName, -1));
         }
@@ -148,7 +148,7 @@ export class NodeData {
     callback: (childId: string, index: number) => R,
   ): R[] {
     const result: R[] = [];
-    if (this.schema.isCollectionSlot(slotName)) {
+    if (this.schema.getSlotAttributes(slotName).isCollectionSlot) {
       for (let i = 0; i < this.collectionSlotSizes[slotName]; i++) {
         result.push(callback(this.slots[`${slotName}::${i}`], i));
       }
@@ -165,13 +165,13 @@ export class NodeData {
     index?: number,
   ): NodeData {
     let inputKey: string;
-    const collectionSlot = this.schema.getCollectionInputSlot(inputName);
-    if (collectionSlot) {
+    const { slot } = this.schema.getInputAttributes(inputName);
+    if (slot) {
       if (
         typeof index !== "number" ||
         !Number.isInteger(index) ||
         index < 0 ||
-        index >= this.collectionSlotSizes[collectionSlot]
+        index >= this.collectionSlotSizes[slot]
       ) {
         throw new Error(`Invalid index '${index}' for input '${inputName}'.`);
       }
@@ -202,7 +202,7 @@ export class NodeData {
     slotName: string,
     index = this.collectionSlotSizes[slotName],
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
-    if (!this.schema.isCollectionSlot(slotName)) {
+    if (!this.schema.getSlotAttributes(slotName).isCollectionSlot) {
       const self = this.#addRegularChild(childId, slotName);
       return [self, { [childId]: { nodeId: this.id, slotName } }];
     } else {
@@ -244,14 +244,15 @@ export class NodeData {
     const slots = { ...this.slots };
     for (let i = childCount; i > index; i--) {
       slots[`${slotName}::${i}`] = slots[`${slotName}::${i - 1}`];
-      this.schema.forEachCollectionSlotInput(slotName, (_, inputName) => {
+      for (const inputName of this.schema.getSlotAttributes(slotName)
+        .inputNames) {
         const prev = inputs[`${inputName}::${i - 1}`];
         if (prev) {
           inputs[`${inputName}::${i}`] = prev;
         } else {
           delete inputs[`${inputName}::${i}`];
         }
-      });
+      }
     }
     slots[`${slotName}::${index}`] = childId;
 
@@ -269,7 +270,7 @@ export class NodeData {
     slotName: string,
     index?: number,
   ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
-    if (!this.schema.isCollectionSlot(slotName)) {
+    if (!this.schema.getSlotAttributes(slotName).isCollectionSlot) {
       const self = this.#removeRegularChild(slotName);
       return [self, {}];
     } else {
@@ -313,19 +314,21 @@ export class NodeData {
     const slots = { ...this.slots };
     for (let i = index; i < childCount; i++) {
       slots[`${slotName}::${i}`] = slots[`${slotName}::${i + 1}`];
-      this.schema.forEachCollectionSlotInput(slotName, (_, inputName) => {
+      for (const inputName of this.schema.getSlotAttributes(slotName)
+        .inputNames) {
         const next = inputs[`${inputName}::${i + 1}`];
         if (next) {
           inputs[`${inputName}::${i}`] = next;
         } else {
           delete inputs[`${inputName}::${i}`];
         }
-      });
+      }
     }
     delete slots[`${slotName}::${childCount}`];
-    this.schema.forEachCollectionSlotInput(slotName, (_, inputName) => {
+    for (const inputName of this.schema.getSlotAttributes(slotName)
+      .inputNames) {
       delete inputs[`${inputName}::${index}`];
-    });
+    }
 
     return new NodeData(
       this.schema,
@@ -338,7 +341,7 @@ export class NodeData {
   }
 
   renameChild(childId: string, slotName: string, index?: number): NodeData {
-    const slotKey = this.schema.isCollectionSlot(slotName)
+    const slotKey = this.schema.getSlotAttributes(slotName).isCollectionSlot
       ? `${slotName}::${index}`
       : slotName;
     if (!this.slots[slotKey]) throw new Error(`Slot '${slotKey}' is empty.`);

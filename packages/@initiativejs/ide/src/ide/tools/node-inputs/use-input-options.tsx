@@ -28,14 +28,16 @@ export function AncestorOutputsProvider({
   for (let current = nodeData.parent; current; ) {
     const { nodeId, slotName } = current;
     const parentNodeData = document.getNode(nodeId);
-    parentNodeData.schema.forEachOutput((type, outputName, outputScope) => {
-      if (!outputScope || slotName === outputScope) {
-        ancestorOutputs.push({
-          expression: { type: "node-output", nodeId, outputName },
-          type,
-        });
-      }
-    });
+    parentNodeData.schema.forEachOutput(
+      (outputName, { type, slot: outputScope }) => {
+        if (!outputScope || slotName === outputScope) {
+          ancestorOutputs.push({
+            expression: { type: "node-output", nodeId, outputName },
+            type,
+          });
+        }
+      },
+    );
     current = parentNodeData.parent;
   }
 

@@ -44,7 +44,7 @@ export function NodeInputControl({
   index,
 }: NodeInputControlProps) {
   const inputKey = index !== undefined ? `${inputName}::${index}` : inputName;
-  const inputType = nodeData.schema.inputTypes[inputName];
+  const inputType = nodeData.schema.inputAttributes[inputName].type;
   const expression = nodeData.inputs[inputKey];
   const helpText = `Expected type: ${inputType}`;
   const errorText = !nodeData.errors?.invalidInputs.has(inputKey)

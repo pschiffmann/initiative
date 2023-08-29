@@ -28,7 +28,7 @@ export function generateNodeRuntime(
   //
 
   // generateNodeOutputContexts
-  if (Object.keys(nodeData.schema.outputTypes).length > 0) {
+  if (Object.keys(nodeData.schema.outputAttributes).length > 0) {
     result += generateNodeOuptputContexts(nodeData, importNames) + "\n";
   }
   //
@@ -179,7 +179,7 @@ function generateNodeOuptputContexts(
 ): string {
   let result: string = "";
   const schemaName = importNames.nodeComponents.get(nodeData.type);
-  for (const output of Object.keys(nodeData.schema.outputTypes)) {
+  for (const output of Object.keys(nodeData.schema.outputAttributes)) {
     result += `const ${nodeData.id}$${output}Context = createContext<`;
     result += `OutputTypes<${schemaName}Schema>["${output}"]>(null!);\n`;
   }
@@ -191,7 +191,7 @@ function generateNodeOutputsProvider(
   importNames: ImportNames,
 ): string {
   let result: string = "";
-  const outputNames = Object.keys(nodeData.schema.outputTypes);
+  const outputNames = Object.keys(nodeData.schema.outputAttributes);
   result += `function ${nodeData.id}_OutputsProvider({\n`;
   for (const output of outputNames) {
     result += `${output},\n`;
@@ -215,7 +215,7 @@ function generateSlotComponent(
 ): string {
   let result: string = ``;
   result += `function ${nodeData.id}_${slotName}({ `;
-  const list: Array<string> = Object.keys(nodeData.schema.outputTypes);
+  const list: Array<string> = Object.keys(nodeData.schema.outputAttributes);
   for (const prop of list) {
     result += `${prop}, `;
   }

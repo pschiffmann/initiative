@@ -1,12 +1,8 @@
+import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, PropsWithChildren } from "react";
 import { Flatten, MakeUndefinedOptional } from "../type-helpers/index.js";
 import * as t from "../type-system/index.js";
-import {
-  NodeSchema,
-  NodeSchemaInputs,
-  NodeSchemaOutputs,
-  NodeSchemaSlots,
-} from "./node-schema.js";
+import { InputInit, NodeSchema, OutputInit, SlotInit } from "./node-schema.js";
 
 /**
  * Infers the `props` type for a node component from a `NodeSchema`.
@@ -70,7 +66,7 @@ export type OutputTypes<nodeSchema extends NodeSchema> =
     ? RegularOutputTypes<O> & ScopedOutputTypes<S>
     : never;
 
-type RegularInputTypes<I extends NodeSchemaInputs> = MakeUndefinedOptional<{
+type RegularInputTypes<I extends ObjectMap<InputInit>> = MakeUndefinedOptional<{
   readonly [inputName in keyof I]: t.Unwrap<I[inputName]["type"]>;
 }>;
 
@@ -105,7 +101,7 @@ type RegularInputTypes<I extends NodeSchemaInputs> = MakeUndefinedOptional<{
  * };
  * ```
  */
-type CollectionInputTypes<S extends NodeSchemaSlots> = Flatten<{
+type CollectionInputTypes<S extends ObjectMap<SlotInit>> = Flatten<{
   readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
     ? {
         readonly [inputName in keyof S[slotName]["inputs"]]: readonly t.Unwrap<
@@ -115,11 +111,12 @@ type CollectionInputTypes<S extends NodeSchemaSlots> = Flatten<{
     : {};
 }>;
 
-type RegularOutputTypes<O extends NodeSchemaOutputs> = MakeUndefinedOptional<{
-  readonly [outputName in keyof O]: t.Unwrap<O[outputName]["type"]>;
-}>;
+type RegularOutputTypes<O extends ObjectMap<OutputInit>> =
+  MakeUndefinedOptional<{
+    readonly [outputName in keyof O]: t.Unwrap<O[outputName]["type"]>;
+  }>;
 
-type ScopedOutputTypes<S extends NodeSchemaSlots> = Flatten<{
+type ScopedOutputTypes<S extends ObjectMap<SlotInit>> = Flatten<{
   readonly [slotName in keyof S]: S[slotName]["outputs"] extends {}
     ? {
         readonly [outputName in keyof S[slotName]["outputs"]]: t.Unwrap<
