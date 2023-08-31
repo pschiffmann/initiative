@@ -12,12 +12,16 @@ class InitiativeLazy<T> extends Type<T> {
     return (this.resolve() as any)._isAssignableTo(other);
   }
 
+  protected _compareTo(other: this): number {
+    return this.resolve().compareTo(other);
+  }
+
   override canonicalize(): Type {
     return this.resolve();
   }
 
   override toString(): string {
-    return this.resolve().name;
+    return `lazy(${this.resolve().name})`;
   }
 }
 

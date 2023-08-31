@@ -13,6 +13,10 @@ class InitiativeEntity<T = unknown> extends Type<T> {
     return this === other;
   }
 
+  protected _compareTo(other: this): number {
+    return this.name.localeCompare(other.name);
+  }
+
   override toString(): string {
     return this.name;
   }

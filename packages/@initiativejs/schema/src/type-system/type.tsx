@@ -1,6 +1,5 @@
 import * as t from "./index.js";
 
-// TODO: export { Type as Type };
 export abstract class Type<T = unknown> {
   /**
    * **Warning:** This property is only used by `Unwrap` for type inference. It
@@ -29,6 +28,18 @@ export abstract class Type<T = unknown> {
 
   protected abstract _isAssignableTo(other: Type): boolean;
 
+  compareTo(other: Type): number {
+    const typeComparison =
+      getTypeSortValue(this.constructor) - getTypeSortValue(other.constructor);
+    return typeComparison !== 0
+      ? typeComparison
+      : this._compareTo(other as any);
+  }
+
+  protected _compareTo(other: this): number {
+    return 0;
+  }
+
   /**
    * Returns an equivalent copy of `this` where superfluous `Type`
    * elements are removed.
@@ -42,4 +53,40 @@ export abstract class Type<T = unknown> {
   }
 
   abstract toString(addBrackets?: boolean): string;
+}
+
+export function getTypeSortValue(type: unknown): number {
+  switch (type) {
+    // Deliberate sorting of types inside a union
+    case t.Any:
+      return 1;
+    case t.String:
+      return 2;
+    case t.Number:
+      return 3;
+    case t.Boolean:
+      return 4;
+    case t.Entity:
+      return 5;
+    case t.Array:
+      return 6;
+    case t.Function:
+      return 7;
+    case t.Null:
+      return 8;
+    case t.Undefined:
+      return 9;
+
+    // Types that are unlikely to appear in a union, sorted alphabetically
+    case t.Lazy:
+      return 10;
+    case t.Tuple:
+      return 11;
+    case t.Union:
+      return 12;
+    case t.Void:
+      return 13;
+    default:
+      throw new Error(`Invalid type '${type}'.`);
+  }
 }

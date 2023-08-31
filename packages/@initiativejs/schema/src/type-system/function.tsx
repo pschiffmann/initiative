@@ -23,6 +23,20 @@ class InitiativeFunction<
     return true;
   }
 
+  protected _compareTo(other: this): number {
+    const paramCount = Math.max(
+      this.parameters.length,
+      other.parameters.length,
+    );
+    for (let i = 0; i < paramCount; i++) {
+      const comparison = (this.parameters[i] ?? t.undefined()).compareTo(
+        other.parameters[i] ?? t.undefined(),
+      );
+      if (comparison !== 0) return comparison;
+    }
+    return this.returns.compareTo(other.returns);
+  }
+
   override canonicalize(): t.Type {
     return new InitiativeFunction(
       this.parameters.map((p) => p.canonicalize()),

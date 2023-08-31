@@ -28,6 +28,17 @@ class InitiativeTuple<E extends t.TypeArray = t.TypeArray> extends Type<
     return false;
   }
 
+  protected _compareTo(other: this): number {
+    const elementCount = Math.max(this.elements.length, other.elements.length);
+    for (let i = 0; i < elementCount; i++) {
+      const comparison = (this.elements[i] ?? t.undefined()).compareTo(
+        other.elements[i] ?? t.undefined(),
+      );
+      if (comparison !== 0) return comparison;
+    }
+    return 0;
+  }
+
   override canonicalize(): t.Type {
     return new InitiativeTuple(this.elements.map((e) => e.canonicalize()));
   }

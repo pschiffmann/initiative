@@ -50,11 +50,24 @@ class InitiativeUnion<T extends t.TypeArray = t.TypeArray> extends Type<
       addElement(element);
     }
 
-    return result.length === 1 ? result[0] : new InitiativeUnion(result);
+    return result.length === 1
+      ? result[0]
+      : new InitiativeUnion(result.sort((a, b) => a.compareTo(b)));
   }
 
   protected override _isAssignableTo(other: Type): boolean {
     return this.elements.every((element) => element.isAssignableTo(other));
+  }
+
+  protected _compareTo(other: this): number {
+    const elementCount = Math.max(this.elements.length, other.elements.length);
+    for (let i = 0; i < elementCount; i++) {
+      const comparison = (this.elements[i] ?? t.undefined()).compareTo(
+        other.elements[i] ?? t.undefined(),
+      );
+      if (comparison !== 0) return comparison;
+    }
+    return 0;
   }
 
   override toString(addBrackets?: boolean): string {

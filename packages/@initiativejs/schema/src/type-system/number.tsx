@@ -12,6 +12,13 @@ class InitiativeNumber<T extends number = number> extends Type<T> {
     );
   }
 
+  protected _compareTo(other: this): number {
+    if (this.value === other.value) return 0;
+    if (this.value === undefined) return -1;
+    if (other.value === undefined) return 1;
+    return this.value - other.value;
+  }
+
   override toString(): string {
     return this.value === undefined ? "number" : `${this.value}`;
   }

@@ -14,6 +14,10 @@ class InitiativeArray<T extends Type = Type> extends Type<
     );
   }
 
+  protected override _compareTo(other: this): number {
+    return this.element.compareTo(other.element);
+  }
+
   override canonicalize(): t.Type {
     return new InitiativeArray(this.element.canonicalize());
   }

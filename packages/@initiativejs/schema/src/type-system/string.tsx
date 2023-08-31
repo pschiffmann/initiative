@@ -12,6 +12,13 @@ class InitiativeString<T extends string = string> extends Type<T> {
     );
   }
 
+  protected override _compareTo(other: this): number {
+    if (this.value === other.value) return 0;
+    if (this.value === undefined) return -1;
+    if (other.value === undefined) return 1;
+    return this.value.localeCompare(other.value);
+  }
+
   override toString(): string {
     return this.value === undefined
       ? "string"
