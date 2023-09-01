@@ -9,7 +9,7 @@ export const ArticleRepositorySchema = new NodeSchema(
         type: t.array(articleType()),
       },
       updateArticle: {
-        type: t.function(articleType())(),
+        type: t.function(articleType())()(),
       },
     },
     slots: {

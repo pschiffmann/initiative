@@ -2,55 +2,90 @@ import * as t from "./index.js";
 import { Type } from "./type.js";
 
 class InitiativeFunction<
-  P extends t.TypeArray = t.TypeArray,
-  R extends Type = Type,
-> extends Type<(...args: t.UnwrapArray<P>) => t.Unwrap<R>> {
+  RequiredParameters extends unknown[] = unknown[],
+  OptionalParameters extends unknown[] = unknown[],
+  ReturnType = unknown,
+> extends Type<
+  (
+    ...args: [...RequiredParameters, ...MakeOptional<OptionalParameters>]
+  ) => ReturnType
+> {
   constructor(
-    readonly parameters: P,
-    readonly returns: R,
+    readonly requiredParameters: WrapArray<RequiredParameters>,
+    readonly optionalParameters: WrapArray<OptionalParameters>,
+    readonly returnType: Type<ReturnType>,
   ) {
     super();
   }
 
   protected override _isAssignableTo(other: Type): boolean {
     if (!InitiativeFunction.is(other)) return false;
-    if (!this.returns.isAssignableTo(other.returns)) return false;
-    for (let i = 0; i < this.parameters.length; i++) {
-      const thisParam = this.parameters[i];
-      const otherParam = other.parameters[i] ?? t.undefined();
+    if (!this.returnType.isAssignableTo(other.returnType)) return false;
+
+    if (this.requiredParameters.length < other.requiredParameters.length) {
+      return false;
+    }
+    for (
+      let i = 0;
+      i < this.requiredParameters.length + this.optionalParameters.length;
+      i++
+    ) {
+      const thisParam =
+        i < this.requiredParameters.length
+          ? this.requiredParameters[i]
+          : this.optionalParameters[i - this.requiredParameters.length];
+      const otherParam =
+        i < other.requiredParameters.length
+          ? other.requiredParameters[i]
+          : other.optionalParameters[i - other.requiredParameters.length];
       if (!otherParam.isAssignableTo(thisParam)) return false;
     }
+
     return true;
   }
 
   protected _compareTo(other: this): number {
-    const paramCount = Math.max(
-      this.parameters.length,
-      other.parameters.length,
-    );
-    for (let i = 0; i < paramCount; i++) {
-      const comparison = (this.parameters[i] ?? t.undefined()).compareTo(
-        other.parameters[i] ?? t.undefined(),
-      );
+    if (this.requiredParameters.length !== other.requiredParameters.length) {
+      return this.requiredParameters.length - other.requiredParameters.length;
+    }
+    if (this.optionalParameters.length !== other.optionalParameters.length) {
+      return this.optionalParameters.length - other.optionalParameters.length;
+    }
+    for (
+      let i = 0;
+      i < this.requiredParameters.length + this.optionalParameters.length;
+      i++
+    ) {
+      const thisParam =
+        i < this.requiredParameters.length
+          ? this.requiredParameters[i]
+          : this.optionalParameters[i - this.requiredParameters.length];
+      const otherParam =
+        i < other.requiredParameters.length
+          ? other.requiredParameters[i]
+          : other.optionalParameters[i - other.requiredParameters.length];
+      const comparison = thisParam.compareTo(otherParam);
       if (comparison !== 0) return comparison;
     }
-    return this.returns.compareTo(other.returns);
+    return this.returnType.compareTo(other.returnType);
   }
 
   override canonicalize(): t.Type {
     return new InitiativeFunction(
-      this.parameters.map((p) => p.canonicalize()),
-      this.returns.canonicalize(),
+      this.requiredParameters.map((p) => p.canonicalize()),
+      this.optionalParameters.map((p) => p.canonicalize()),
+      this.returnType.canonicalize(),
     );
   }
 
   override toString(addBrackets?: boolean): string {
-    const params = this.parameters
-      .map((param, i) => `p${i + 1}: ${param}`)
-      .join(", ");
+    const params = [
+      ...this.requiredParameters.map((param, i) => `p${i + 1}: ${param}`),
+      ...this.optionalParameters.map((param, i) => `p${i + 1}?: ${param}`),
+    ].join(", ");
     return addBrackets
-      ? `((${params}) => ${this.returns})`
-      : `(${params}) => ${this.returns}`;
+      ? `((${params}) => ${this.returnType})`
+      : `(${params}) => ${this.returnType}`;
   }
 
   // Workaround for: https://github.com/microsoft/TypeScript/issues/17473
@@ -59,17 +94,45 @@ class InitiativeFunction<
   }
 }
 
-interface InitiativeFunctionFactory<P extends t.TypeArray> {
-  (): InitiativeFunction<P, t.Void>;
-  <R extends Type>(returnType: R): InitiativeFunction<P, R>;
+type WrapArray<T extends unknown[]> = {
+  [k in keyof T]: Type<T[k]>;
+};
+
+type MakeOptional<T> = {
+  [k in keyof T]?: T[k];
+};
+
+interface InitiativeFunctionWithoutOptionalParameters<
+  RequiredParameters extends unknown[],
+> {
+  <OptionalParameters extends unknown[]>(
+    ...optionalParameters: WrapArray<OptionalParameters>
+  ): InitiativeFunctionWithoutReturnType<
+    RequiredParameters,
+    OptionalParameters
+  >;
 }
 
-function initiativeFunction<P extends t.TypeArray>(
-  ...args: P
-): InitiativeFunctionFactory<P> {
-  return function initiativeFunctionFactory(returnType = t.void()) {
-    return new InitiativeFunction(args, returnType);
-  };
+interface InitiativeFunctionWithoutReturnType<
+  RequiredParameters extends unknown[] = unknown[],
+  OptionalParameters extends unknown[] = unknown[],
+> {
+  (): InitiativeFunction<RequiredParameters, OptionalParameters, void>;
+  <ReturnType>(
+    returnType: Type<ReturnType>,
+  ): InitiativeFunction<RequiredParameters, OptionalParameters, ReturnType>;
+}
+
+function initiativeFunction<RequiredParameters extends unknown[] = unknown[]>(
+  ...requiredParameters: WrapArray<RequiredParameters>
+): InitiativeFunctionWithoutOptionalParameters<RequiredParameters> {
+  return (...optionalParameters) =>
+    ((returnType = t.void()) =>
+      new InitiativeFunction(
+        requiredParameters,
+        optionalParameters,
+        returnType,
+      )) as any;
 }
 
 export { InitiativeFunction as Function, initiativeFunction as function };

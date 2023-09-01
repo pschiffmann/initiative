@@ -6,10 +6,10 @@ export const CreateTodoBlocSchema = new NodeSchema(
   {
     inputs: {
       createTodo: {
-        type: t.function(todoItem())(),
+        type: t.function(todoItem())()(),
       },
       closeDialog: {
-        type: t.function()(),
+        type: t.function()()(),
       },
     },
     outputs: {
@@ -17,10 +17,10 @@ export const CreateTodoBlocSchema = new NodeSchema(
         type: t.string(),
       },
       description$onChange: {
-        type: t.function(t.string())(),
+        type: t.function(t.string())()(),
       },
       submit: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       submitDisabled: {
         type: t.boolean(),

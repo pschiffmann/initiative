@@ -34,7 +34,7 @@ export const MuiButtonSchema = new NodeSchema(
         ),
       },
       onPress: {
-        type: t.function()(),
+        type: t.function()()(),
       },
     },
     editor: {

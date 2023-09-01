@@ -11,7 +11,7 @@ export const MuiTextFieldSchema = new NodeSchema(
         type: t.string(),
       },
       onChange: {
-        type: t.function(t.string())(),
+        type: t.function(t.string())()(),
       },
     },
     editor: {

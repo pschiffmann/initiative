@@ -8,7 +8,7 @@ export abstract class Type<T = unknown> {
   readonly _output!: T;
 
   /**
-   * Returns `true` if `this` is a subtype of `other, i.e. if values of this
+   * Returns `true` if `this` is a subtype of `other`, i.e. if values of this
    * type are assignable to the other type.
    *
    * ```ts
@@ -20,7 +20,7 @@ export abstract class Type<T = unknown> {
     if (other instanceof t.Any || other instanceof t.Void) {
       return true;
     } else if (t.Union.is(other)) {
-      return other.elements.some((element) => this._isAssignableTo(element));
+      return other.elements.some((element) => this.isAssignableTo(element));
     } else {
       return this._isAssignableTo(other);
     }

@@ -105,7 +105,7 @@ export function useInputOptions(
         expression,
       });
     }
-    if (t.Function.is(type) && type.returns.isAssignableTo(inputType)) {
+    if (t.Function.is(type) && type.returnType.isAssignableTo(inputType)) {
       options.push({
         label: `<${expression.nodeId}>.${expression.outputName}()`,
         expression: { type: "function-call", fn: expression, args: [] },
@@ -125,7 +125,7 @@ export function useInputOptions(
           expression: { type: "library-member", libraryName, memberName },
         });
       }
-      if (t.Function.is(type) && type.returns.isAssignableTo(inputType)) {
+      if (t.Function.is(type) && type.returnType.isAssignableTo(inputType)) {
         options.push({
           label: `import("${libraryName}").${memberName}()`,
           expression: {

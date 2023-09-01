@@ -11,7 +11,7 @@ export const CheckboxControlSchema = new NodeSchema(
         type: t.boolean(),
       },
       onChange: {
-        type: t.function(t.boolean())(),
+        type: t.function(t.boolean())()(),
       },
     },
   },

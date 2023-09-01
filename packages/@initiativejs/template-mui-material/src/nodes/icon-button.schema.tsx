@@ -28,7 +28,7 @@ export const IconButtonSchema = new NodeSchema(
         ),
       },
       onPress: {
-        type: t.optional(t.function()()),
+        type: t.optional(t.function()()()),
       },
       disabled: {
         type: t.optional(t.boolean()),

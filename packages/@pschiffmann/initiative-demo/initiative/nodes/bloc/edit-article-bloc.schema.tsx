@@ -9,7 +9,7 @@ export const EditArticleBlocSchema = new NodeSchema(
         type: articleType(),
       },
       updateArticle: {
-        type: t.function(articleType())(),
+        type: t.function(articleType())()(),
       },
     },
     outputs: {
@@ -17,16 +17,16 @@ export const EditArticleBlocSchema = new NodeSchema(
         type: t.string(),
       },
       updateName: {
-        type: t.function(t.string())(),
+        type: t.function(t.string())()(),
       },
       price: {
         type: t.string(),
       },
       updatePrice: {
-        type: t.function(t.string())(),
+        type: t.function(t.string())()(),
       },
       save: {
-        type: t.function()(),
+        type: t.function()()(),
       },
     },
     slots: {

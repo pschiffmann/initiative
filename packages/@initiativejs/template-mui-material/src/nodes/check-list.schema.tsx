@@ -8,19 +8,19 @@ export const CheckListSchema = new NodeSchema(
         type: t.array(t.any()),
       },
       getItemKey: {
-        type: t.function(t.any())(t.string()),
+        type: t.function(t.any())()(t.string()),
       },
       getPrimaryText: {
-        type: t.function(t.any())(t.string()),
+        type: t.function(t.any())()(t.string()),
       },
       getSecondaryText: {
-        type: t.optional(t.function(t.any())(t.string())),
+        type: t.optional(t.function(t.any())()(t.string())),
       },
       checked: {
         type: t.array(t.string()),
       },
       onCheckedChange: {
-        type: t.function(t.string(), t.boolean())(),
+        type: t.function(t.string(), t.boolean())()(),
       },
     },
     slots: {

@@ -8,7 +8,7 @@ export const MuiTableSchema = new NodeSchema(
         type: t.array(t.any()),
       },
       getRowKey: {
-        type: t.function(t.any())(t.string()),
+        type: t.function(t.any())()(t.string()),
       },
     },
     slots: {

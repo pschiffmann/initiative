@@ -13,13 +13,13 @@ export const DialogSchema = new NodeSchema(
         type: t.boolean(),
       },
       open: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       close: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       toggle: {
-        type: t.function()(),
+        type: t.function()()(),
       },
     },
     slots: {

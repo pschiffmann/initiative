@@ -5,13 +5,13 @@ export const CounterBlocSchema = new NodeSchema(
   {
     outputs: {
       increaseCounter: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       decreaseCounter: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       resetCounter: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       counterLabel: {
         type: t.string(),

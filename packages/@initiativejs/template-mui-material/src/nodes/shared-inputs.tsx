@@ -1,4 +1,4 @@
-import { NodeSchemaInputs, t } from "@initiativejs/schema";
+import { t } from "@initiativejs/schema";
 
 export const surfaceInputs = {
   backgroundColor: {
@@ -40,4 +40,4 @@ export const surfaceInputs = {
   borderRadius: {
     type: t.optional(t.number()),
   },
-} satisfies NodeSchemaInputs;
+};

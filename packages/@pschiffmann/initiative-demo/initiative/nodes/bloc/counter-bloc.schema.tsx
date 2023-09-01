@@ -8,13 +8,13 @@ export const CounterBlocSchema = new NodeSchema(
         type: t.string(),
       },
       increaseCounter: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       decreaseCounter: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       reset: {
-        type: t.function()(),
+        type: t.function()()(),
       },
     },
     slots: {

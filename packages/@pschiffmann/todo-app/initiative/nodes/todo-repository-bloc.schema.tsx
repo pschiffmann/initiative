@@ -15,19 +15,19 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
         type: t.number(),
       },
       toggleCompleted: {
-        type: t.function(t.string(), t.boolean())(),
+        type: t.function(t.string(), t.boolean())()(),
       },
       showCompleted: {
         type: t.boolean(),
       },
       toggleShowCompleted: {
-        type: t.function()(),
+        type: t.function()()(),
       },
       createTodo: {
-        type: t.function(todoItem())(),
+        type: t.function(todoItem())()(),
       },
       deleteTodo: {
-        type: t.function(t.string())(t.function()()),
+        type: t.function(t.string())()(t.function()()()),
       },
     },
     slots: {

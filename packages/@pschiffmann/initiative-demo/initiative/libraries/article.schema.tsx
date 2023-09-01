@@ -15,10 +15,10 @@ export const ArticleLibrarySchema = new LibrarySchema(
   // `@pschiffmann/initiative-demo/Article::getId`.
   "@pschiffmann/initiative-demo::Article",
   {
-    getId: t.function(articleType())(t.string()),
-    getName: t.function(articleType())(t.string()),
-    getFormattedPrice: t.function(articleType())(t.string()),
-    parseFormattedPrice: t.function(t.string())(t.number()),
+    getId: t.function(articleType())()(t.string()),
+    getName: t.function(articleType())()(t.string()),
+    getFormattedPrice: t.function(articleType())()(t.string()),
+    parseFormattedPrice: t.function(t.string())()(t.number()),
   },
 );
 
