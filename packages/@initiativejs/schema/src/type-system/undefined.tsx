@@ -11,11 +11,13 @@ class InitiativeUndefined extends Type<undefined> {
   }
 }
 
+const instance = new InitiativeUndefined();
+
 /**
  * @deprecated Use `t.optional()` instead.
  */
 function initiativeUndefined(): InitiativeUndefined {
-  return new InitiativeUndefined();
+  return instance;
 }
 
 function initiativeOptional<T extends Type>(

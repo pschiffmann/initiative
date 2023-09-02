@@ -1,12 +1,12 @@
-import { lazy } from "./lazy.js";
-import { Type } from "./type.js";
+import { intern } from "./interning.js";
+import { MembersFactory, Type } from "./type.js";
 
 class InitiativeEntity<T = unknown> extends Type<T> {
   constructor(
     readonly name: string,
-    readonly properties: EntityProperties<T> = {},
+    members: MembersFactory<T>,
   ) {
-    super();
+    super(members);
   }
 
   protected override _isAssignableTo(other: Type): boolean {
@@ -22,12 +22,6 @@ class InitiativeEntity<T = unknown> extends Type<T> {
   }
 }
 
-type EntityProperties<T> = {
-  readonly [K in keyof T]?: Type<T[K]>;
-};
-
-type LazyFactory = typeof lazy;
-
 /**
  * ## Basic use
  *
@@ -35,18 +29,30 @@ type LazyFactory = typeof lazy;
  * interface Person {
  *   name: string;
  *   age: number;
+ *   getDisplayName(): string;
  * }
  *
- * const person = t.entity<Person>("person", {
- *   name: t.string(),
- * });
+ * const person = t.entity<Person>("person", () => ({
+ *   properties: {
+ *     name: {
+ *       type: t.string(),
+ *     },
+ *     age: {
+ *       type: t.number(),
+ *     },
+ *   },
+ *   methods: {
+ *     getDisplayName: {
+ *       type: t.function()()(t.string()),
+ *     },
+ *   },
+ * }));
  * ```
  *
  * ## Recursive types
  *
- * To define a recursive type, pass a callback function to `entity()` instead.
- * Also note the explicit `ReturnType<...>` annotation on the entity – this is
- * required to suppress TypeScript error _ts(7022)_.
+ * When defining recursive types, you need to add an explicit `ReturnType<...>`
+ * annotation on the entity to suppress TypeScript error _ts(7022)_.
  *
  * ```ts
  * interface Person {
@@ -56,23 +62,28 @@ type LazyFactory = typeof lazy;
  *
  * const person: ReturnType<typeof t.entity<Person>> = t.entity<Person>(
  *   "person",
- *   (lazy) => ({
- *     name: t.string(),
- *     friend: lazy(() => person),
+ *   () => ({
+ *     properties: {
+ *       name: {
+ *         type: t.string(),
+ *       },
+ *       friend: {
+ *         type: person(),
+ *       },
+ *     },
  *   }),
  * );
  * ```
  */
 function initiativeEntity<T>(
   name: string,
-  properties?:
-    | EntityProperties<T>
-    | ((lazy: LazyFactory) => EntityProperties<T>),
+  members: MembersFactory<T> = null,
 ): () => InitiativeEntity<T> {
-  const entity = new InitiativeEntity(
-    name,
-    typeof properties === "function" ? properties(lazy) : properties,
-  );
+  const entity = new InitiativeEntity<T>(name, members);
+  const interned = intern(entity);
+  if (entity !== interned) {
+    throw new Error(`Entity with name '${name}' is already defined.`);
+  }
   return () => entity;
 }
 

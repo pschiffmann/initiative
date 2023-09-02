@@ -1,4 +1,5 @@
 import * as t from "./index.js";
+import { intern } from "./interning.js";
 import { Type } from "./type.js";
 
 class InitiativeFunction<
@@ -123,16 +124,18 @@ interface InitiativeFunctionWithoutReturnType<
   ): InitiativeFunction<RequiredParameters, OptionalParameters, ReturnType>;
 }
 
-function initiativeFunction<RequiredParameters extends unknown[] = unknown[]>(
+function initiativeFunction<RequiredParameters extends unknown[]>(
   ...requiredParameters: WrapArray<RequiredParameters>
 ): InitiativeFunctionWithoutOptionalParameters<RequiredParameters> {
   return (...optionalParameters) =>
-    ((returnType = t.void()) =>
-      new InitiativeFunction(
-        requiredParameters,
-        optionalParameters,
-        returnType,
-      )) as any;
+    (returnType = t.void() as any) =>
+      intern(
+        new InitiativeFunction(
+          requiredParameters,
+          optionalParameters,
+          returnType,
+        ).canonicalize(),
+      ) as any;
 }
 
 export { InitiativeFunction as Function, initiativeFunction as function };

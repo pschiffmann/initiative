@@ -1,11 +1,38 @@
+import { ObjectMap } from "@pschiffmann/std/object-map";
 import * as t from "./index.js";
 
 export abstract class Type<T = unknown> {
+  constructor(members: MembersFactory<T> = null) {
+    this.#members = members;
+  }
+
   /**
    * **Warning:** This property is only used by `Unwrap` for type inference. It
    * doesn't exist at runtime.
    */
   readonly _output!: T;
+
+  #members: MembersFactory<T>;
+  #properties: ObjectMap<Member> = {};
+  #methods: ObjectMap<Member> = {};
+
+  #initializeMembers() {
+    if (!this.#members) return;
+    const { properties, methods } = this.#members();
+    this.#members = null;
+    if (properties) this.#properties = properties as any;
+    if (methods) this.#methods = methods as any;
+  }
+
+  get properties(): ObjectMap<Member> {
+    this.#initializeMembers();
+    return this.#properties;
+  }
+
+  get methods(): ObjectMap<Member> {
+    this.#initializeMembers();
+    return this.#methods;
+  }
 
   /**
    * Returns `true` if `this` is a subtype of `other`, i.e. if values of this
@@ -78,15 +105,33 @@ export function getTypeSortValue(type: unknown): number {
       return 9;
 
     // Types that are unlikely to appear in a union, sorted alphabetically
-    case t.Lazy:
-      return 10;
     case t.Tuple:
-      return 11;
+      return 10;
     case t.Union:
-      return 12;
+      return 11;
     case t.Void:
-      return 13;
+      return 12;
     default:
       throw new Error(`Invalid type '${type}'.`);
   }
 }
+
+export type MembersFactory<T> = (() => Members<T>) | null;
+
+export interface Member<T = unknown> {
+  readonly doc?: string;
+  readonly type: Type<T>;
+}
+
+export type Members<T> = {
+  readonly properties?: {
+    readonly [name in keyof T & string]?: Member<T[name]>;
+  };
+  readonly methods?: {
+    readonly [name in ExtractMethodNames<T>]?: Member<T[name]>;
+  };
+};
+
+type ExtractMethodNames<T> = {
+  [name in keyof T & string]: T[name] extends Function ? name : never;
+}[keyof T & string];

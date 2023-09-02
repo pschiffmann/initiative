@@ -10,8 +10,10 @@ class InitiativeAny extends Type<any> {
   }
 }
 
+const instance = new InitiativeAny();
+
 function initiativeAny(): InitiativeAny {
-  return new InitiativeAny();
+  return instance;
 }
 
 export { InitiativeAny as Any, initiativeAny as any };

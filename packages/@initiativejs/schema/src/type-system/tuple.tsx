@@ -1,5 +1,6 @@
 import * as t from "./index.js";
-import { Type } from "./type.js";
+import { intern } from "./interning.js";
+import { Members, Type } from "./type.js";
 
 class InitiativeTuple<E extends t.TypeArray = t.TypeArray> extends Type<
   t.UnwrapArray<E>
@@ -8,7 +9,7 @@ class InitiativeTuple<E extends t.TypeArray = t.TypeArray> extends Type<
     if (elements.length === 0) {
       throw new Error("Tuple cannot be empty.");
     }
-    super();
+    super(() => members as any);
   }
 
   protected override _isAssignableTo(other: Type): boolean {
@@ -53,10 +54,22 @@ class InitiativeTuple<E extends t.TypeArray = t.TypeArray> extends Type<
   }
 }
 
+function members(): Members<Pick<[], "length">> {
+  return {
+    properties: {
+      length: {
+        type: t.number(),
+      },
+    },
+  };
+}
+
 function initiativeTuple<E extends t.TypeArray>(
   ...elements: E
 ): InitiativeTuple<E> {
-  return new InitiativeTuple(elements);
+  return intern(
+    new InitiativeTuple(elements).canonicalize(),
+  ) as InitiativeTuple<E>;
 }
 
 export { InitiativeTuple as Tuple, initiativeTuple as tuple };

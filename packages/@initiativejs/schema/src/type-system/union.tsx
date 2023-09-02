@@ -1,4 +1,5 @@
 import * as t from "./index.js";
+import { intern } from "./interning.js";
 import { Type } from "./type.js";
 
 class InitiativeUnion<T extends t.TypeArray = t.TypeArray> extends Type<
@@ -86,36 +87,9 @@ class InitiativeUnion<T extends t.TypeArray = t.TypeArray> extends Type<
 function initiativeUnion<T extends t.TypeArray>(
   ...elements: T
 ): InitiativeUnion<T> {
-  return new InitiativeUnion<T>(elements);
+  return intern(
+    new InitiativeUnion(elements).canonicalize() as InitiativeUnion<T>,
+  );
 }
 
-/**
- * Removes `t.undefined()` from `union`.
- *
- * Throws an error if `union` contains nested unions; this can be avoided by
- * calling `union.canonicalize()` first.
- */
-function initiativeRequired<T extends t.TypeArray>(
-  union: InitiativeUnion<T>,
-): Type {
-  const elements = union.elements.filter((e) => {
-    if (InitiativeUnion.is(e)) {
-      throw new Error(`'union' is not 'canonicalize()'d.`);
-    }
-    return !(e instanceof t.Undefined);
-  });
-  switch (elements.length) {
-    // case 0:
-    //   return t.never();
-    case 1:
-      return elements[0];
-    default:
-      return new InitiativeUnion(elements);
-  }
-}
-
-export {
-  InitiativeUnion as Union,
-  initiativeRequired as required,
-  initiativeUnion as union,
-};
+export { InitiativeUnion as Union, initiativeUnion as union };

@@ -1,8 +1,9 @@
-import { Type } from "./type.js";
+import * as t from "./index.js";
+import { Members, Type } from "./type.js";
 
 class InitiativeBoolean extends Type<boolean> {
   constructor() {
-    super();
+    super(members as any);
   }
 
   protected override _isAssignableTo(other: Type): boolean {
@@ -14,8 +15,20 @@ class InitiativeBoolean extends Type<boolean> {
   }
 }
 
+function members(): Members<Pick<Object, "toString">> {
+  return {
+    methods: {
+      toString: {
+        type: t.function()()(t.string()),
+      },
+    },
+  };
+}
+
+const instance = new InitiativeBoolean();
+
 function initiativeBoolean(): InitiativeBoolean {
-  return new InitiativeBoolean();
+  return instance;
 }
 
 export { InitiativeBoolean as Boolean, initiativeBoolean as boolean };

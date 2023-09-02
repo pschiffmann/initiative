@@ -4,7 +4,6 @@ export * from "./array.js";
 export * from "./boolean.js";
 export * from "./entity.js";
 export * from "./function.js";
-export * from "./lazy.js";
 export * from "./null.js";
 export * from "./number.js";
 export * from "./resolve-type.js";

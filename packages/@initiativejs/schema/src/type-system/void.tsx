@@ -10,8 +10,10 @@ class InitiativeVoid extends Type<void> {
   }
 }
 
+const instance = new InitiativeVoid();
+
 function initiativeVoid(): InitiativeVoid {
-  return new InitiativeVoid();
+  return instance;
 }
 
 export { InitiativeVoid as Void, initiativeVoid as void };

@@ -10,8 +10,10 @@ class InitiativeNull extends Type<null> {
   }
 }
 
+const instance = new InitiativeNull();
+
 function initiativeNull(): InitiativeNull {
-  return new InitiativeNull();
+  return instance;
 }
 
 export { InitiativeNull as Null, initiativeNull as null };
