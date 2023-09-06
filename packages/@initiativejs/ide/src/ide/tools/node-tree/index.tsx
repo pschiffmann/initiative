@@ -73,7 +73,11 @@ export function NodeTree({
             icon="polyline"
             onPress={() => dataFlowInspectorController.send("open")}
           />
-          <DataFlowInspector controller={dataFlowInspectorController} />
+          <DataFlowInspector
+            controller={dataFlowInspectorController}
+            document={document}
+            selectedNode={selectedNode}
+          />
         </>
       }
     >
