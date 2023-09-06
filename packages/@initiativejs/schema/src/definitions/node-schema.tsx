@@ -20,7 +20,6 @@ interface NodeSchemaInit<
   readonly outputs?: O;
   readonly slots?: S;
   readonly editor?: NodeSchemaEditor;
-  readonly validate?: ValidateNode;
 }
 
 export type InputInit = Omit<InputAttributes, "slot">;
@@ -44,7 +43,15 @@ export interface NodeSchemaEditor {
  * This callback can be used to implement custom validation logic. It is only
  * called if `nodeJson` has passed the type system based validation.
  */
-export type ValidateNode = (nodeJson: unknown /*NodeJson*/) => string | null;
+// The original idea was that this callback could validate literal inputs. But
+// we don't want to enforce that a regular input only accepts literal
+// expressions, and the validation doesn't work with node-output expressions.
+//
+// Solution: Introduce `customInputs` to the node schema. These inputs don't
+// accept node-output expressions, instead the schema needs to define a control
+// component for each input. The control is specific to this one node type only
+// and can't be used anywhere else.
+// export type ValidateNode = (nodeJson: unknown /*NodeJson*/) => string | null;
 
 //
 // NodeSchema
@@ -123,7 +130,6 @@ export class NodeSchema<
     this.inputAttributes = inputAttributes;
     this.outputAttributes = outputAttributes;
     this.slotAttributes = slotAttributes;
-    this.validate = init.validate;
     this.editor = init.editor;
   }
 
@@ -131,8 +137,6 @@ export class NodeSchema<
   readonly inputAttributes: ObjectMap<InputAttributes>;
   readonly outputAttributes: ObjectMap<OutputAttributes>;
   readonly slotAttributes: { readonly [slotName: string]: SlotAttributes };
-
-  readonly validate?: ValidateNode;
 
   /**
    * Throws an error if `inputName` doesn't exist.

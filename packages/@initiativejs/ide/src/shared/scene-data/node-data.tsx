@@ -31,11 +31,6 @@ export interface NodeParent {
 export interface NodeErrors {
   readonly invalidInputs: ReadonlySet<string>;
   readonly missingSlots: ReadonlySet<string>;
-
-  /**
-   * The result of `NodeSchema.validate()`.
-   */
-  readonly custom: string | null;
 }
 
 export class NodeData {
@@ -62,10 +57,9 @@ export class NodeData {
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
       if (!isCollectionSlot && !slots[slotName]) missingSlots.add(slotName);
     });
-    const custom = schema.validate?.(this.toJson()) ?? null;
     this.errors =
-      invalidInputs.size > 0 || missingSlots.size > 0 || !!custom
-        ? { invalidInputs, missingSlots, custom }
+      invalidInputs.size > 0 || missingSlots.size > 0
+        ? { invalidInputs, missingSlots }
         : null;
   }
 

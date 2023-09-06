@@ -23,7 +23,6 @@ export function ErrorComponent({ nodeData }: ErrorComponentProps) {
     <div style={rootStyle}>
       <b>Error in node '{nodeData.id}':</b>
       <ul style={listStyle}>
-        {errors.custom && <li>{errors.custom}</li>}
         {[...errors.invalidInputs].map((inputKey) => (
           <li key={inputKey}>Input '{inputKey}' has invalid value.</li>
         ))}
