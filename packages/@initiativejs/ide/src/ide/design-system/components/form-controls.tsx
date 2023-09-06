@@ -10,6 +10,7 @@ export interface BaseFormControlProps {
   helpText?: string;
   errorText?: string;
   adornmentIcon?: string;
+  dense?: boolean;
   onClear?(): void;
   className?: string;
 }
@@ -25,31 +26,33 @@ function FormControlLayout({
   helpText,
   errorText,
   adornmentIcon,
+  dense,
   onClear,
   id,
   className,
   children,
 }: FormControlLayoutProps) {
   return (
-    <div className={cls.block(className)}>
+    <div
+      className={cls.block(className, dense && "dense", !!errorText && "error")}
+    >
       <div className={cls.element("header")}>
-        {errorText && (
-          <MaterialIcon
-            className={cls.element("error-icon")}
-            icon="warning_amber"
-            title={errorText}
-          />
-        )}
         <label className={cls.element("label")} htmlFor={id}>
           {label}
         </label>
-        {helpText && (
+        {errorText ? (
+          <MaterialIcon
+            className={cls.element("help-icon", null, "error")}
+            icon="warning_amber"
+            title={helpText ? `${helpText}\n\n${errorText}` : errorText}
+          />
+        ) : helpText ? (
           <MaterialIcon
             className={cls.element("help-icon")}
-            icon="info"
+            icon="help_outline"
             title={helpText}
           />
-        )}
+        ) : null}
       </div>
       {children}
       <MaterialIcon

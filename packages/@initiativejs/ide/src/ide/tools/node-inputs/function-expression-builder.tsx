@@ -29,7 +29,7 @@ export function FunctionExpressionBuilder({
       actions={<Button label="Close" onPress={onClose} />}
     >
       <ExpressionContainer
-        label={label}
+        label="fn"
         inputType={inputType}
         expression={expression}
         onChange={onChange}
@@ -68,6 +68,7 @@ function ExpressionContainer({
         label={label}
         helpText={`Expected type: ${inputType}`}
         errorText={expression.errors.get(path || "/")}
+        dense
         inputType={inputType}
         json={json}
         onChange={handleNestedChange}
@@ -80,7 +81,7 @@ function ExpressionContainer({
   return (
     <>
       <ExpressionContainer
-        label="Callable"
+        label={label}
         inputType={t.function()()(inputType)}
         expression={expression}
         path={`${path}/fn`}
@@ -92,7 +93,7 @@ function ExpressionContainer({
           (parameterType, i) => (
             <ExpressionContainer
               key={i}
-              label={`Parameter ${i + 1}`}
+              label={`p${i + 1}`}
               inputType={
                 i > fnType.requiredParameters.length
                   ? t.optional(parameterType)

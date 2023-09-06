@@ -102,7 +102,7 @@ export function NodeInputControl({
 interface InputControlProps<T extends ExpressionJson | null>
   extends Pick<
     BaseFormControlProps,
-    "label" | "helpText" | "errorText" | "onClear"
+    "label" | "helpText" | "errorText" | "dense" | "onClear"
   > {
   inputType: t.Type;
   json: T;

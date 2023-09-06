@@ -1,3 +1,5 @@
+@use "../../../design-system/typography";
+
 .initiative-function-expression-builder {
   min-width: 600px;
 
@@ -6,6 +8,6 @@
   }
 
   &__bracket {
-    padding-left: 8px;
+    @include typography.role("body-medium");
   }
 }
