@@ -1,0 +1,50 @@
+.initiative-node-box {
+  outline-style: solid;
+  width: 320px;
+  display: grid;
+  grid-template-columns:
+    [input-socket-start] 30px
+    [input-socket-end input-name-start] 1fr
+    [input-name-end input-button-start] 30px
+    [input-button-end output-button-start] 30px
+    [output-button-end output-name-start] 1fr
+    [output-name-end output-socket-start] 30px
+    [output-socket-end];
+  grid-auto-rows: 30px;
+  grid-auto-flow: dense;
+  grid-template-areas: "header header header header header header";
+  // "inputsocket input inputbutton outputbutton output outputsocket";
+
+  &__header {
+    grid-area: header;
+    place-self: center;
+  }
+  &__input-socket {
+    grid-column: input-socket;
+    place-self: center;
+    outline-style: auto;
+  }
+  &__input-name {
+    grid-column: input-name;
+    place-self: center;
+  }
+  &__input-button {
+    grid-column: input-button;
+    place-self: center;
+    outline-style: auto;
+  }
+  &__output-button {
+    grid-column: output-button;
+    place-self: center;
+    outline-style: auto;
+  }
+  &__output-name {
+    grid-column: output-name;
+    place-self: center;
+  }
+  &__output-socket {
+    grid-column: output-socket;
+    place-self: center;
+    outline-style: auto;
+  }
+}
