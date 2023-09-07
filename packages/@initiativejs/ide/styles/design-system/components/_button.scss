@@ -3,7 +3,7 @@
 
 .initiative-button {
   // Public
-  --initiative-button-fill-color: #{color.role("surface")};
+  --initiative-button-fill-color: transparent;
   --initiative-button-stroke-color: #{color.role("on-surface")};
 
   // Private

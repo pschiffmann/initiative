@@ -68,6 +68,9 @@
     --initiative-material-icon-density: -2;
     pointer-events: none;
   }
+  &--error > &__adornment-icon {
+    color: color.role("on-error-container");
+  }
 
   &__input {
     grid-area: input;
@@ -111,11 +114,16 @@
     }
   }
   &--error > &__input {
+    color: color.role("on-error-container");
+    background-color: color.role("error-container");
     border-color: color.role("error");
   }
 
   &__clear-button {
     grid-area: clear;
     margin-right: 2px;
+  }
+  &--error > &__clear-button {
+    --initiative-icon-button-color: #{color.role("on-error-container")};
   }
 }
