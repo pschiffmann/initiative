@@ -9,7 +9,7 @@ class InitiativeTuple<E extends t.TypeArray = t.TypeArray> extends Type<
     if (elements.length === 0) {
       throw new Error("Tuple cannot be empty.");
     }
-    super(() => members as any);
+    super(members as any);
   }
 
   protected override _isAssignableTo(other: Type): boolean {

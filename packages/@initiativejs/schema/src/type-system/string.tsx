@@ -4,7 +4,7 @@ import { Members, Type } from "./type.js";
 
 class InitiativeString<T extends string = string> extends Type<T> {
   constructor(readonly value?: T) {
-    super(() => members as any);
+    super(members as any);
   }
 
   protected override _isAssignableTo(other: Type): boolean {
