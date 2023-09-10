@@ -121,7 +121,7 @@ export function NumberFieldControl({
 
   return (
     <FormControlLayout
-      adornmentIcon={adornmentIcon ?? "text_fields"}
+      adornmentIcon={adornmentIcon ?? "numbers"}
       id={id}
       {...props}
     >

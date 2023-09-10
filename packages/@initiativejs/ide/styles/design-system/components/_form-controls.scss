@@ -24,7 +24,7 @@
   &--dense {
     grid-template-columns:
       [header-start]
-      40px
+      44px
       [ adornment-start header-end input-start]
       auto
       [adornment-end]
@@ -55,6 +55,7 @@
 
   &__help-icon {
     --initiative-material-icon-density: -2;
+    color: color.role("on-surface-deemphasized");
     cursor: help;
 
     &--error {
