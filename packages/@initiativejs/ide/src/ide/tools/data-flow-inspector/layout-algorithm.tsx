@@ -1,4 +1,4 @@
-import { NodeData, SceneDocument } from "#shared";
+import { ExpressionJson, NodeData, SceneDocument } from "#shared";
 import { NodeSchema } from "@initiativejs/schema";
 
 export function useLayout(document: SceneDocument) {
@@ -30,7 +30,7 @@ export interface NodeBoxPosition {
   /**
    * tunnel positions in px filed under destination id.
    */
-  readonly tunnels: Map<
+  readonly tunnels: Record<
     string,
     [entranceX: number, entranceY: number, exitX: number, exitY: number]
   >;
@@ -53,7 +53,10 @@ interface box {
   readonly column: number;
   readonly parent: string;
   readonly size: number;
-  readonly innerD: any;
+  readonly innerD: Pick<
+    NodeBoxPosition,
+    "height" | "inputOffsets" | "outputOffsets"
+  >;
   readonly chain: [length: number, size: number];
   position: [xCoordinate: number, yCoordinate: number];
   readonly inputs: Array<string>;
@@ -70,6 +73,8 @@ function calculateLayout(document: SceneDocument): Layout {
 
   const allNodes: Map<string, box> = new Map();
 
+  if (document.getRootNodeId() === null)
+    return { canvasWidth: 0, canvasHeight: 0, nodeBoxPositions: {} };
   unzip(document.getRootNodeId()!, "", 0);
 
   /**
@@ -91,14 +96,14 @@ function calculateLayout(document: SceneDocument): Layout {
       }
     }
     const dimensions = calculateInnerDimensions(data);
-    let inputs: Array<string> = new Array();
-    //
-    data.forEachInput((expression, type) =>
-      expression?.json.type === "node-output"
-        ? inputs.push(expression.json.nodeId)
+    const inputs: Array<string> = new Array();
+    let inputsraw = new Array();
+    data.forEachInput((expression) =>
+      expression !== null
+        ? inputsraw.push(...expressionEvaluation(expression.json))
         : null,
     );
-    //
+    inputsraw.forEach((value) => inputs.push(value[0]));
     const node: box = {
       id: nodeID,
       column: column,
@@ -629,11 +634,12 @@ function calculateLayout(document: SceneDocument): Layout {
   // output
   const output: Record<string, NodeBoxPosition> = {};
   for (const node of allNodes.values()) {
-    let tunnelmap: NodeBoxPosition["tunnels"] = new Map();
+    let tunnelmap: NodeBoxPosition["tunnels"] = {};
     if (reversemetro.has(node.id)) {
       const tunnelmapraw = reversemetro.get(node.id)!;
       for (const [id, yCoordinate] of tunnelmapraw) {
-        tunnelmap.set(id, [
+        //
+        tunnelmap[id] = [
           allNodes.get(
             allColumns
               .get(allNodes.get(id)!.column + 1)!
@@ -643,7 +649,8 @@ function calculateLayout(document: SceneDocument): Layout {
           yCoordinate + Math.abs(minheight),
           allNodes.get(node.parent)!.position[0] + 340,
           yCoordinate + Math.abs(minheight),
-        ]);
+        ];
+        //
       }
     }
     output[node.id] = {
@@ -671,55 +678,19 @@ function calculateInnerDimensions(
     nodeBoxSizes.header; // Header
 
   const inputNames: Array<string> = data.forEachInput(
-    (expressio, type, inputName) => inputName,
+    (expression, type, inputName) => inputName,
   );
-  /*
-  for (const [slotName, slotSchema] of Object.entries(schema.slots)) {
-    for (const inputName of Object.keys(slotSchema.inputs ?? {})) {
-      const children = nodeJson.collectionSlots[slotName];
-      if (children.length) {
-        inputNames.push(...children.map((_, i) => `${inputName}/${i}`));
-      } else {
-        inputNames.push(`${inputName}/-1`);
-      }
-    }
-  }
-  if (inputNames.length) {
-    boxHeight += nodeBoxSizes.section; // "Inputs" section header
-
-    for (const inputName of inputNames) {
-      inputOffsets[inputName] = boxHeight;
-      boxHeight += nodeBoxSizes.ioRow;
-    }
-  }
-  */
 
   const outputNames: Array<string> = data.schema.forEachOutput((name) => name);
-  /*
-  [
-    ...Object.keys(schema.outputs),
-    ...Object.values(schema.slots).flatMap((slotSchema) =>
-      Object.keys(slotSchema.outputs ?? {}),
-    ),
-  ];
-  if (outputNames.length) {
-    boxHeight += nodeBoxSizes.section; // "Outputs" section header
-
-    for (const outputName of outputNames) {
-      outputOffsets[outputName] = boxHeight;
-      boxHeight += nodeBoxSizes.ioRow;
-    }
-  }
-  */
 
   if (inputNames.length || outputNames.length) {
     boxHeight += nodeBoxSizes.section;
-    let inputOffset = boxHeight;
+    let inputOffset = boxHeight / 2;
     for (const inputName of inputNames) {
       inputOffsets[inputName] = boxHeight + inputOffset;
       inputOffset += nodeBoxSizes.ioRow;
     }
-    let outputOffset = 0;
+    let outputOffset = boxHeight / 2;
     for (const outputName of outputNames) {
       outputOffsets[outputName] = boxHeight + outputOffset;
       outputOffset += nodeBoxSizes.ioRow;
@@ -774,3 +745,20 @@ export const nodeBoxSizes = {
   connectorOffsetX: 0,
   connectorOffsetY: 15,
 };
+
+export function expressionEvaluation(expression: ExpressionJson): string[][] {
+  const output: Array<Array<string>> = new Array();
+  switch (expression.type) {
+    case "function-call":
+      output.push(...expressionEvaluation(expression.fn));
+      output.push(
+        ...expression.args.flatMap((value) =>
+          value !== null ? expressionEvaluation(value) : [],
+        ),
+      );
+      break;
+    case "node-output":
+      output.push([expression.nodeId, expression.outputName]);
+  }
+  return output;
+}

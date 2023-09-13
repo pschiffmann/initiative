@@ -13,6 +13,7 @@
   grid-auto-rows: 30px;
   grid-auto-flow: dense;
   grid-template-areas: "header header header header header header";
+  border-radius: 10%/5px 5px 5px 5px;
   // "inputsocket input inputbutton outputbutton output outputsocket";
 
   &__header {
