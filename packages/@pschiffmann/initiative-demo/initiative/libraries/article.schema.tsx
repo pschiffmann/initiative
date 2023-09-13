@@ -6,8 +6,25 @@ export interface Article {
   price: number;
 }
 
-export const articleType: ReturnType<typeof t.entity<Article>> =
-  t.entity<Article>("@pschiffmann/initiative-demo::Article");
+export const articleType = t.entity<Article>(
+  "@pschiffmann/initiative-demo::Article",
+  () => ({
+    properties: {
+      id: {
+        type: t.number(),
+        doc: `The article id.`,
+      },
+      name: {
+        type: t.string(),
+        doc: `The article name.`,
+      },
+      price: {
+        type: t.number(),
+        doc: `The article price is Euro Cents.`,
+      },
+    },
+  }),
+);
 
 export const ArticleLibrarySchema = new LibrarySchema(
   // TODO: Change library name to `@pschiffmann/initiative-demo/Article`, because
