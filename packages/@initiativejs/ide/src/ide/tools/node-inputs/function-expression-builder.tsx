@@ -89,22 +89,20 @@ function ExpressionContainer({
       />
       <div className={cls.element("bracket")}>(</div>
       <div className={cls.element("parameters")}>
-        {[...fnType.requiredParameters, ...fnType.optionalParameters].map(
-          (parameterType, i) => (
-            <ExpressionContainer
-              key={i}
-              label={`p${i + 1}`}
-              inputType={
-                i > fnType.requiredParameters.length
-                  ? t.optional(parameterType)
-                  : parameterType
-              }
-              expression={expression}
-              path={`${path}/arg(${i})`}
-              onChange={onChange}
-            />
-          ),
-        )}
+        {fnType.parameters.map((parameterType, i) => (
+          <ExpressionContainer
+            key={i}
+            label={`p${i + 1}`}
+            inputType={
+              i < fnType.requiredCount
+                ? parameterType
+                : t.optional(parameterType)
+            }
+            expression={expression}
+            path={`${path}/arg(${i})`}
+            onChange={onChange}
+          />
+        ))}
       </div>
       <div className={cls.element("bracket")}>)</div>
     </>

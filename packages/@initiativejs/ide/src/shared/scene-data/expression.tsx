@@ -289,38 +289,18 @@ function resolveErrors(
         const functionType = types.get(functionPath);
 
         if (functionType && t.Function.is(functionType)) {
-          for (const [
-            i,
-            paramType,
-          ] of functionType.requiredParameters.entries()) {
+          for (const [i, paramType] of functionType.parameters.entries()) {
             const argPath = `${path}/arg(${i})`;
             const argJson = json.args[i];
             if (argJson) {
               const argError = resolveError(argJson, paramType, argPath);
               if (argError) errors.set(argPath, argError);
-            } else {
+            } else if (i < functionType.requiredCount) {
               errors.set(argPath, `This parameter is required.`);
             }
           }
-          for (const [
-            i,
-            paramType,
-          ] of functionType.optionalParameters.entries()) {
-            const argPath = `${path}/arg(${i})`;
-            const argJson = json.args[i];
-            if (argJson) {
-              const argError = resolveError(
-                argJson,
-                t.optional(paramType),
-                argPath,
-              );
-              if (argError) errors.set(argPath, argError);
-            }
-          }
           for (
-            let i =
-              functionType.requiredParameters.length +
-              functionType.optionalParameters.length;
+            let i = functionType.parameters.length;
             i < json.args.length;
             i++
           ) {
@@ -331,15 +311,11 @@ function resolveErrors(
               if (argError) errors.set(argPath, argError);
             }
           }
-          if (
-            json.args.length >
-            functionType.requiredParameters.length +
-              functionType.optionalParameters.length
-          ) {
-            const args =
-              functionType.requiredParameters.length +
-              functionType.optionalParameters.length;
-            return `Expected ${args} arguments, got ${json.args.length}.`;
+          if (json.args.length > functionType.parameters.length) {
+            return (
+              `Expected ${functionType.parameters.length} arguments, ` +
+              `got ${json.args.length}.`
+            );
           }
         } else {
           for (const [i, argJson] of json.args.entries()) {
