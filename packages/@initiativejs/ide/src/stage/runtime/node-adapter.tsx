@@ -67,7 +67,7 @@ function useInputs(definitions: Definitions, nodeData: NodeData) {
   const ancestorOutputs = useContext(AncestorOutputsContext);
 
   const inputs: Record<string, any> = {};
-  nodeData.forEachInput((expression, type, inputName, index) => {
+  nodeData.forEachInput((expression, attributes, inputName, index) => {
     const value =
       expression && expression.errors.size === 0
         ? evaluateExpression(expression.json, definitions, ancestorOutputs)

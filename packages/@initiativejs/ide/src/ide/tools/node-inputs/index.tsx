@@ -48,7 +48,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
         </div>
 
         {nodeData.forEachInput(
-          (expression, type, inputName, index) =>
+          (expression, attributes, inputName, index) =>
             index === undefined && (
               <NodeInputControl
                 key={inputName}

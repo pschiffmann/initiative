@@ -85,7 +85,7 @@ function generateNodeAdapter(
 
   // inputs
   const inputResultsMap: Map<string, string | Array<string>> = new Map();
-  nodeData.forEachInput((expression, type, inputName, index) => {
+  nodeData.forEachInput((expression, attributes, inputName, index) => {
     // calls for node PageLayout:
     // call 1: expression == { ... }, inputName == "flexDirection", index == undefined
     // call 2: expression == { ... }, inputName == "gap", index == undefined

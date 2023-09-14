@@ -237,7 +237,7 @@ export class SceneDocument {
     const oldNode = this.#nodes.get(nodeId)!;
     let newNode = oldNode;
     const ctx = this.#createExpressionValidationContext(oldNode);
-    oldNode.forEachInput((oldExpression, type, inputName, index) => {
+    oldNode.forEachInput((oldExpression, { type }, inputName, index) => {
       if (!oldExpression) return;
 
       const newExpression = oldExpression.map((expr) =>

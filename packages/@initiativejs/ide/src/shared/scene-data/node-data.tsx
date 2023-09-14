@@ -43,7 +43,7 @@ export class NodeData {
     readonly parent: NodeParent | null,
   ) {
     const invalidInputs = new Set<string>(
-      this.forEachInput((expression, type, inputName, index) => {
+      this.forEachInput((expression, { type }, inputName, index) => {
         if (
           (expression && expression.errors.size === 0) ||
           (!expression && t.undefined().isAssignableTo(type))
@@ -83,24 +83,26 @@ export class NodeData {
   forEachInput<R>(
     callback: (
       expression: Expression | null,
-      type: t.Type,
+      attributes: InputAttributes,
       inputName: string,
       index?: number,
     ) => R,
   ): R[] {
     const result: R[] = [];
-    this.schema.forEachInput((inputName, { type, slot }) => {
-      if (slot) {
-        const childCount = this.collectionSlotSizes[slot];
+    this.schema.forEachInput((inputName, attributes) => {
+      if (attributes.slot) {
+        const childCount = this.collectionSlotSizes[attributes.slot];
         if (childCount === 0) {
-          result.push(callback(null, type, inputName, -1));
+          result.push(callback(null, attributes, inputName, -1));
         }
         for (let i = 0; i < childCount; i++) {
           const expression = this.inputs[`${inputName}::${i}`] ?? null;
-          result.push(callback(expression, type, inputName, i));
+          result.push(callback(expression, attributes, inputName, i));
         }
       } else {
-        result.push(callback(this.inputs[inputName] ?? null, type, inputName));
+        result.push(
+          callback(this.inputs[inputName] ?? null, attributes, inputName),
+        );
       }
     });
     return result;
