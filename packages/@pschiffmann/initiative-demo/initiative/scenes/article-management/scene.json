@@ -19,15 +19,16 @@
       "type": "@pschiffmann/initiative-demo::MuiStack",
       "inputs": {
         "flexDirection": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "column"
         },
         "gap": {
-          "type": "number-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::number",
           "value": 3
         },
         "alignSelf::1": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "end"
         }
       },
@@ -41,20 +42,23 @@
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "variant": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "h3"
         },
         "text": {
-          "type": "function-call",
-          "fn": {
-            "type": "node-output",
-            "nodeId": "Translations",
-            "outputName": "translate"
-          },
-          "args": [
+          "type": "node-output",
+          "nodeId": "Translations",
+          "outputName": "translate",
+          "selectors": [
             {
-              "type": "string-literal",
-              "value": "scene-title"
+              "type": "call",
+              "args": [
+                {
+                  "type": "json-literal",
+                  "schemaName": "@initiativejs/std::string",
+                  "value": "scene-title"
+                }
+              ]
             }
           ]
         }
@@ -65,7 +69,8 @@
       "type": "@pschiffmann/initiative-demo::MuiDialog",
       "inputs": {
         "title": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "New Article"
         }
       },
@@ -80,31 +85,31 @@
         "rows": {
           "type": "node-output",
           "nodeId": "ArticleRepository",
-          "outputName": "articles"
-        },
-        "getRowKey": {
-          "type": "library-member",
-          "libraryName": "@pschiffmann/initiative-demo::Article",
-          "memberName": "getId"
+          "outputName": "articles",
+          "selectors": []
         },
         "header::0": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Id"
         },
         "header::1": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Name"
         },
         "header::2": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Price"
         },
         "header::3": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Action"
         },
         "align::2": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "right"
         }
       },
@@ -119,17 +124,19 @@
       "type": "@pschiffmann/initiative-demo::MuiButton",
       "inputs": {
         "label": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Add new"
         },
         "variant": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "contained"
         },
         "onPress": {
           "type": "node-output",
           "nodeId": "NewArticleDialog",
-          "outputName": "open"
+          "outputName": "open",
+          "selectors": []
         }
       },
       "slots": {}
@@ -138,7 +145,8 @@
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "text": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Under construction"
         }
       },
@@ -148,22 +156,25 @@
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "text": {
-          "type": "function-call",
-          "fn": {
-            "type": "library-member",
-            "libraryName": "@pschiffmann/initiative-demo::Article",
-            "memberName": "getId"
-          },
-          "args": [
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row",
+          "selectors": [
             {
-              "type": "node-output",
-              "nodeId": "ArticlesTable",
-              "outputName": "row"
+              "type": "property",
+              "propertyName": "id"
+            },
+            {
+              "type": "method",
+              "methodName": "toString",
+              "args": [
+                null
+              ]
             }
           ]
         },
         "variant": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "body2"
         }
       },
@@ -173,22 +184,18 @@
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "text": {
-          "type": "function-call",
-          "fn": {
-            "type": "library-member",
-            "libraryName": "@pschiffmann/initiative-demo::Article",
-            "memberName": "getName"
-          },
-          "args": [
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row",
+          "selectors": [
             {
-              "type": "node-output",
-              "nodeId": "ArticlesTable",
-              "outputName": "row"
+              "type": "property",
+              "propertyName": "name"
             }
           ]
         },
         "variant": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "body2"
         }
       },
@@ -198,22 +205,25 @@
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "text": {
-          "type": "function-call",
-          "fn": {
-            "type": "library-member",
-            "libraryName": "@pschiffmann/initiative-demo::Article",
-            "memberName": "getFormattedPrice"
-          },
-          "args": [
+          "type": "node-output",
+          "nodeId": "ArticlesTable",
+          "outputName": "row",
+          "selectors": [
             {
-              "type": "node-output",
-              "nodeId": "ArticlesTable",
-              "outputName": "row"
+              "type": "property",
+              "propertyName": "price"
+            },
+            {
+              "type": "method",
+              "methodName": "toString",
+              "args": [
+                null
+              ]
             }
           ]
         },
         "variant": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "body2"
         }
       },
@@ -223,7 +233,8 @@
       "type": "@pschiffmann/initiative-demo::MuiDialog",
       "inputs": {
         "title": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Edit Article"
         }
       },
@@ -236,13 +247,15 @@
       "type": "@pschiffmann/initiative-demo::MuiButton",
       "inputs": {
         "label": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Edit"
         },
         "onPress": {
           "type": "node-output",
           "nodeId": "EditColumn",
-          "outputName": "open"
+          "outputName": "open",
+          "selectors": []
         }
       },
       "slots": {}
@@ -253,12 +266,14 @@
         "article": {
           "type": "node-output",
           "nodeId": "ArticlesTable",
-          "outputName": "row"
+          "outputName": "row",
+          "selectors": []
         },
         "updateArticle": {
           "type": "node-output",
           "nodeId": "ArticleRepository",
-          "outputName": "updateArticle"
+          "outputName": "updateArticle",
+          "selectors": []
         }
       },
       "slots": {
@@ -269,11 +284,12 @@
       "type": "@pschiffmann/initiative-demo::MuiStack",
       "inputs": {
         "flexDirection": {
-          "type": "string-literal",
+          "type": "enum-value",
           "value": "column"
         },
         "gap": {
-          "type": "number-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::number",
           "value": 3
         }
       },
@@ -287,18 +303,21 @@
       "type": "@pschiffmann/initiative-demo::MuiTextField",
       "inputs": {
         "label": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Name"
         },
         "value": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
-          "outputName": "name"
+          "outputName": "name",
+          "selectors": []
         },
         "onChange": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
-          "outputName": "updateName"
+          "outputName": "updateName",
+          "selectors": []
         }
       },
       "slots": {}
@@ -307,18 +326,21 @@
       "type": "@pschiffmann/initiative-demo::MuiTextField",
       "inputs": {
         "label": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Price"
         },
         "value": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
-          "outputName": "price"
+          "outputName": "price",
+          "selectors": []
         },
         "onChange": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
-          "outputName": "updatePrice"
+          "outputName": "updatePrice",
+          "selectors": []
         }
       },
       "slots": {}
@@ -327,13 +349,15 @@
       "type": "@pschiffmann/initiative-demo::MuiButton",
       "inputs": {
         "label": {
-          "type": "string-literal",
+          "type": "json-literal",
+          "schemaName": "@initiativejs/std::string",
           "value": "Save"
         },
         "onPress": {
           "type": "node-output",
           "nodeId": "EditArticleBloc",
-          "outputName": "save"
+          "outputName": "save",
+          "selectors": []
         }
       },
       "slots": {}

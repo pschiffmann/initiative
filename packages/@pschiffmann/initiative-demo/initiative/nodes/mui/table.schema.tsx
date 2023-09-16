@@ -1,14 +1,12 @@
 import { NodeSchema, t } from "@initiativejs/schema";
+import { articleType } from "../../libraries/article.schema.js";
 
 export const MuiTableSchema = new NodeSchema(
   "@pschiffmann/initiative-demo::MuiTable",
   {
     inputs: {
       rows: {
-        type: t.array(t.any()),
-      },
-      getRowKey: {
-        type: t.function(t.any())()(t.string()),
+        type: t.array(articleType()),
       },
     },
     slots: {
@@ -18,14 +16,17 @@ export const MuiTableSchema = new NodeSchema(
             type: t.string(),
           },
           align: {
-            type: t.optional(
-              t.union(t.string("left"), t.string("center"), t.string("right")),
+            type: t.union(
+              t.string("left"),
+              t.string("center"),
+              t.string("right"),
             ),
+            optional: true,
           },
         },
         outputs: {
           row: {
-            type: t.any(),
+            type: articleType(),
           },
         },
       },

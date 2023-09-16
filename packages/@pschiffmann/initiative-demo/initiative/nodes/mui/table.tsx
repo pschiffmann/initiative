@@ -10,7 +10,6 @@ import { MuiTableSchema } from "./table.schema.js";
 
 export function MuiTable({
   rows,
-  getRowKey,
   header,
   align,
   slots,
@@ -29,7 +28,7 @@ export function MuiTable({
       </TableHead>
       <TableBody>
         {rows.map((row) => (
-          <TableRow key={getRowKey(row)}>
+          <TableRow key={row.id}>
             {columns.map((_, i) => (
               <TableCell key={i} align={align[i]}>
                 <slots.column.Component index={i} row={row} />

@@ -1,0 +1,19 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
+.initiative-node-inputs-member-access-control {
+  min-width: 600px;
+
+  &__root {
+    margin-bottom: 4px;
+  }
+
+  &__args {
+    margin-left: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-left: 1px solid color.role("divider");
+    padding-left: 15px;
+  }
+}

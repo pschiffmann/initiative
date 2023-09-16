@@ -2,7 +2,8 @@ import { Definitions, NodeSchema } from "@initiativejs/schema";
 import {
   Expression,
   ExpressionJson,
-  ExpressionValidationContext,
+  MemberAccessExpression,
+  ValidateExpressionContext,
 } from "./expression.js";
 import { Listener, Listeners, Unsubscribe } from "./listeners.js";
 import { NodeData, NodeParent } from "./node-data.js";
@@ -68,6 +69,19 @@ export class SceneDocument {
     const result = this.#nodes.get(nodeId);
     if (result) return result;
     throw new Error(`Node '${nodeId}' not found.`);
+  }
+
+  /**
+   * Returns the ancestors of `nodeId`, excluding `nodeId` itself, with the root
+   * node at index 0.
+   */
+  getAncestors(nodeId: string): NodeParent[] {
+    const result: NodeParent[] = [];
+    for (let current = this.getNode(nodeId).parent; current; ) {
+      result.push(current);
+      current = this.getNode(current.nodeId).parent;
+    }
+    return result.reverse();
   }
 
   /**
@@ -236,19 +250,17 @@ export class SceneDocument {
   ): void {
     const oldNode = this.#nodes.get(nodeId)!;
     let newNode = oldNode;
-    const ctx = this.#createExpressionValidationContext(oldNode);
+    const ctx = this.#createValidateExpressionContext(oldNode);
     oldNode.forEachInput((oldExpression, { type }, inputName, index) => {
-      if (!oldExpression) return;
-
-      const newExpression = oldExpression.map((expr) =>
-        expr.type === "node-output" && expr.nodeId === oldAncestorId
-          ? { ...expr, nodeId: newAncestorId }
-          : expr,
+      if (!(oldExpression instanceof MemberAccessExpression)) return;
+      const newExpression = oldExpression.replaceNodeOutput(
+        oldAncestorId,
+        newAncestorId,
       );
-      if (oldExpression.json === newExpression) return;
+      if (!newExpression) return;
 
       newNode = newNode.setInput(
-        newExpression && new Expression(newExpression, type, ctx),
+        Expression.fromJson(newExpression, type, ctx),
         inputName,
         index,
       );
@@ -279,10 +291,10 @@ export class SceneDocument {
     const oldNode = this.getNode(nodeId);
     const newNode = oldNode.setInput(
       expression &&
-        new Expression(
+        Expression.fromJson(
           expression,
           oldNode.schema.getInputAttributes(inputName).type,
-          this.#createExpressionValidationContext(oldNode),
+          this.#createValidateExpressionContext(oldNode),
         ),
       inputName,
       index,
@@ -292,17 +304,13 @@ export class SceneDocument {
     this.#changeListeners.notify([nodeId]);
   }
 
-  #createExpressionValidationContext(
+  #createValidateExpressionContext(
     node: Pick<NodeData, "parent">,
     // newNodes?: ReadonlyMap<string, NodeData>
-  ): ExpressionValidationContext {
+  ): ValidateExpressionContext {
     return {
-      getLibraryMemberType: (libraryName, memberName) => {
-        return (
-          this.definitions.libraries.get(libraryName)?.schema.members[
-            memberName
-          ] ?? null
-        );
+      getJsonLiteralSchema: (schemaName) => {
+        return this.definitions.getJsonLiteral(schemaName);
       },
       getNodeOutputType: (nodeId, outputName) => {
         let { parent } = node;

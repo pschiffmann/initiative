@@ -1,7 +1,8 @@
 @use "../../../design-system/color";
 @use "../../../design-system/typography";
 
-@use "function-expression-builder";
+@use "empty-control";
+@use "member-access-control";
 
 .initiative-node-inputs {
   &__empty-state {

@@ -1,7 +1,11 @@
-import { NodeSchema, t } from "@initiativejs/schema";
+import { InputAttributes, NodeSchema } from "@initiativejs/schema";
 import { validateNodeId } from "@initiativejs/schema/internals";
 import * as $Object from "@pschiffmann/std/object";
-import { Expression, ExpressionJson } from "./expression.js";
+import {
+  Expression,
+  ExpressionJson,
+  MemberAccessExpression,
+} from "./expression.js";
 
 /**
  * Node serialization format.
@@ -42,17 +46,17 @@ export class NodeData {
     readonly collectionSlotSizes: { readonly [slotName: string]: number },
     readonly parent: NodeParent | null,
   ) {
-    const invalidInputs = new Set<string>(
-      this.forEachInput((expression, { type }, inputName, index) => {
-        if (
-          (expression && expression.errors.size === 0) ||
-          (!expression && t.undefined().isAssignableTo(type))
-        ) {
-          return null;
-        }
-        return index === undefined ? inputName : `${inputName}::${index}`;
-      }).filter((inputName): inputName is string => !!inputName),
-    );
+    const invalidInputs = new Set<string>();
+    this.forEachInput((expr, { optional }, inputName, index) => {
+      if (
+        (!expr && !optional) ||
+        (expr instanceof MemberAccessExpression && !expr.isComplete)
+      ) {
+        invalidInputs.add(
+          index === undefined ? inputName : `${inputName}::${index}`,
+        );
+      }
+    });
     const missingSlots = new Set<string>();
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
       if (!isCollectionSlot && !slots[slotName]) missingSlots.add(slotName);
@@ -391,10 +395,7 @@ export class NodeData {
   toJson(): NodeJson {
     return {
       type: this.type,
-      inputs: $Object.map(
-        this.inputs,
-        (inputKey, expression) => expression.json,
-      ),
+      inputs: $Object.map(this.inputs, (_, expression) => expression.toJson()),
       slots: this.slots,
     };
   }

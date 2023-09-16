@@ -9,6 +9,7 @@ export interface IconButtonProps {
   disabled?: boolean;
   onPress?(): void;
   className?: string;
+  id?: string;
 }
 
 export function IconButton({
@@ -17,10 +18,12 @@ export function IconButton({
   disabled,
   onPress,
   className,
+  id,
 }: IconButtonProps) {
   return (
     <button
       className={cls.block(className)}
+      id={id}
       title={label}
       disabled={disabled}
       onClick={onPress}

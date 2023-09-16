@@ -1,38 +1,45 @@
-import { ExpressionJson } from "#shared";
+import {
+  EnumValueExpression,
+  Expression,
+  JsonLiteralExpression,
+  MemberAccessExpression,
+} from "#shared";
 import { Definitions } from "@initiativejs/schema";
 import { AncestorOutputs } from "./node-outputs.js";
 
 export function evaluateExpression(
-  expression: ExpressionJson,
+  expr: Expression,
   definitions: Definitions,
   ancestorOutputs: AncestorOutputs,
 ): any {
-  switch (expression.type) {
-    case "string-literal":
-    case "number-literal":
-    case "boolean-literal":
-      return expression.value;
-    // case 'entity-literal':
-    case "library-member":
-      return definitions.getLibrary(expression.libraryName).members[
-        expression.memberName
-      ];
-    case "node-output":
-      return ancestorOutputs[`${expression.nodeId}::${expression.outputName}`];
-    // case "scene-input":
-    case "function-call":
-      return evaluateExpression(
-        expression.fn,
-        definitions,
-        ancestorOutputs,
-      )(
-        ...expression.args.map((arg) =>
-          arg
-            ? evaluateExpression(arg, definitions, ancestorOutputs)
-            : undefined,
-        ),
-      );
-    default:
-      throw new Error("Unimplemented");
+  if (
+    expr instanceof JsonLiteralExpression ||
+    expr instanceof EnumValueExpression
+  ) {
+    return expr.value;
   }
+  if (expr instanceof MemberAccessExpression) {
+    let i = 0;
+    return expr.selectors.reduce(
+      (target, selector) => {
+        if (selector.type === "property") {
+          return target[selector.propertyName];
+        }
+        const args = expr.args
+          .slice(i, (i += selector.memberType.parameters.length))
+          .map((arg) =>
+            arg
+              ? evaluateExpression(arg, definitions, ancestorOutputs)
+              : undefined,
+          );
+        return selector.type === "method"
+          ? target[selector.methodName](...args)
+          : target(...args);
+      },
+      expr.head.type === "scene-input"
+        ? null!
+        : ancestorOutputs[`${expr.head.nodeId}::${expr.head.outputName}`],
+    );
+  }
+  throw new Error("Unreachable");
 }

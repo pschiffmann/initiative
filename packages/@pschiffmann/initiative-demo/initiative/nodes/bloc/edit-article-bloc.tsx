@@ -1,9 +1,6 @@
 import { NodeComponentProps } from "@initiativejs/schema";
 import { useState } from "react";
-import {
-  ArticleLibrary$getFormattedPrice,
-  ArticleLibrary$parseFormattedPrice,
-} from "../../libraries/article.js";
+import { Article } from "../../libraries/article.schema.js";
 import { EditArticleBlocSchema } from "./edit-article-bloc.schema.js";
 
 export function EditArticleBloc({
@@ -13,7 +10,7 @@ export function EditArticleBloc({
   OutputsProvider,
 }: NodeComponentProps<EditArticleBlocSchema>) {
   const [name, setName] = useState(article.name);
-  const [price, setPrice] = useState(ArticleLibrary$getFormattedPrice(article));
+  const [price, setPrice] = useState(formatPrice(article));
 
   function save() {
     if (!name) {
@@ -22,7 +19,7 @@ export function EditArticleBloc({
     }
     let parsedPrice: number;
     try {
-      parsedPrice = ArticleLibrary$parseFormattedPrice(price);
+      parsedPrice = parseFormattedPrice(price);
       updateArticle({ ...article, name, price: parsedPrice });
     } catch (e) {
       alert(e);
@@ -41,3 +38,17 @@ export function EditArticleBloc({
     </OutputsProvider>
   );
 }
+
+function formatPrice(article: Article) {
+  const euros = Math.trunc(article.price / 100);
+  const cents = Math.trunc(article.price % 100);
+  return `${euros},${cents.toString().padEnd(2, "0")}€`;
+}
+
+function parseFormattedPrice(input: string) {
+  const match = input.match(articlePriceFormat);
+  if (!match) throw new Error(`Invalid price format.`);
+  return Number.parseInt(match[1]) * 100 + Number.parseInt(match[2]);
+}
+
+const articlePriceFormat = /^(\d+),(\d{2})€$/;

@@ -1,5 +1,5 @@
 import { Definitions } from "@initiativejs/schema";
-import { ExpressionJson } from "./expression.js";
+import { ExpressionJson, ExpressionSelectorJson } from "./expression.js";
 import { NodeJson, NodeParent } from "./node-data.js";
 import { SceneDocument } from "./scene-document.js";
 
@@ -129,38 +129,43 @@ const nodeJsonSchema = {
 } satisfies ObjectSchema;
 
 const expressionJsonSchemas = {
-  "string-literal": {
+  "json-literal": {
     type: "string",
-    value: "string",
+    schemaName: "string",
+    value: "unknown",
   },
-  "number-literal": {
+  "enum-value": {
     type: "string",
-    value: "number",
-  },
-  "boolean-literal": {
-    type: "string",
-    value: "boolean",
-  },
-  "library-member": {
-    type: "string",
-    libraryName: "string",
-    memberName: "string",
+    value: "unknown",
   },
   "scene-input": {
     type: "string",
     inputName: "string",
+    selectors: "array",
   },
   "node-output": {
     type: "string",
     nodeId: "string",
     outputName: "string",
-  },
-  "function-call": {
-    type: "string",
-    fn: "object",
-    args: "array",
+    selectors: "array",
   },
 } satisfies Record<ExpressionJson["type"], ObjectSchema>;
+
+const expressionSelectorJsonSchemas = {
+  property: {
+    type: "string",
+    propertyName: "string",
+  },
+  method: {
+    type: "string",
+    methodName: "string",
+    args: "array",
+  },
+  call: {
+    type: "string",
+    args: "array",
+  },
+} satisfies Record<ExpressionSelectorJson["type"], ObjectSchema>;
 
 interface ObjectSchema {
   readonly [K: string]:
@@ -243,10 +248,10 @@ function isExpression(
   inputKey: string,
   errors: string[],
 ): json is ExpressionJson {
-  function visit(json: ExpressionJson, path = "") {
-    const prefix =
-      `At node '${nodeId}', in input '${inputKey}': expression ` +
-      (path || `'/'`);
+  function visit(
+    json: ExpressionJson,
+    prefix = `At node ${nodeId}: input ${inputKey}`,
+  ) {
     if (typeof json !== "object" || json === null) {
       errors.push(`${prefix} must be a JSON object.`);
       return;
@@ -265,10 +270,42 @@ function isExpression(
     if (!isObject(json, schema, prefix, errors)) {
       return;
     }
-    if (json.type === "function-call") {
-      visit(json.fn, `${path}/fn`);
-      for (const [i, arg] of json.args.entries()) {
-        if (arg !== null) visit(arg, `${path}/arg(${i})`);
+    switch (json.type) {
+      case "enum-value":
+        if (typeof json.value !== "string" && typeof json.value !== "number") {
+          errors.push(
+            `${prefix} must contain a key 'type' with type string or number, ` +
+              `but got ${json.value === null ? "null" : typeof json.value}.`,
+          );
+          return;
+        }
+        break;
+      case "scene-input":
+      case "node-output": {
+        for (const [i, selector] of json.selectors.entries()) {
+          if (typeof selector !== "object" || selector === null) {
+            errors.push(`${prefix}.${i} must be a JSON object.`);
+            return;
+          }
+          const selectorSchema = expressionSelectorJsonSchemas[selector.type];
+          if (!selectorSchema) {
+            errors.push(
+              `${prefix}.${i} must have a 'type' key with value ` +
+                Object.keys(expressionJsonSchemas)
+                  .map((s) => `'${s}'`)
+                  .join(", ") +
+                ".",
+            );
+            return;
+          }
+          if (!isObject(selector, selectorSchema, prefix, errors)) {
+            return;
+          }
+          if (selector.type === "property") continue;
+          for (const [j, arg] of selector.args.entries()) {
+            if (arg !== null) visit(arg, `${prefix}.${i}.args.${j}`);
+          }
+        }
       }
     }
   }

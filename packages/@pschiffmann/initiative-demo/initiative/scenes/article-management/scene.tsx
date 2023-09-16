@@ -1,24 +1,19 @@
 import {
-  ArticleLibrary$getFormattedPrice,
-  ArticleLibrary$getId,
-  ArticleLibrary$getName,
-} from "#initiative/libraries/index.js";
-import {
   ArticleRepository,
-  ArticleRepositorySchema,
   EditArticleBloc,
-  EditArticleBlocSchema,
   I18n,
-  I18nSchema,
   MuiButton,
   MuiDialog,
-  MuiDialogSchema,
   MuiTable,
-  MuiTableSchema,
   MuiTextField,
   MuiTypography,
   Stack,
-  StackSchema,
+  type ArticleRepositorySchema,
+  type EditArticleBlocSchema,
+  type I18nSchema,
+  type MuiDialogSchema,
+  type MuiTableSchema,
+  type StackSchema,
 } from "#initiative/nodes/index.js";
 import {
   OutputTypes,
@@ -56,6 +51,7 @@ function Translations_OutputsProvider({
     </Translations$translateContext.Provider>
   );
 }
+
 function ArticleRepository_Adapter() {
   return (
     <ArticleRepository
@@ -173,7 +169,6 @@ function ArticlesTable_Adapter() {
   return (
     <MuiTable
       rows={useContext(ArticleRepository$articlesContext)}
-      getRowKey={ArticleLibrary$getId}
       header={["Id", "Name", "Price", "Action"]}
       align={[undefined, undefined, "right", undefined]}
       slots={{
@@ -240,7 +235,7 @@ function NewArticleBloc_Adapter() {
 function IdColumn_Adapter() {
   return (
     <MuiTypography
-      text={ArticleLibrary$getId(useContext(ArticlesTable$rowContext))}
+      text={useContext(ArticlesTable$rowContext).id.toString(undefined)}
       variant={"body2"}
     />
   );
@@ -249,7 +244,7 @@ function IdColumn_Adapter() {
 function NameColumn_Adapter() {
   return (
     <MuiTypography
-      text={ArticleLibrary$getName(useContext(ArticlesTable$rowContext))}
+      text={useContext(ArticlesTable$rowContext).name}
       variant={"body2"}
     />
   );
@@ -258,9 +253,7 @@ function NameColumn_Adapter() {
 function PriceColumn_Adapter() {
   return (
     <MuiTypography
-      text={ArticleLibrary$getFormattedPrice(
-        useContext(ArticlesTable$rowContext),
-      )}
+      text={useContext(ArticlesTable$rowContext).price.toString(undefined)}
       variant={"body2"}
     />
   );

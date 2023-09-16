@@ -1,4 +1,11 @@
-import { ExpressionJson, NodeData, SceneDocument } from "#shared";
+import {
+  EnumValueExpression,
+  Expression,
+  JsonLiteralExpression,
+  MemberAccessExpression,
+  NodeData,
+  SceneDocument,
+} from "#shared";
 import { ImportNames } from "./imports.js";
 
 export function generateNodeRuntime(
@@ -55,7 +62,8 @@ export function generateNodeRuntime(
     if (!Array.isArray(data)) {
       continue;
     }
-    result += generateSlotComponent(nodeData, slotname, data) + "\n";
+    result +=
+      generateSlotComponent(nodeData, slotname, data, importNames) + "\n";
   }
   //
 
@@ -96,10 +104,7 @@ function generateNodeAdapter(
       if (expression === null) {
         inputResultsMap.set(inputName, "undefined");
       } else {
-        inputResultsMap.set(
-          inputName,
-          provideValue(expression.json, importNames, nodeData),
-        );
+        inputResultsMap.set(inputName, provideValue(expression));
       }
     } else {
       if (!inputResultsMap.has(inputName)) {
@@ -112,7 +117,7 @@ function generateNodeAdapter(
       if (expression === null) {
         arraycheck.push("undefined");
       } else {
-        arraycheck.push(provideValue(expression.json, importNames, nodeData));
+        arraycheck.push(provideValue(expression));
       }
     }
   });
@@ -212,6 +217,7 @@ function generateSlotComponent(
   nodeData: NodeData,
   slotName: string,
   children: Array<string | null>,
+  importNames: ImportNames,
 ): string {
   let result: string = ``;
   result += `function ${nodeData.id}_${slotName}({ `;
@@ -221,7 +227,9 @@ function generateSlotComponent(
   }
   // TODO done?
   result += `index `;
-  result += `}: any) {\n`;
+  result += `}: SlotComponentProps<${importNames.nodeComponents.get(
+    nodeData.type,
+  )}Schema, "${slotName}">) {\n`;
   result += `switch (index) {\n`;
   if (children[0] !== null) {
     for (let index = 0; index < children.length; index++) {
@@ -255,54 +263,32 @@ function recursiveDivInserter(
   `;
 }
 
-function provideValue(
-  exjson: ExpressionJson,
-  importNames: ImportNames,
-  nodeData: NodeData,
-): string {
-  switch (exjson.type) {
-    case "string-literal":
-    case "number-literal":
-    case "boolean-literal":
-      return JSON.stringify(exjson.value);
-    case "library-member": {
-      const directName = importNames.libraryMembers.get(
-        `${exjson.libraryName}::${exjson.memberName}`,
-      );
-      if (directName === undefined) throw new Error(`undefined library-member`);
-      return `${directName}`;
-    }
-    case "node-output":
-      return `useContext(${exjson.nodeId}$${exjson.outputName}Context)`;
-    case "function-call": {
-      // TODO done?
-      const fn = exjson.fn;
-      const args = exjson.args;
-      let directName: string | undefined = "";
-      if (fn.type != "function-call") {
-        directName = provideValue(fn, importNames, nodeData);
-      }
-      if (directName == undefined) {
-        directName = importNames.nodeComponents.get(nodeData.type);
-      }
-      if (directName == undefined) throw new Error("lost in the souce");
-      let result: string = "";
-      result += `${directName}(`;
-      if (args.length === 0) throw new Error("no args in  function-call");
-      for (const value of args) {
-        if (value == null) {
-          result += `null, `;
-          continue;
-        }
-        result += `${provideValue(value, importNames, nodeData)}, `;
-      }
-      result = result.slice(0, result.length - 2);
-      result += `)`;
-      return result;
-    }
-    case "scene-input":
-    default:
-      // NOT IMPLEMENTED
-      throw new Error("provideValue unimplemented json.type");
+function provideValue(expression: Expression): string {
+  if (
+    expression instanceof JsonLiteralExpression ||
+    expression instanceof EnumValueExpression
+  ) {
+    return JSON.stringify(expression.value);
   }
+  if (expression instanceof MemberAccessExpression) {
+    const head =
+      expression.head.type === "scene-input"
+        ? "TODO"
+        : `useContext(${expression.head.nodeId}$` +
+          `${expression.head.outputName}Context)`;
+    let i = 0;
+    const tail = expression.selectors.map((selector) => {
+      if (selector.type === "property") {
+        return `.${selector.propertyName}`;
+      }
+      const args = expression.args
+        .slice(i, (i += selector.memberType.parameters.length))
+        .map((arg) => (arg ? provideValue(arg) : "undefined"));
+      return selector.type === "method"
+        ? `.${selector.methodName}(${args})`
+        : `(${args})`;
+    });
+    return head + tail.join("");
+  }
+  throw new Error("Unreachable");
 }

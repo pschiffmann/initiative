@@ -68,9 +68,9 @@ class InitiativeFunction<
   }
 
   override toString(addBrackets?: boolean): string {
-    const params = this.parameters
-      .map((p, i) => `p${i + 1}${i < this.requiredCount ? "" : "?"}: ${p}`)
-      .join(", ");
+    const params = InitiativeFunction.formatParameterList(this, {
+      includeTypes: true,
+    });
     return addBrackets
       ? `((${params}) => ${this.returnType})`
       : `(${params}) => ${this.returnType}`;
@@ -79,6 +79,22 @@ class InitiativeFunction<
   // Workaround for: https://github.com/microsoft/TypeScript/issues/17473
   static is(t: any): t is InitiativeFunction {
     return t instanceof InitiativeFunction;
+  }
+
+  static formatParameterList(
+    fn: InitiativeFunction<any[], any[], any>,
+    o?: { prefix?: string; startIndex?: number; includeTypes?: boolean },
+  ): string {
+    const prefix = o?.prefix ?? "p";
+    const startIndex = o?.startIndex ?? 1;
+    const includeTypes = o?.includeTypes ?? false;
+    return fn.parameters
+      .map(
+        (p, i) =>
+          `${prefix}${i + startIndex}${i < fn.requiredCount ? "" : "?"}` +
+          (includeTypes ? `: ${p}` : ""),
+      )
+      .join(", ");
   }
 }
 

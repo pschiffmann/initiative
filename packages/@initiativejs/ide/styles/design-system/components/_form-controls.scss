@@ -114,6 +114,9 @@
       text-align: start;
     }
   }
+  &--emphasized > &__input {
+    font-style: italic;
+  }
   &--error > &__input {
     color: color.role("on-error-container");
     background-color: color.role("error-container");
@@ -121,8 +124,9 @@
   }
 
   &__clear-button {
+    --initiative-icon-button-density: -1;
     grid-area: clear;
-    margin-right: 2px;
+    margin-right: 4px;
   }
   &--error > &__clear-button {
     --initiative-icon-button-color: #{color.role("on-error-container")};

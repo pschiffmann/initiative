@@ -1,9 +1,10 @@
 import { bemClasses } from "#design-system";
-import { SceneDocument, useNode } from "#shared";
+import { ExpressionJson, SceneDocument, useNode } from "#shared";
 import { Fragment } from "react";
 import { ToolFrame } from "../tool-frame.js";
-import { NodeInputControl } from "./controls.js";
-import { AncestorOutputsProvider } from "./use-input-options.js";
+import { EmptyControl } from "./empty-control.js";
+import { ExpressionControl } from "./expression-control.js";
+import { SelectedNodeAncestorsProvider } from "./use-selected-node-ancestors.js";
 
 const cls = bemClasses("initiative-node-inputs");
 
@@ -37,8 +38,25 @@ interface NodeInputsListProps {
 function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
   const nodeData = useNode(document, selectedNode);
 
+  function setNodeInput(
+    expression: ExpressionJson | null,
+    inputName: string,
+    index?: number,
+  ) {
+    document.applyPatch({
+      type: "set-node-input",
+      nodeId: nodeData.id,
+      expression,
+      inputName,
+      index,
+    });
+  }
+
   return (
-    <AncestorOutputsProvider document={document} nodeData={nodeData}>
+    <SelectedNodeAncestorsProvider
+      document={document}
+      selectedNode={selectedNode}
+    >
       <div className={cls.element("list")}>
         <div className={cls.element("card")}>
           <div className={cls.element("card-label")}>ID</div>
@@ -48,45 +66,72 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
         </div>
 
         {nodeData.forEachInput(
-          (expression, attributes, inputName, index) =>
-            index === undefined && (
-              <NodeInputControl
+          (expression, { type, optional }, inputName, index) =>
+            index !== undefined ? null : expression === null ? (
+              <EmptyControl
                 key={inputName}
-                document={document}
-                nodeData={nodeData}
-                inputName={inputName}
+                parent="node"
+                name={inputName}
+                expectedType={type}
+                optional={optional}
+                onSelect={(value) => setNodeInput(value, inputName)}
+              />
+            ) : (
+              <ExpressionControl
+                key={inputName}
+                parent="node"
+                name={inputName}
+                expectedType={type}
+                optional={optional}
+                expression={expression}
+                onChange={(value) => setNodeInput(value, inputName)}
               />
             ),
         )}
 
         {nodeData.schema.forEachSlot(
           (slotName, { isCollectionSlot, inputNames }) =>
-            isCollectionSlot && (
-              <Fragment key={slotName}>
-                {nodeData.forEachChildInSlot(slotName, (childId, index) => (
-                  <Fragment key={childId}>
-                    <div className={cls.element("slot-section")}>
-                      {index !== -1 ? `${slotName} ${index + 1}` : slotName}{" "}
-                      <span className={cls.element("child-id")}>
-                        [{childId}]
-                      </span>
-                    </div>
+            isCollectionSlot &&
+            nodeData.forEachChildInSlot(slotName, (childId, index) => (
+              <Fragment key={`${slotName}_${childId}`}>
+                <div className={cls.element("slot-section")}>
+                  {index !== -1 ? `${slotName} ${index + 1}` : slotName}{" "}
+                  <span className={cls.element("child-id")}>[{childId}]</span>
+                </div>
 
-                    {inputNames.map((inputName) => (
-                      <NodeInputControl
-                        key={inputName}
-                        document={document}
-                        nodeData={nodeData}
-                        inputName={inputName}
-                        index={index}
-                      />
-                    ))}
-                  </Fragment>
-                ))}
+                {inputNames.map((inputName) => {
+                  const { type, optional } =
+                    nodeData.schema.inputAttributes[inputName];
+                  const expression = nodeData.inputs[`${inputName}::${index}`];
+                  return !expression ? (
+                    <EmptyControl
+                      key={inputName}
+                      parent="node"
+                      name={inputName}
+                      expectedType={type}
+                      optional={optional}
+                      onSelect={(value) =>
+                        setNodeInput(value, inputName, index)
+                      }
+                    />
+                  ) : (
+                    <ExpressionControl
+                      key={inputName}
+                      parent="node"
+                      name={inputName}
+                      expectedType={type}
+                      optional={optional}
+                      expression={expression}
+                      onChange={(value) =>
+                        setNodeInput(value, inputName, index)
+                      }
+                    />
+                  );
+                })}
               </Fragment>
-            ),
+            )),
         )}
       </div>
-    </AncestorOutputsProvider>
+    </SelectedNodeAncestorsProvider>
   );
 }

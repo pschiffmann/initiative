@@ -11,6 +11,7 @@ export interface BaseFormControlProps {
   errorText?: string;
   adornmentIcon?: string;
   dense?: boolean;
+  emphasized?: boolean;
   onClear?(): void;
   className?: string;
 }
@@ -27,6 +28,7 @@ function FormControlLayout({
   errorText,
   adornmentIcon,
   dense,
+  emphasized,
   onClear,
   id,
   className,
@@ -34,7 +36,12 @@ function FormControlLayout({
 }: FormControlLayoutProps) {
   return (
     <div
-      className={cls.block(className, dense && "dense", !!errorText && "error")}
+      className={cls.block(
+        className,
+        dense && "dense",
+        emphasized && "emphasized",
+        !!errorText && "error",
+      )}
     >
       <div className={cls.element("header")}>
         <label className={cls.element("label")} htmlFor={id}>

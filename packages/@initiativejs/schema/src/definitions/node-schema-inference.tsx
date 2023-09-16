@@ -1,6 +1,6 @@
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, PropsWithChildren } from "react";
-import { Flatten, MakeUndefinedOptional } from "../type-helpers/index.js";
+import { Flatten } from "../type-helpers/index.js";
 import * as t from "../type-system/index.js";
 import { InputInit, NodeSchema, OutputInit, SlotInit } from "./node-schema.js";
 
@@ -66,9 +66,23 @@ export type OutputTypes<nodeSchema extends NodeSchema> =
     ? RegularOutputTypes<O> & ScopedOutputTypes<S>
     : never;
 
-type RegularInputTypes<I extends ObjectMap<InputInit>> = MakeUndefinedOptional<{
-  readonly [inputName in keyof I]: t.Unwrap<I[inputName]["type"]>;
-}>;
+type RegularInputTypes<I extends ObjectMap<InputInit>> = {
+  readonly [inputName in RequiredInputs<I>]: t.Unwrap<I[inputName]["type"]>;
+} & {
+  readonly [inputName in OptionalInputs<I>]?: t.Unwrap<I[inputName]["type"]>;
+};
+
+type RequiredInputs<I extends ObjectMap<InputInit>> = {
+  [inputName in keyof I]: I[inputName]["optional"] extends true
+    ? never
+    : inputName;
+}[keyof I];
+
+type OptionalInputs<I extends ObjectMap<InputInit>> = {
+  [inputName in keyof I]: I[inputName]["optional"] extends true
+    ? inputName
+    : never;
+}[keyof I];
 
 /**
  * Input:
@@ -104,17 +118,23 @@ type RegularInputTypes<I extends ObjectMap<InputInit>> = MakeUndefinedOptional<{
 type CollectionInputTypes<S extends ObjectMap<SlotInit>> = Flatten<{
   readonly [slotName in keyof S]: S[slotName]["inputs"] extends {}
     ? {
-        readonly [inputName in keyof S[slotName]["inputs"]]: readonly t.Unwrap<
-          S[slotName]["inputs"][inputName]["type"]
-        >[];
+        readonly [inputName in RequiredInputs<
+          S[slotName]["inputs"]
+        >]: readonly t.Unwrap<S[slotName]["inputs"][inputName]["type"]>[];
+      } & {
+        readonly [inputName in OptionalInputs<
+          S[slotName]["inputs"]
+        >]: readonly (
+          | t.Unwrap<S[slotName]["inputs"][inputName]["type"]>
+          | undefined
+        )[];
       }
     : {};
 }>;
 
-type RegularOutputTypes<O extends ObjectMap<OutputInit>> =
-  MakeUndefinedOptional<{
-    readonly [outputName in keyof O]: t.Unwrap<O[outputName]["type"]>;
-  }>;
+type RegularOutputTypes<O extends ObjectMap<OutputInit>> = {
+  readonly [outputName in keyof O]: t.Unwrap<O[outputName]["type"]>;
+};
 
 type ScopedOutputTypes<S extends ObjectMap<SlotInit>> = Flatten<{
   readonly [slotName in keyof S]: S[slotName]["outputs"] extends {}

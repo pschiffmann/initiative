@@ -5,10 +5,11 @@
   "type": "module",
   "exports": {
     "./nodes": "./dist/nodes/index.js",
-    "./libraries": "./dist/libraries/index.js"
+    "./json-literals": "./dist/json-literals/index.js"
   },
   "sideEffects": false,
   "dependencies": {
+    "@initiativejs/ide": "^0.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
