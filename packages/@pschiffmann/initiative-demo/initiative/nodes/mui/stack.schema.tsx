@@ -8,21 +8,21 @@ export const StackSchema = new NodeSchema(
         type: t.union(t.string("column"), t.string("row")),
       },
       gap: {
-        type: t.optional(t.number()),
+        type: t.number(),
+        optional: true,
       },
     },
     slots: {
       child: {
         inputs: {
           alignSelf: {
-            type: t.optional(
-              t.union(
-                t.string("start"),
-                t.string("center"),
-                t.string("end"),
-                t.string("stretch"),
-              ),
+            type: t.union(
+              t.string("start"),
+              t.string("center"),
+              t.string("end"),
+              t.string("stretch"),
             ),
+            optional: true,
           },
         },
       },

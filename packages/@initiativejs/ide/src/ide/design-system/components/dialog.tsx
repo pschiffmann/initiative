@@ -33,7 +33,9 @@ export function Dialog({ commandStream, className, children }: DialogProps) {
     <dialog
       ref={ref}
       className={cls.block(className)}
-      onClose={() => setOpen(false)}
+      onClose={(e) => {
+        if (e.currentTarget === e.target) setOpen(false);
+      }}
     >
       {open && children}
     </dialog>

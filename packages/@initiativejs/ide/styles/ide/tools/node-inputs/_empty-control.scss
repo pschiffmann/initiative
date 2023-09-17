@@ -1,0 +1,88 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
+.initiative-node-inputs-empty-control {
+  min-width: 600px;
+
+  &__empty-state {
+    @include typography.role("body-large");
+    color: color.role("on-surface-deemphasized");
+
+    &:not(:first-child) {
+      display: none;
+    }
+  }
+
+  &__toggle-button {
+    grid-area: toggle-button;
+    --initiative-icon-button-density: -2;
+  }
+
+  &__children {
+    grid-area: children;
+    padding-left: 8px;
+  }
+
+  &__group {
+    display: grid;
+    grid:
+      "toggle-button title" auto
+      "children children" auto
+      / auto 1fr;
+    align-items: center;
+  }
+
+  &__group-title {
+    grid-area: title;
+    @include typography.role("title-medium");
+    @include typography.no-wrap();
+    cursor: default;
+  }
+
+  &__option {
+    display: grid;
+    grid:
+      "toggle-button header" auto
+      "children children" auto
+      / 16px 1fr;
+    align-items: center;
+  }
+
+  &__option-header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  &__option--disabled > &__option-header {
+    opacity: 0.36;
+  }
+
+  &__option-name {
+    @include typography.role("body-medium");
+    @include typography.no-wrap();
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &--function-call {
+      font-style: italic;
+    }
+  }
+  &__option--disabled > &__option-header > &__option-name {
+    cursor: not-allowed;
+  }
+
+  &__option-type {
+    @include typography.role("body-small");
+    color: color.role("on-surface-deemphasized");
+  }
+
+  &__option-doc {
+    --initiative-material-icon-density: -2;
+    color: color.role("on-surface-deemphasized");
+    cursor: help;
+  }
+}

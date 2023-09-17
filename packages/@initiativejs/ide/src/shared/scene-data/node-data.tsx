@@ -1,7 +1,11 @@
-import { NodeSchema, t } from "@initiativejs/schema";
+import { InputAttributes, NodeSchema } from "@initiativejs/schema";
 import { validateNodeId } from "@initiativejs/schema/internals";
 import * as $Object from "@pschiffmann/std/object";
-import { Expression, ExpressionJson } from "./expression.js";
+import {
+  Expression,
+  ExpressionJson,
+  MemberAccessExpression,
+} from "./expression.js";
 
 /**
  * Node serialization format.
@@ -42,17 +46,17 @@ export class NodeData {
     readonly collectionSlotSizes: { readonly [slotName: string]: number },
     readonly parent: NodeParent | null,
   ) {
-    const invalidInputs = new Set<string>(
-      this.forEachInput((expression, type, inputName, index) => {
-        if (
-          (expression && expression.errors.size === 0) ||
-          (!expression && t.undefined().isAssignableTo(type))
-        ) {
-          return null;
-        }
-        return index === undefined ? inputName : `${inputName}::${index}`;
-      }).filter((inputName): inputName is string => !!inputName),
-    );
+    const invalidInputs = new Set<string>();
+    this.forEachInput((expr, { optional }, inputName, index) => {
+      if (
+        (!expr && !optional) ||
+        (expr instanceof MemberAccessExpression && !expr.isComplete)
+      ) {
+        invalidInputs.add(
+          index === undefined ? inputName : `${inputName}::${index}`,
+        );
+      }
+    });
     const missingSlots = new Set<string>();
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
       if (!isCollectionSlot && !slots[slotName]) missingSlots.add(slotName);
@@ -83,24 +87,26 @@ export class NodeData {
   forEachInput<R>(
     callback: (
       expression: Expression | null,
-      type: t.Type,
+      attributes: InputAttributes,
       inputName: string,
       index?: number,
     ) => R,
   ): R[] {
     const result: R[] = [];
-    this.schema.forEachInput((inputName, { type, slot }) => {
-      if (slot) {
-        const childCount = this.collectionSlotSizes[slot];
+    this.schema.forEachInput((inputName, attributes) => {
+      if (attributes.slot) {
+        const childCount = this.collectionSlotSizes[attributes.slot];
         if (childCount === 0) {
-          result.push(callback(null, type, inputName, -1));
+          result.push(callback(null, attributes, inputName, -1));
         }
         for (let i = 0; i < childCount; i++) {
           const expression = this.inputs[`${inputName}::${i}`] ?? null;
-          result.push(callback(expression, type, inputName, i));
+          result.push(callback(expression, attributes, inputName, i));
         }
       } else {
-        result.push(callback(this.inputs[inputName] ?? null, type, inputName));
+        result.push(
+          callback(this.inputs[inputName] ?? null, attributes, inputName),
+        );
       }
     });
     return result;
@@ -389,10 +395,7 @@ export class NodeData {
   toJson(): NodeJson {
     return {
       type: this.type,
-      inputs: $Object.map(
-        this.inputs,
-        (inputKey, expression) => expression.json,
-      ),
+      inputs: $Object.map(this.inputs, (_, expression) => expression.toJson()),
       slots: this.slots,
     };
   }

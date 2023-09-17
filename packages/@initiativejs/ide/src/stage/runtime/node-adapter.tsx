@@ -1,4 +1,4 @@
-import { NodeData } from "#shared";
+import { MemberAccessExpression, NodeData } from "#shared";
 import { Definitions, NodeSchema } from "@initiativejs/schema";
 import * as $Object from "@pschiffmann/std/object";
 import { ComponentType, FunctionComponent, useContext } from "react";
@@ -67,10 +67,10 @@ function useInputs(definitions: Definitions, nodeData: NodeData) {
   const ancestorOutputs = useContext(AncestorOutputsContext);
 
   const inputs: Record<string, any> = {};
-  nodeData.forEachInput((expression, type, inputName, index) => {
+  nodeData.forEachInput((expr, attributes, inputName, index) => {
     const value =
-      expression && expression.errors.size === 0
-        ? evaluateExpression(expression.json, definitions, ancestorOutputs)
+      expr && (!(expr instanceof MemberAccessExpression) || expr.isComplete)
+        ? evaluateExpression(expr, definitions, ancestorOutputs)
         : undefined;
     if (index === undefined) {
       inputs[inputName] = value;

@@ -1,202 +1,61 @@
-import { t } from "@initiativejs/schema";
+import { JsonLiteralSchema, t } from "@initiativejs/schema";
 
-/**
- * Expression serialization format.
- */
 export type ExpressionJson =
-  | StringLiteralExpressionJson
-  | NumberLiteralExpressionJson
-  | BooleanLiteralExpressionJson
-  | LibraryMemberExpressionJson
+  | JsonLiteralExpressionJson
+  | EnumValueExpressionJson
   | SceneInputExpressionJson
-  | NodeOutputExpressionJson
-  | FunctionCallExpressionJson;
+  | NodeOutputExpressionJson;
 
-export interface StringLiteralExpressionJson {
-  readonly type: "string-literal";
-  readonly value: string;
+export interface JsonLiteralExpressionJson {
+  readonly type: "json-literal";
+  readonly schemaName: string;
+  readonly value: unknown;
 }
 
-// /**
-//  * Same as `StringLiteralExpressionJson`, except that the IDE renders a textarea
-//  * instead of a single line textfield to edit this value.
-//  */
-// export interface TextLiteralExpressionJson {
-//   readonly type: "text-literal";
-//   readonly value: string;
-// }
-
-export interface NumberLiteralExpressionJson {
-  readonly type: "number-literal";
-  readonly value: number;
-}
-
-export interface BooleanLiteralExpressionJson {
-  readonly type: "boolean-literal";
-  readonly value: boolean;
-}
-
-export interface LibraryMemberExpressionJson {
-  readonly type: "library-member";
-  readonly libraryName: string;
-  readonly memberName: string;
+export interface EnumValueExpressionJson {
+  readonly type: "enum-value";
+  readonly value: string | number;
 }
 
 export interface SceneInputExpressionJson {
   readonly type: "scene-input";
   readonly inputName: string;
+  readonly selectors: readonly ExpressionSelectorJson[];
 }
 
 export interface NodeOutputExpressionJson {
   readonly type: "node-output";
   readonly nodeId: string;
   readonly outputName: string;
+  readonly selectors: readonly ExpressionSelectorJson[];
 }
 
-export interface FunctionCallExpressionJson {
-  readonly type: "function-call";
-  readonly fn: ExpressionJson;
+export type ExpressionSelectorJson =
+  | PropertySelectorJson
+  | MethodSelectorJson
+  | CallSelectorJson;
+
+export interface PropertySelectorJson {
+  readonly type: "property";
+  readonly propertyName: string;
+}
+
+export interface MethodSelectorJson {
+  readonly type: "method";
+  readonly methodName: string;
   readonly args: readonly (ExpressionJson | null)[];
 }
 
-export class Expression {
-  constructor(
-    json: ExpressionJson,
-    expectedType: t.Type,
-    ctx: ExpressionValidationContext,
-  ) {
-    this.json = json = trimFunctionCallArguments(json);
-    this.types = resolveTypes(json, ctx);
-    this.errors = resolveErrors(json, this.types, expectedType);
-  }
-
-  readonly json: ExpressionJson;
-
-  /**
-   * Contains a key for every sub-expression of `json`. The value is `null` if
-   * an expression type can't be resolved (e.g. `library-export` expressions
-   * that use non-existent libraries).
-   */
-  readonly types: ReadonlyMap<ExpressionPath, t.Type | null>;
-
-  /**
-   * Contains a key for every erroneous sub-expression of `json`. The value is
-   * the error message.
-   */
-  readonly errors: ReadonlyMap<ExpressionPath, string>;
-
-  get(path: ExpressionPath): ExpressionJson | null {
-    function getAtPath(
-      json: ExpressionJson | null,
-      path: readonly ExpressionPathSegment[],
-    ): ExpressionJson | null {
-      if (path.length === 0) return json;
-      if (json?.type !== "function-call") throw new Error(`Invalid 'path'.`);
-      const [segment, ...rest] = path;
-      switch (segment.type) {
-        case "fn":
-          return getAtPath(json.fn, rest);
-        case "arg":
-          return getAtPath(json.args[segment.index] ?? null, rest);
-      }
-    }
-
-    return getAtPath(this.json, parseExpressionPath(path));
-  }
-
-  /**
-   * Returns a copy of `json` with the expression at `path` set to `expression`.
-   */
-  set(
-    path: ExpressionPath,
-    expression: ExpressionJson | null,
-  ): ExpressionJson | null {
-    function rebuild(
-      json: ExpressionJson,
-      path: readonly ExpressionPathSegment[],
-    ): ExpressionJson | null {
-      if (path.length === 0) return expression;
-      if (json.type !== "function-call") throw new Error(`Invalid 'path'.`);
-      const [segment, ...rest] = path;
-      switch (segment.type) {
-        case "fn": {
-          const fn = rebuild(json.fn, rest);
-          return fn && { ...json, fn };
-        }
-        case "arg": {
-          const oldArg = json.args[segment.index];
-          const args = [...json.args];
-          if (oldArg) {
-            args[segment.index] = rebuild(oldArg, rest);
-          } else if (rest.length === 0) {
-            args[segment.index] = expression;
-          } else {
-            throw new Error("Invalid path.");
-          }
-          return { ...json, args: args };
-        }
-      }
-    }
-
-    return rebuild(this.json, parseExpressionPath(path));
-  }
-
-  /**
-   * Returns a copy of `json` where each expression is replaced by the result of
-   * calling `callback()` with that expression.
-   *
-   * If `callback` doesn't replace any expressions, returns a reference to
-   * `json` (`Object.is(expr.json, expr.map(...))` returns true).
-   */
-  map(
-    callback: (json: ExpressionJson) => ExpressionJson | null,
-  ): ExpressionJson | null {
-    function rebuild(json: ExpressionJson): ExpressionJson | null {
-      const result = callback(json);
-      if (result?.type !== "function-call") return result;
-
-      const fn = rebuild(result.fn);
-      if (!fn) return null;
-
-      const args = result.args.map((arg) => arg && rebuild(arg));
-      return fn === result.fn && args.every((arg, i) => arg === result.args[i])
-        ? result
-        : { type: "function-call", fn, args };
-    }
-
-    return rebuild(this.json);
-  }
-
-  format(): string {
-    const types = this.types;
-
-    function fmt(json: ExpressionJson): string {
-      switch (json.type) {
-        case "string-literal":
-        case "number-literal":
-        case "boolean-literal":
-          return JSON.stringify(json.value);
-        case "node-output":
-          return `<${json.nodeId}>.${json.outputName}`;
-        case "scene-input":
-          return `Scene.${json.inputName}`;
-        case "library-member":
-          return `import("${json.libraryName}").${json.memberName}`;
-        case "function-call": {
-          const parameters = json.args
-            .map((p) => (p ? fmt(p) : "null"))
-            .join(", ");
-          return `${fmt(json.fn)}(${parameters})`;
-        }
-      }
-    }
-
-    return fmt(this.json);
-  }
+export interface CallSelectorJson {
+  readonly type: "call";
+  readonly args: readonly (ExpressionJson | null)[];
 }
 
-export interface ExpressionValidationContext {
-  getLibraryMemberType(libraryName: string, memberName: string): t.Type | null;
+export interface ValidateExpressionContext {
+  /**
+   * Throws an error if no literal with `literalName` exists.
+   */
+  getJsonLiteralSchema(schemaName: string): JsonLiteralSchema;
 
   /**
    * Throws an error if `nodeId` is not an ancestor of the node this
@@ -212,203 +71,439 @@ export interface ExpressionValidationContext {
   getSceneInputType(inputName: string): t.Type;
 }
 
-/**
- * Resolves the types of all sub-expressions in `json`.
- */
-function resolveTypes(
-  json: ExpressionJson,
-  ctx: ExpressionValidationContext,
-): ReadonlyMap<ExpressionPath, t.Type | null> {
-  const types = new Map<ExpressionPath, t.Type | null>();
-
-  function resolveType(
-    json: ExpressionJson,
-    path: ExpressionPath = "",
-  ): t.Type | null {
-    switch (json.type) {
-      case "string-literal":
-        return t.string(json.value);
-      case "number-literal":
-        return t.number(json.value);
-      case "boolean-literal":
-        return t.boolean();
-      case "node-output":
-        return ctx.getNodeOutputType(json.nodeId, json.outputName);
-      case "scene-input":
-        return ctx.getSceneInputType(json.inputName);
-      case "library-member":
-        return ctx.getLibraryMemberType(json.libraryName, json.memberName);
-      case "function-call": {
-        const functionPath = `${path}/fn`;
-        const functionType = resolveType(json.fn, functionPath);
-        types.set(functionPath, functionType);
-
-        for (const [i, arg] of json.args.entries()) {
-          const argPath = `${path}/arg(${i})`;
-          const argType = arg && resolveType(arg, argPath);
-          types.set(argPath, argType);
-        }
-
-        return functionType && t.Function.is(functionType)
-          ? functionType.returnType
-          : null;
-      }
-    }
-  }
-
-  types.set("/", resolveType(json));
-  return types;
+export interface ResolveExpressionContext extends ValidateExpressionContext {
+  parameterPrefixes: Iterator<string>;
 }
 
-function resolveErrors(
-  json: ExpressionJson,
-  types: Expression["types"],
-  expectedType: t.Type,
-): ReadonlyMap<ExpressionPath, string> {
-  const errors = new Map<ExpressionPath, string>();
+interface ExpressionParent {
+  readonly expression: MemberAccessExpression;
+  readonly index: number;
+}
 
-  function resolveError(
+export abstract class Expression {
+  constructor(readonly parent: ExpressionParent | null) {}
+
+  withDeleted(): ExpressionJson | null {
+    return this.parent?.expression.withArg(this.parent.index, null) ?? null;
+  }
+
+  abstract toJson(): ExpressionJson;
+
+  static fromJson(
+    json: ExpressionJson,
+    inputType: t.Type,
+    ctx: ValidateExpressionContext,
+  ): Expression {
+    return this._fromJson(
+      json,
+      inputType,
+      { ...ctx, parameterPrefixes: generateParameterPrefixes() },
+      null,
+    );
+  }
+
+  protected static _fromJson(
     json: ExpressionJson,
     expectedType: t.Type,
-    path: ExpressionPath = "",
-  ): string | null {
-    const type = types.get(path || "/");
+    ctx: ResolveExpressionContext,
+    parent: ExpressionParent | null,
+  ): Expression {
     switch (json.type) {
-      case "library-member":
-        if (!type) {
-          return (
-            `Library export '${json.libraryName}::${json.memberName}' not ` +
-            `found.`
+      case "json-literal":
+        return new JsonLiteralExpression(json, expectedType, ctx, parent);
+      case "enum-value":
+        return new EnumValueExpression(json, expectedType, parent);
+      case "scene-input":
+      case "node-output":
+        return new MemberAccessExpression(json, expectedType, ctx, parent);
+    }
+  }
+}
+
+export class JsonLiteralExpression extends Expression {
+  constructor(
+    json: JsonLiteralExpressionJson,
+    expectedType: t.Type,
+    ctx: ResolveExpressionContext,
+    parent: ExpressionParent | null,
+  ) {
+    const schema = ctx.getJsonLiteralSchema(json.schemaName);
+    if (!schema.type.isAssignableTo(expectedType)) {
+      throw new Error(
+        `Expression '${JSON.stringify(json)}' is not assignable to type ` +
+          `'${expectedType}'.`,
+      );
+    }
+    const error = schema.validate(json.value);
+    if (error) {
+      throw new Error(
+        `JSON literal '${JSON.stringify(json)}' is not a '${schema.name}' ` +
+          `literal: ${error}`,
+      );
+    }
+    super(parent);
+    this.value = json.value;
+    this.schema = schema;
+  }
+
+  readonly value: unknown;
+  readonly schema: JsonLiteralSchema;
+
+  withValue(value: unknown): ExpressionJson {
+    const json: JsonLiteralExpressionJson = {
+      type: "json-literal",
+      schemaName: this.schema!.name,
+      value,
+    };
+    return this.parent?.expression.withArg(this.parent.index, json) ?? json;
+  }
+
+  override toString(): string {
+    return this.schema.format(this.value);
+  }
+
+  override toJson(): ExpressionJson {
+    return {
+      type: "json-literal",
+      schemaName: this.schema!.name,
+      value: this.value,
+    };
+  }
+}
+
+export class EnumValueExpression extends Expression {
+  constructor(
+    json: EnumValueExpressionJson,
+    expectedType: t.Type,
+    parent: ExpressionParent | null,
+  ) {
+    const actualType = t.resolveType(json.value);
+    if (!actualType.isAssignableTo(expectedType)) {
+      throw new Error(
+        `Value '${JSON.stringify(json.value)}' is not assignable to type ` +
+          `'${expectedType}'.`,
+      );
+    }
+    super(parent);
+    this.value = json.value;
+  }
+
+  readonly value: string | number;
+
+  withValue(value: string | number): ExpressionJson {
+    const json: EnumValueExpressionJson = { type: "enum-value", value };
+    return this.parent?.expression.withArg(this.parent.index, json) ?? json;
+  }
+
+  override toString(): string {
+    return JSON.stringify(this.value);
+  }
+
+  override toJson(): ExpressionJson {
+    return { type: "enum-value", value: this.value };
+  }
+}
+
+type ExpressionSelector = PropertySelector | MethodSelector | CallSelector;
+
+interface PropertySelector extends PropertySelectorJson {
+  readonly memberType: t.Type;
+}
+
+interface MethodSelector extends Omit<MethodSelectorJson, "args"> {
+  readonly memberType: t.Function;
+}
+
+interface CallSelector extends Omit<CallSelectorJson, "args"> {
+  readonly memberType: t.Function;
+}
+
+export class MemberAccessExpression extends Expression {
+  constructor(
+    {
+      selectors: selectorsJson,
+      ...head
+    }: SceneInputExpressionJson | NodeOutputExpressionJson,
+    expectedType: t.Type,
+    ctx: ResolveExpressionContext,
+    parent: ExpressionParent | null,
+  ) {
+    super(parent);
+
+    const parameterPrefix = ctx.parameterPrefixes.next().value!;
+
+    let returnType =
+      head.type === "scene-input"
+        ? ctx.getSceneInputType(head.inputName)
+        : ctx.getNodeOutputType(head.nodeId, head.outputName);
+    const args: (Expression | null)[] = [];
+    let isComplete = true;
+    const selectors = selectorsJson.map<ExpressionSelector>((selector) => {
+      const memberType = MemberAccessExpression.#resolveSelectorMemberType(
+        selector,
+        returnType,
+      );
+      if (selector.type === "property") {
+        returnType = memberType;
+        return {
+          type: "property",
+          propertyName: selector.propertyName,
+          memberType,
+        };
+      }
+      const fn = memberType as t.Function;
+      const selectorArgs = MemberAccessExpression.#resolveSelectorArgs(
+        selector,
+        fn,
+        ctx,
+        this,
+        args.length,
+      );
+      returnType = fn.returnType;
+      args.push(...selectorArgs.args);
+      isComplete &&= selectorArgs.isComplete;
+      return selector.type === "method"
+        ? { type: "method", methodName: selector.methodName, memberType: fn }
+        : { type: "call", memberType: fn };
+    });
+
+    if (!returnType.isAssignableTo(expectedType)) {
+      throw new Error(
+        `Type '${returnType}' is not assignable to type '${expectedType}'.`,
+      );
+    }
+
+    this.head = head;
+    this.selectors = selectors;
+    this.args = args;
+    this.parameterPrefix = parameterPrefix;
+    this.isComplete = isComplete;
+  }
+
+  readonly head:
+    | Omit<SceneInputExpressionJson, "selectors">
+    | Omit<NodeOutputExpressionJson, "selectors">;
+
+  readonly selectors: readonly ExpressionSelector[];
+
+  /**
+   * `args.length` is exactly equal to the number of possible args in this
+   * expression.
+   */
+  readonly args: readonly (Expression | null)[];
+
+  /**
+   * Used to stringify this expression, and have different parameter names in
+   * sub-expressions.
+   */
+  readonly parameterPrefix: string;
+
+  /**
+   * This is false if any required arg is missing, or any sub-expression is
+   * incomplete.
+   */
+  readonly isComplete: boolean;
+
+  getExpectedTypeForArg(argIndex: number): [type: t.Type, optional: boolean] {
+    for (const selector of this.selectors) {
+      if (selector.type === "property") continue;
+      if (argIndex < selector.memberType.parameters.length) {
+        return [
+          selector.memberType.parameters[argIndex],
+          argIndex >= selector.memberType.requiredCount,
+        ];
+      }
+      argIndex -= selector.memberType.parameters.length;
+    }
+    throw new Error(`Invalid index: ${argIndex}`);
+  }
+
+  withArg(index: number, arg: ExpressionJson | null): ExpressionJson {
+    const json: SceneInputExpressionJson | NodeOutputExpressionJson = {
+      ...this.head,
+      selectors: MemberAccessExpression.#generateSelectorJson(
+        this.selectors,
+        this.args.map((arg) => arg?.toJson() ?? null).with(index, arg),
+      ),
+    };
+    return this.parent?.expression.withArg(this.parent.index, json) ?? json;
+  }
+
+  replaceNodeOutput(
+    oldNodeId: string,
+    newNodeId: string,
+  ): ExpressionJson | null {
+    const containsSearch = ({
+      head,
+      selectors,
+    }: MemberAccessExpression): boolean =>
+      (head.type === "node-output" && head.nodeId === oldNodeId) ||
+      selectors.some(
+        (selector) =>
+          selector instanceof MemberAccessExpression &&
+          containsSearch(selector),
+      );
+    if (!containsSearch(this)) return null;
+
+    const rebuild = ({
+      head,
+      selectors,
+      args,
+    }: MemberAccessExpression): ExpressionJson => ({
+      ...head,
+      ...(head.type === "node-output" &&
+        head.nodeId === oldNodeId && {
+          nodeId: newNodeId,
+        }),
+      selectors: MemberAccessExpression.#generateSelectorJson(
+        selectors,
+        args.map((arg) =>
+          arg instanceof MemberAccessExpression
+            ? rebuild(arg)
+            : arg?.toJson() ?? null,
+        ),
+      ),
+    });
+    return rebuild(this);
+  }
+
+  override toString(variant: "complete" | "truncated" = "complete"): string {
+    let result =
+      this.head.type === "scene-input"
+        ? `Scene::${this.head.inputName}`
+        : `<${this.head.nodeId}>.${this.head.outputName}`;
+
+    let i = 0;
+    for (const selector of this.selectors) {
+      if (selector.type === "property") {
+        result += `.${selector.propertyName}`;
+        continue;
+      }
+      const args =
+        variant === "complete"
+          ? this.args
+              .slice(i, i + selector.memberType.parameters.length)
+              .map((arg) => arg?.toString() ?? "∅")
+              .join(", ")
+          : t.Function.formatParameterList(selector.memberType, {
+              prefix: this.parameterPrefix,
+              startIndex: i + 1,
+            });
+      i += selector.memberType.parameters.length;
+      result +=
+        selector.type === "method"
+          ? `.${selector.methodName}(${args})`
+          : `(${args})`;
+    }
+    return result;
+  }
+
+  override toJson(): ExpressionJson {
+    return {
+      ...this.head,
+      selectors: MemberAccessExpression.#generateSelectorJson(
+        this.selectors,
+        this.args.map((arg) => arg?.toJson() ?? null),
+      ),
+    };
+  }
+
+  static #resolveSelectorMemberType(
+    json: ExpressionSelectorJson,
+    target: t.Type,
+  ): t.Type {
+    switch (json.type) {
+      case "property": {
+        const { propertyName } = json;
+        const memberType = target.properties[propertyName]?.type;
+        if (!memberType) {
+          throw new Error(
+            `Property '${propertyName}' doesn't exist on type '${target}'.`,
           );
         }
-        break;
-      case "function-call": {
-        const functionPath = `${path}/fn`;
-        const functionError = resolveError(json.fn, t.any(), functionPath);
-        if (functionError) errors.set(functionPath, functionError);
-        const functionType = types.get(functionPath);
-
-        if (functionType && t.Function.is(functionType)) {
-          for (const [
-            i,
-            paramType,
-          ] of functionType.requiredParameters.entries()) {
-            const argPath = `${path}/arg(${i})`;
-            const argJson = json.args[i];
-            if (argJson) {
-              const argError = resolveError(argJson, paramType, argPath);
-              if (argError) errors.set(argPath, argError);
-            } else {
-              errors.set(argPath, `This parameter is required.`);
-            }
-          }
-          for (const [
-            i,
-            paramType,
-          ] of functionType.optionalParameters.entries()) {
-            const argPath = `${path}/arg(${i})`;
-            const argJson = json.args[i];
-            if (argJson) {
-              const argError = resolveError(
-                argJson,
-                t.optional(paramType),
-                argPath,
-              );
-              if (argError) errors.set(argPath, argError);
-            }
-          }
-          for (
-            let i =
-              functionType.requiredParameters.length +
-              functionType.optionalParameters.length;
-            i < json.args.length;
-            i++
-          ) {
-            const argPath = `${path}/arg(${i})`;
-            const argJson = json.args[i];
-            if (argJson) {
-              const argError = resolveError(argJson, t.any(), argPath);
-              if (argError) errors.set(argPath, argError);
-            }
-          }
-          if (
-            json.args.length >
-            functionType.requiredParameters.length +
-              functionType.optionalParameters.length
-          ) {
-            const args =
-              functionType.requiredParameters.length +
-              functionType.optionalParameters.length;
-            return `Expected ${args} arguments, got ${json.args.length}.`;
-          }
-        } else {
-          for (const [i, argJson] of json.args.entries()) {
-            if (!argJson) continue;
-            const argPath = `${path}/arg(${i})`;
-            const argError = resolveError(argJson, t.any(), argPath);
-            if (argError) errors.set(argPath, argError);
-          }
-          return "This expression is not callable.";
+        return memberType;
+      }
+      case "method": {
+        const { methodName } = json;
+        const memberType = target.methods[methodName]?.type;
+        if (!memberType) {
+          throw new Error(
+            `Method '${methodName}' doesn't exist on type '${target}'.`,
+          );
         }
+        return memberType as t.Function;
+      }
+      case "call": {
+        if (!t.Function.is(target)) {
+          throw new Error(`Type '${target}' is not callable.`);
+        }
+        return target;
       }
     }
-    return type?.isAssignableTo(expectedType)
-      ? null
-      : `Type '${type}' is not assignable to type '${expectedType}'.`;
   }
 
-  const rootError = resolveError(json, expectedType);
-  if (rootError) errors.set("/", rootError);
-  return errors;
-}
-
-/**
- * Removes trailing `null`s from `"function-call"` arguments arrays.
- */
-function trimFunctionCallArguments(json: ExpressionJson): ExpressionJson {
-  if (json.type !== "function-call") return json;
-  const fn = trimFunctionCallArguments(json.fn);
-  const args = json.args.map((arg) => arg && trimFunctionCallArguments(arg));
-  const lastNonNullIndex = args.findLastIndex((json) => !!json);
-  return {
-    type: "function-call",
-    fn,
-    args: args.slice(0, lastNonNullIndex + 1),
-  };
-}
-
-//
-// ExpressionPath
-//
-
-/**
- * An expression path points to a nested sub-expression in the expression tree.
- * - Path `/` points to the root expression.
- * - `/fn` points to the `function` property of a `function-call` expression.
- * - `/arg(0)` points to index 0 of the `arguments` property of a
- *   `function-call` expression.
- * - A path can have multiple segments, e.g. `/arg(2)/fn/arg(1)`.
- */
-export type ExpressionPath = string;
-
-type ExpressionPathSegment =
-  | { readonly type: "fn" }
-  | { readonly type: "arg"; readonly index: number };
-
-function parseExpressionPath(path: string): ExpressionPathSegment[] {
-  if (!path.startsWith("/")) {
-    throw new Error(`Invalid expression path '${path}'.`);
-  }
-  if (path === "/") return [];
-  return path
-    .substring(1)
-    .split("/")
-    .map((segment) => {
-      if (segment === "fn") return { type: "fn" };
-      const match = segment.match(argPathSegmentPattern);
-      if (match) return { type: "arg", index: Number.parseInt(match[1]) };
-      throw new Error(`Invalid expression path '${path}'.`);
+  static #resolveSelectorArgs(
+    json: MethodSelectorJson | CallSelectorJson,
+    memberType: t.Function,
+    ctx: ResolveExpressionContext,
+    parent: MemberAccessExpression,
+    parentIndexStart: number,
+  ): { args: (Expression | null)[]; isComplete: boolean } {
+    if (json.args.length !== memberType.parameters.length) {
+      const prefix =
+        json.type === "method"
+          ? `Method '${json.methodName}'`
+          : `Function '${memberType}'`;
+      throw new Error(
+        `${prefix} expects ${memberType.parameters.length} arguments, but ` +
+          `got ${json.args.length}.`,
+      );
+    }
+    const args = json.args.map(
+      (arg, i) =>
+        arg &&
+        Expression._fromJson(
+          arg,
+          i < memberType.requiredCount
+            ? memberType.parameters[i]
+            : t.optional(memberType.parameters[i]),
+          ctx,
+          { expression: parent, index: parentIndexStart + i },
+        ),
+    );
+    const isComplete = args.every((arg, i) => {
+      if (!arg && i < memberType.requiredCount) return false;
+      return !(arg instanceof MemberAccessExpression) || arg.isComplete;
     });
+    return { args, isComplete };
+  }
+
+  static #generateSelectorJson(
+    selectors: readonly ExpressionSelector[],
+    argsJson: readonly (ExpressionJson | null)[],
+  ): ExpressionSelectorJson[] {
+    let nextArg = 0;
+    return selectors.flatMap((selector) => {
+      if (selector.type === "property") {
+        const { memberType, ...json } = selector;
+        return json;
+      }
+      const { memberType, ...json } = selector;
+      const args = argsJson.slice(
+        nextArg,
+        (nextArg += memberType.parameters.length),
+      );
+      return { ...json, args };
+    });
+  }
 }
 
-const argPathSegmentPattern = /^arg\((\d+)\)$/;
+/**
+ * Returns a generator for parameter name prefixes, beginning from `p`, `q`,
+ * `r`, ...
+ */
+function* generateParameterPrefixes() {
+  for (let i = 0; ; i = (i + 1) % 26) {
+    yield String.fromCharCode(112 + i);
+  }
+}

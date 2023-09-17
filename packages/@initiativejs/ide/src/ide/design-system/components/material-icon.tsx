@@ -13,8 +13,8 @@ export function MaterialIcon({ icon, title, className }: MaterialIconProps) {
     <span
       className={cls.block(
         className
-          ? `material-icons-outlined ${className}`
-          : `material-icons-outlined`,
+          ? `material-symbols-outlined ${className}`
+          : `material-symbols-outlined`,
       )}
       title={title}
     >

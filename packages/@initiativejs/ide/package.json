@@ -8,6 +8,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./design-system": "./dist/ide/design-system/index.js",
     "./styles.css": "./dist/ide/styles.css"
   },
   "imports": {

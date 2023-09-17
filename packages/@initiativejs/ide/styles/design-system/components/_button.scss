@@ -3,7 +3,7 @@
 
 .initiative-button {
   // Public
-  --initiative-button-fill-color: #{color.role("surface")};
+  --initiative-button-fill-color: transparent;
   --initiative-button-stroke-color: #{color.role("on-surface")};
 
   // Private
@@ -17,9 +17,9 @@
 
   min-width: 64px;
   height: 32px;
-  display: grid;
-  grid: "main" 1fr / 1fr;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
 
   border-radius: 4px;
@@ -33,7 +33,7 @@
   user-select: none;
 
   // Reset browser defaults
-  padding: 0;
+  padding: 0 12px;
   border: none;
   outline: none;
 
@@ -43,8 +43,18 @@
 
   &__label {
     grid-area: main;
-    padding-inline: 12px;
     @include typography.role("label-large");
     @include typography.no-wrap();
+  }
+
+  &__icon {
+    &--start {
+      margin-inline: -4px 4px;
+      --initiative-material-icon-density: -2;
+    }
+    &--end {
+      margin-inline: 4px -4px;
+      --initiative-material-icon-density: -2;
+    }
   }
 }
