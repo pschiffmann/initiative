@@ -1,4 +1,9 @@
-import { ExpressionJson, NodeData, SceneDocument } from "#shared";
+import {
+  Expression,
+  MemberAccessExpression,
+  NodeData,
+  SceneDocument,
+} from "#shared";
 import { NodeSchema } from "@initiativejs/schema";
 
 export function useLayout(document: SceneDocument) {
@@ -100,7 +105,7 @@ function calculateLayout(document: SceneDocument): Layout {
     let inputsraw = new Array();
     data.forEachInput((expression) =>
       expression !== null
-        ? inputsraw.push(...expressionEvaluation(expression.json))
+        ? inputsraw.push(...expressionEvaluation(expression))
         : null,
     );
     inputsraw.forEach((value) => inputs.push(value[0]));
@@ -746,19 +751,23 @@ export const nodeBoxSizes = {
   connectorOffsetY: 15,
 };
 
-export function expressionEvaluation(expression: ExpressionJson): string[][] {
-  const output: Array<Array<string>> = new Array();
-  switch (expression.type) {
-    case "function-call":
-      output.push(...expressionEvaluation(expression.fn));
-      output.push(
-        ...expression.args.flatMap((value) =>
-          value !== null ? expressionEvaluation(value) : [],
-        ),
-      );
-      break;
-    case "node-output":
-      output.push([expression.nodeId, expression.outputName]);
+/**
+ * Returns all node outputs inside `expression` as `[nodeId, outputName]`
+ * tuples.
+ */
+export function expressionEvaluation(
+  expression: Expression,
+): [nodeId: string, outputName: string][] {
+  const output = new Array<[nodeId: string, outputName: string]>();
+  if (expression instanceof MemberAccessExpression) {
+    if (expression.head.type === "node-output") {
+      output.push([expression.head.nodeId, expression.head.outputName]);
+    }
+    output.push(
+      ...expression.args.flatMap((arg) =>
+        arg ? expressionEvaluation(arg) : [],
+      ),
+    );
   }
   return output;
 }

@@ -50,7 +50,7 @@ export function DataFlowAbsoluteContainer({
               .getNode(toid)
               .forEachInput((expression, type, inputName, index) =>
                 expression !== null
-                  ? expressionEvaluation(expression.json).map((value) => (
+                  ? expressionEvaluation(expression).map((value) => (
                       <>
                         <DfiLines
                           startX={
