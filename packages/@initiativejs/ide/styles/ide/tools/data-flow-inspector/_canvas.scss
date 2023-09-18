@@ -1,0 +1,22 @@
+@use "../../../design-system/color";
+
+.initiative-data-flow-inspector-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+
+  &__line {
+    fill: transparent;
+    stroke-width: 2;
+
+    &--io {
+      stroke: color.role("on-surface");
+    }
+
+    &--parent {
+      stroke: color.role("on-surface-deemphasized");
+      stroke-dasharray: 16, 8;
+    }
+  }
+}

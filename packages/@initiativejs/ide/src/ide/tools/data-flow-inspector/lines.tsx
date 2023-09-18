@@ -1,7 +1,3 @@
-import { bemClasses } from "#design-system";
-
-const cls = bemClasses("initiative-line");
-
 export interface DfiLinesProps {
   startX: number;
   startY: number;
@@ -10,7 +6,7 @@ export interface DfiLinesProps {
     | undefined;
   endX: number;
   endY: number;
-  parent?: boolean;
+  className: string;
 }
 
 export function DfiLines({
@@ -19,11 +15,12 @@ export function DfiLines({
   tunnel,
   endX,
   endY,
-  parent,
+  className,
 }: DfiLinesProps) {
   if (tunnel !== undefined) {
     return (
       <path
+        className={className}
         d={`  M ${startX}
                   ${startY}
               C ${startX + (tunnel[0] - startX) / 2}
@@ -40,13 +37,12 @@ export function DfiLines({
                 ${endX}
                   ${endY}
             `}
-        stroke="black"
-        fill="transparent"
       />
     );
   } else {
     return (
       <path
+        className={className}
         d={`  M ${startX}
                   ${startY}
               C ${startX + (endX - startX) / 2}
@@ -55,9 +51,6 @@ export function DfiLines({
                   ${endY}
                 ${endX}
                  ${endY}`}
-        stroke="black"
-        fill="transparent"
-        strokeDasharray={parent ? "5,5" : undefined}
       />
     );
   }

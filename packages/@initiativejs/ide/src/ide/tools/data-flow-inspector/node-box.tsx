@@ -1,8 +1,26 @@
-import { IconButton, Typography, bemClasses } from "#design-system";
+import {
+  ColorSchemeContext,
+  IconButton,
+  Typography,
+  bemClasses,
+} from "#design-system";
 import { NodeData } from "#shared";
+import {
+  TonalPalette,
+  argbFromHex,
+  hexFromArgb,
+} from "@material/material-color-utilities";
+import { useContext, useMemo } from "react";
 import { NodeBoxPosition } from "./layout-algorithm.js";
 
-const cls = bemClasses("initiative-node-box");
+declare module "csstype" {
+  interface Properties {
+    "--initiative-data-flow-inspector-node-box-fill-color"?: string;
+    "--initiative-data-flow-inspector-node-box-stroke-color"?: string;
+  }
+}
+
+const cls = bemClasses("initiative-data-flow-inspector-node-box");
 
 export interface NodeBoxProps {
   data: NodeData;
@@ -13,22 +31,35 @@ export interface NodeBoxProps {
 export function NodeBox({ data, focus, positioning }: NodeBoxProps) {
   const schema = data.schema;
 
+  const colorScheme = useContext(ColorSchemeContext);
+  const style = useMemo(() => {
+    const color = data.schema.editor?.color;
+    if (!color) return undefined;
+    const customPalette = TonalPalette.fromInt(argbFromHex(color));
+    return {
+      "--initiative-data-flow-inspector-node-box-fill-color": hexFromArgb(
+        customPalette.tone(colorScheme !== "light" ? 20 : 80),
+      ),
+      "--initiative-data-flow-inspector-node-box-stroke-color": hexFromArgb(
+        customPalette!.tone(colorScheme !== "light" ? 80 : 20),
+      ),
+    };
+  }, [colorScheme]);
+
   return (
     <div
       className={cls.block()}
       style={{
-        outlineStyle: data.id === focus ? "double" : "solid",
-        position: "absolute",
         top: positioning.offsetTop,
         left: positioning.offsetLeft,
+        ...style,
       }}
     >
-      <Typography
-        variant="headline-large"
-        noWrap
-        className={cls.element("header")}
-      >
+      <Typography className={cls.element("id")} variant="title-medium" noWrap>
         {data.id}
+      </Typography>
+      <Typography className={cls.element("type")} variant="label-medium" noWrap>
+        {data.type}
       </Typography>
       {data.forEachInput((expression, type, inputName, index) => (
         <Input
@@ -54,10 +85,10 @@ function Input({ data, name }: InputOutputProps) {
       <IconButton
         className={cls.element("input-socket")}
         label="Connect input"
-        icon="polyline"
+        icon="login"
       />
       <Typography
-        variant="body-large"
+        variant="body-medium"
         noWrap
         className={cls.element("input-name")}
       >
@@ -67,6 +98,7 @@ function Input({ data, name }: InputOutputProps) {
         className={cls.element("input-button")}
         label="Edit input"
         icon="edit"
+        disabled
       />
     </>
   );
@@ -78,10 +110,10 @@ function Output({ data, name }: InputOutputProps) {
       <IconButton
         className={cls.element("output-socket")}
         label="Connect input"
-        icon="polyline"
+        icon="logout"
       />
       <Typography
-        variant="body-large"
+        variant="body-medium"
         noWrap
         className={cls.element("output-name")}
       >
@@ -91,6 +123,7 @@ function Output({ data, name }: InputOutputProps) {
         className={cls.element("output-button")}
         label="Edit input"
         icon="edit"
+        disabled
       />
     </>
   );

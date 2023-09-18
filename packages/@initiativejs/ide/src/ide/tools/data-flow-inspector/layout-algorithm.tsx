@@ -666,8 +666,8 @@ function calculateLayout(document: SceneDocument): Layout {
     };
   }
   return {
-    canvasWidth: maxwidth,
-    canvasHeight: maxheight,
+    canvasWidth: maxwidth + nodeBoxSizes.canvasOffset,
+    canvasHeight: maxheight + nodeBoxSizes.canvasOffset,
     nodeBoxPositions: output,
   };
 }
@@ -682,29 +682,29 @@ function calculateInnerDimensions(
     nodeBoxSizes.padding + // Top padding
     nodeBoxSizes.header; // Header
 
-  const inputNames: Array<string> = data.forEachInput(
-    (expression, type, inputName) => inputName,
-  );
-
-  const outputNames: Array<string> = data.schema.forEachOutput((name) => name);
-
-  if (inputNames.length || outputNames.length) {
-    boxHeight += nodeBoxSizes.section;
-    let inputOffset = boxHeight / 2;
-    for (const inputName of inputNames) {
-      inputOffsets[inputName] = boxHeight + inputOffset;
-      inputOffset += nodeBoxSizes.ioRow;
-    }
-    let outputOffset = boxHeight / 2;
-    for (const outputName of outputNames) {
-      outputOffsets[outputName] = boxHeight + outputOffset;
-      outputOffset += nodeBoxSizes.ioRow;
-    }
-    boxHeight += Math.max(inputOffset, outputOffset);
-  }
+  data.forEachInput((expression, attributes, inputName, index) => {
+    const inputKey = index === undefined ? inputName : `${inputName}::${index}`;
+    inputOffsets[inputKey] =
+      boxHeight +
+      Object.keys(inputOffsets).length * nodeBoxSizes.ioRow +
+      nodeBoxSizes.connectorOffsetY;
+  });
+  data.schema.forEachOutput((outputName) => {
+    outputOffsets[outputName] =
+      boxHeight +
+      Object.keys(outputOffsets).length * nodeBoxSizes.ioRow +
+      nodeBoxSizes.connectorOffsetY;
+  });
 
   return {
-    height: boxHeight + nodeBoxSizes.padding,
+    height:
+      boxHeight +
+      Math.max(
+        Object.keys(inputOffsets).length,
+        Object.keys(outputOffsets).length,
+      ) *
+        nodeBoxSizes.ioRow +
+      nodeBoxSizes.padding,
     inputOffsets,
     outputOffsets,
   };
@@ -721,34 +721,27 @@ export const nodeBoxSizes = {
   canvasOffset: 16,
 
   boxWidth: 320,
-  columnWidth: 400,
 
   /**
    * Top padding (between NodeBox top edge and header) and bottom padding
    * (between last element and NodeBox bottom edge).
    */
-  padding: 0,
+  padding: 8,
 
   /**
    * The header element is always visible and contains the node id and type.
    */
-  header: 30,
-
-  /**
-   * Height of the "Inputs"/"Outputs" section dividers. Section dividers only
-   * get rendered if the node has inputs/outputs.
-   */
-  section: 0,
+  header: 48,
 
   /**
    * Each input/output has a height of 48px. The center of the connector has a
    * vertical offset of 24px, and a horizontal offset of 4px from the NodeBox
    * edge.
    */
-  ioRow: 30,
+  ioRow: 24,
 
   connectorOffsetX: 0,
-  connectorOffsetY: 15,
+  connectorOffsetY: 12,
 };
 
 /**
