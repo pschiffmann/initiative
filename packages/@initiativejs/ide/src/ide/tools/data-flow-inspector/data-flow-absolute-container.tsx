@@ -4,7 +4,8 @@ import { Layout, expressionEvaluation, useLayout } from "./layout-algorithm.js";
 import { DfiLines } from "./lines.js";
 import { NodeBox } from "./node-box.js";
 
-const cls = bemClasses("initiative-line");
+const cls = bemClasses("initiative-data-flow-inspector-canvas");
+
 export interface DFACProps {
   document: SceneDocument;
   selectedNode: string | null;
@@ -16,18 +17,15 @@ export function DataFlowAbsoluteContainer({
 }: DFACProps) {
   const canvas: Layout = useLayout(document);
   return (
-    <div style={{ position: "relative" }}>
+    <div className={cls.block()}>
       <>
-        <svg
-          className={cls.block()}
-          width={canvas.canvasWidth}
-          height={canvas.canvasHeight}
-        >
+        <svg width={canvas.canvasWidth} height={canvas.canvasHeight}>
           {document
             .keys()
             .map((toid) =>
               document.getNode(toid).parent === null ? null : (
                 <DfiLines
+                  className={cls.element("line", null, "parent")}
                   startX={
                     canvas.nodeBoxPositions[
                       document.getNode(toid).parent!.nodeId
@@ -36,12 +34,11 @@ export function DataFlowAbsoluteContainer({
                   startY={
                     canvas.nodeBoxPositions[
                       document.getNode(toid).parent!.nodeId
-                    ].offsetTop + 15
+                    ].offsetTop + 32
                   }
                   tunnel={undefined}
                   endX={canvas.nodeBoxPositions[toid].offsetLeft}
-                  endY={canvas.nodeBoxPositions[toid].offsetTop + 15}
-                  parent={true}
+                  endY={canvas.nodeBoxPositions[toid].offsetTop + 32}
                 />
               ),
             )}
@@ -53,6 +50,7 @@ export function DataFlowAbsoluteContainer({
                   ? expressionEvaluation(expression).map((value) => (
                       <>
                         <DfiLines
+                          className={cls.element("line", null, "io")}
                           startX={
                             canvas.nodeBoxPositions[value[0]].offsetLeft + 320
                           }
