@@ -24,6 +24,10 @@ export const ArticleRepositorySchema = new NodeSchema(
     slots: {
       child: {},
     },
+    editor: {
+      // color: "#ed143d",
+      icon: "database",
+    },
   },
 );
 

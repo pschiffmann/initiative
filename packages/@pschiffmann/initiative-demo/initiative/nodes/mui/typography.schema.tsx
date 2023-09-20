@@ -27,6 +27,7 @@ export const MuiTypographySchema = new NodeSchema(
       },
     },
     editor: {
+      // color: "#191970",
       icon: "text_fields",
     },
   },

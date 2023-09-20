@@ -28,7 +28,8 @@ export const StackSchema = new NodeSchema(
       },
     },
     editor: {
-      color: "#010138",
+      // color: "#008000",
+      icon: "table_rows",
     },
   },
 );

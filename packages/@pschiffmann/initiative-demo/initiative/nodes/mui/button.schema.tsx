@@ -35,8 +35,8 @@ export const MuiButtonSchema = new NodeSchema(
       },
     },
     editor: {
-      color: "#e69138",
-      icon: "bento",
+      // color: "#00ffff",
+      icon: "left_click",
     },
   },
 );

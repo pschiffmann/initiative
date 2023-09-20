@@ -9,6 +9,10 @@ export const I18nSchema = new NodeSchema("@pschiffmann/initiative-demo::I18n", {
   slots: {
     child: {},
   },
+  editor: {
+    // color: "#ffff00",
+    icon: "translate",
+  },
 });
 
 export type I18nSchema = typeof I18nSchema;

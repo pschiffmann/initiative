@@ -32,6 +32,10 @@ export const EditArticleBlocSchema = new NodeSchema(
     slots: {
       child: {},
     },
+    editor: {
+      // color: "#ed143d",
+      icon: "edit_document",
+    },
   },
 );
 

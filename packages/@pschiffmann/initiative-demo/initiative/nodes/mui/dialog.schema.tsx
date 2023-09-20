@@ -27,7 +27,8 @@ export const MuiDialogSchema = new NodeSchema(
       content: {},
     },
     editor: {
-      color: "#e622f8",
+      // color: "#008000",
+      icon: "web_asset",
     },
   },
 );

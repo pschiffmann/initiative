@@ -80,12 +80,10 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
         onClick={toggleSelected}
         style={style}
       >
-        {nodeEditor?.icon !== undefined ? (
-          <MaterialIcon
-            icon={nodeEditor.icon}
-            className={cls.element("icon")}
-          />
-        ) : undefined}
+        <MaterialIcon
+          icon={nodeEditor?.icon ?? "help_center"}
+          className={cls.element("icon")}
+        />
         <Typography
           className={cls.element("node-id")}
           variant="body-medium"

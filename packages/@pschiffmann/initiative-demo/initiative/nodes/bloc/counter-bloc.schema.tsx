@@ -20,6 +20,10 @@ export const CounterBlocSchema = new NodeSchema(
     slots: {
       child: {},
     },
+    editor: {
+      // color: "#ed143d",
+      icon: "calculate",
+    },
   },
 );
 

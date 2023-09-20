@@ -31,6 +31,10 @@ export const MuiTableSchema = new NodeSchema(
         },
       },
     },
+    editor: {
+      // color: "#191970",
+      icon: "table",
+    },
   },
 );
 
