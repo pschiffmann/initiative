@@ -14,10 +14,14 @@
   grid-template-rows:
     [header-start]
     20px
-    [adornment-start clear-start header-end input-start]
+    [header-end]
+    4px
+    [adornment-start clear-start input-start]
     28px
-    [adornment-end clear-end input-end];
-  gap: 4px;
+    [adornment-end clear-end]
+    auto
+    [input-end];
+  gap: 0 4px;
   align-items: center;
   color: color.role("on-surface");
 
@@ -35,7 +39,9 @@
     grid-template-rows:
       [adornment-start clear-start header-start input-start]
       28px
-      [adornment-end clear-end header-end input-end];
+      [adornment-end clear-end header-end]
+      auto
+      [input-end];
   }
 
   &__header {
@@ -84,7 +90,8 @@
     @include typography.role("body-large");
 
     &:hover,
-    &:focus-visible {
+    &:focus-visible,
+    &:has(:focus-visible) {
       background-color: color-mix(
         in srgb,
         color.role("surface"),
@@ -98,6 +105,12 @@
       // reset browser defaults
       outline: none;
       appearance: none;
+    }
+
+    &--text-area {
+      height: auto;
+      display: grid;
+      place-items: stretch;
     }
 
     &--select#{&}--no-value {
@@ -123,12 +136,23 @@
     border-color: color.role("error");
   }
 
+  &__textarea {
+    min-height: 54px;
+    border: none;
+    padding: 2px 0;
+    outline: none;
+    background-color: transparent;
+    @include typography.role("body-large");
+    white-space: pre;
+    resize: vertical;
+  }
+
   &__clear-button {
     --initiative-icon-button-density: -1;
     grid-area: clear;
     margin-right: 4px;
   }
   &--error > &__clear-button {
-    --initiative-icon-button-color: #{color.role("on-error-container")};
+    --initiative-icon-button-stroke-color: #{color.role("on-error-container")};
   }
 }

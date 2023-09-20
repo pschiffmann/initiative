@@ -108,6 +108,33 @@ export function TextFieldControl({
   );
 }
 
+export function TextAreaControl({
+  adornmentIcon,
+  value,
+  onChange,
+  ...props
+}: TextFieldControlProps) {
+  const id = useId();
+  return (
+    <FormControlLayout
+      adornmentIcon={adornmentIcon ?? "subject"}
+      id={id}
+      {...props}
+    >
+      <div className={cls.element("input", null, "text-area")}>
+        <textarea
+          className={cls.element("textarea")}
+          id={id}
+          readOnly={!onChange}
+          rows={value.split("\n").length}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+        />
+      </div>
+    </FormControlLayout>
+  );
+}
+
 export interface NumberFieldControlProps extends BaseFormControlProps {
   value: number;
   onChange(value: number): void;

@@ -3,7 +3,8 @@
 
 .initiative-icon-button {
   // Public
-  --initiative-icon-button-color: #{color.role("on-surface")};
+  --initiative-icon-button-fill-color: transparent;
+  --initiative-icon-button-stroke-color: #{color.role("on-surface")};
   --initiative-icon-button-density: 0;
 
   // Private
@@ -25,11 +26,11 @@
   border-radius: 4px;
   background-color: color-mix(
     in srgb,
-    transparent,
-    var(--initiative-icon-button-color)
+    var(--initiative-icon-button-fill-color),
+    var(--initiative-icon-button-stroke-color)
       var(--initiative-icon-button-state-layer-opacity)
   );
-  color: var(--initiative-icon-button-color);
+  color: var(--initiative-icon-button-stroke-color);
   user-select: none;
 
   // Reset browser defaults
