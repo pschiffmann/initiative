@@ -41,10 +41,6 @@
     "PageTitle": {
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
-        "variant": {
-          "type": "enum-value",
-          "value": "h3"
-        },
         "text": {
           "type": "node-output",
           "nodeId": "Translations",
@@ -61,6 +57,10 @@
               ]
             }
           ]
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "h3"
         }
       },
       "slots": {}
@@ -214,11 +214,9 @@
               "propertyName": "price"
             },
             {
-              "type": "method",
-              "methodName": "toString",
-              "args": [
-                null
-              ]
+              "type": "extension-method",
+              "extensionMethodName": "@pschiffmann/initiative-demo::toCurrencyString",
+              "args": []
             }
           ]
         },

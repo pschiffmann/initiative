@@ -1,6 +1,6 @@
 import { NodeComponentProps } from "@initiativejs/schema";
 import { useState } from "react";
-import { Article } from "../../libraries/article.schema.js";
+import { toCurrencyString } from "../../extension-methods/to-currency-string.js";
 import { EditArticleBlocSchema } from "./edit-article-bloc.schema.js";
 
 export function EditArticleBloc({
@@ -10,7 +10,7 @@ export function EditArticleBloc({
   OutputsProvider,
 }: NodeComponentProps<EditArticleBlocSchema>) {
   const [name, setName] = useState(article.name);
-  const [price, setPrice] = useState(formatPrice(article));
+  const [price, setPrice] = useState(toCurrencyString(article.price));
 
   function save() {
     if (!name) {
@@ -37,12 +37,6 @@ export function EditArticleBloc({
       <slots.child.Component />
     </OutputsProvider>
   );
-}
-
-function formatPrice(article: Article) {
-  const euros = Math.trunc(article.price / 100);
-  const cents = Math.trunc(article.price % 100);
-  return `${euros},${cents.toString().padEnd(2, "0")}€`;
 }
 
 function parseFormattedPrice(input: string) {

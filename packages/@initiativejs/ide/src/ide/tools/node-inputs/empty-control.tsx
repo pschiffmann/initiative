@@ -226,6 +226,8 @@ function TypeOption({
   expression,
   onSelect,
 }: TypeOptionProps) {
+  const definitions = useContext(DefinitionsContext);
+
   return (
     <Option
       label={label}
@@ -297,6 +299,36 @@ function TypeOption({
           />
         );
       })}
+      {[...definitions.extensionMethods.values()].map(
+        ({ schema }) =>
+          type.isAssignableTo(schema.self) && (
+            <TypeOption
+              key={schema.name}
+              label={
+                `🅴.${schema.name.split("::")[1]}` +
+                `(${t.Function.formatParameterList(schema.type)})`
+              }
+              type={schema.type.returnType}
+              doc={
+                `Extension method '${schema.name}' on type '${schema.self}'` +
+                (schema.doc ? `\n\n${schema.doc}` : "")
+              }
+              expectedType={expectedType}
+              expression={{
+                ...expression,
+                selectors: [
+                  ...expression.selectors,
+                  {
+                    type: "extension-method",
+                    extensionMethodName: schema.name,
+                    args: schema.type.parameters.map(() => null),
+                  },
+                ],
+              }}
+              onSelect={onSelect}
+            />
+          ),
+      )}
     </Option>
   );
 }

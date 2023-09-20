@@ -1,5 +1,5 @@
 import { NodeSchema, t, trimDocText } from "@initiativejs/schema";
-import { articleType } from "../../libraries/article.schema.js";
+import { articleType } from "../../types.js";
 
 export const ArticleRepositorySchema = new NodeSchema(
   "@pschiffmann/initiative-demo::ArticleRepository",

@@ -1,56 +1,90 @@
-import { SceneDocument } from "#shared";
+import * as $Map from "@pschiffmann/std/map";
 
-export interface ImportNames {
+export class ImportNames {
+  #namesCounter = new Map<string, number>();
+
   /**
-   * Map from `NodeSchema.name` to node component import name.
+   * Outer keys are module names. Inner keys are module export names. Inner
+   * values are import aliases.
    *
-   * Import names are not guaranteed to be the same as their
-   * `NodeDefinition.exportName`, because the export name is not guaranteed to
-   * be unique across multiple modules.
+   * ## Examples
+   *
+   * The import statement `import { memo } from "react";` gets stored as
+   * `{ "react": { "memo": "memo" } }`.
+   *
+   * The import statement
+   * `import { Button as Button2 } from "#initiative/definitions.js";` gets
+   * stored as `{ "#initiative/definitions.js": { "Button": "Button2" } }`.
    */
-  nodeComponents: ReadonlyMap<string, string>;
-}
+  #importedBindings = new Map<string, Map<string, string>>();
 
-// TODO expand to include kraggel schema imports
-export function resolveUsedImports(document: SceneDocument) {
-  const importStatements = [
-    `import { createContext, memo, useContext } from "react";`,
-    `import { OutputTypes, OutputsProviderProps, SlotComponentProps, } from ` +
-      `"@initiativejs/schema/code-gen-helpers";`,
-  ];
+  /**
+   * Same as `#importedNames`, but contains type imports like
+   * `import { type ButtonSchema } from "#initiative/definitions.js";`.
+   */
+  #importedTypes = new Map<string, Map<string, string>>();
 
-  // `nodeComponents` is the same as `ImportNames.nodeComponents`.
-  // `nodeComponentImportNames` contains the same values as
-  // `nodeComponents.values()`.
-  const nodeComponents = new Map<string, string>();
-  const nodeComponentImportNames = new Set<string>();
-  function importNodeComponent(nodeType: string) {
-    if (nodeComponents.has(nodeType)) return;
-    const { moduleName, exportName } = document.definitions.getNode(nodeType);
-    for (let i = 1; ; i++) {
-      const importName = i === 1 ? exportName : `${exportName}${i}`;
-      if (!nodeComponentImportNames.has(importName)) {
-        importStatements.push(`import { ${importName} } from "${moduleName}";`);
-        importStatements.push(
-          i === 1
-            ? `import { type ${importName}Schema } from "${moduleName}";`
-            : `import { type ${exportName} as ${importName}Schema } from ` +
-                `"${moduleName}";`,
-        );
-        nodeComponents.set(nodeType, importName);
-        nodeComponentImportNames.add(importName);
-        break;
-      }
-    }
+  #importName(
+    cache: Map<string, Map<string, string>>,
+    moduleName: string,
+    exportName: string,
+  ) {
+    const moduleImports = $Map.putIfAbsent(cache, moduleName, () => new Map());
+    return $Map.putIfAbsent(moduleImports, exportName, () => {
+      const importsWithSameName = this.#namesCounter.get(exportName) ?? 0;
+      this.#namesCounter.set(exportName, importsWithSameName + 1);
+      return importsWithSameName === 0
+        ? exportName
+        : `${exportName}${importsWithSameName + 1}`;
+    });
   }
 
-  for (const nodeId of document.keys()) {
-    const nodeData = document.getNode(nodeId);
-    importNodeComponent(nodeData.type);
+  importBinding({
+    moduleName,
+    exportName,
+  }: {
+    moduleName: string;
+    exportName: string;
+  }): string {
+    return this.#importName(this.#importedBindings, moduleName, exportName);
   }
 
-  return {
-    importStatements: importStatements.join("\n"),
-    importNames: { nodeComponents },
-  };
+  importType({
+    moduleName,
+    exportName,
+  }: {
+    moduleName: string;
+    exportName: string;
+  }): string {
+    return this.#importName(this.#importedTypes, moduleName, exportName);
+  }
+
+  generateImportStatements(): string {
+    return [
+      ...new Set([
+        ...this.#importedBindings.keys(),
+        ...this.#importedTypes.keys(),
+      ]),
+    ]
+      .sort()
+      .map((moduleName) => {
+        const bindingImports = [
+          ...(this.#importedBindings.get(moduleName) ?? []),
+        ]
+          .map(([exportName, alias]) =>
+            exportName === alias ? exportName : `${exportName} as ${alias}`,
+          )
+          .sort();
+        const typeImports = [...(this.#importedTypes.get(moduleName) ?? [])]
+          .map(([exportName, alias]) =>
+            exportName === alias
+              ? `type ${exportName}`
+              : `type ${exportName} as ${alias}`,
+          )
+          .sort();
+        const imports = [...bindingImports, ...typeImports].join(", ");
+        return `import { ${imports} } from "${moduleName}";`;
+      })
+      .join("\n");
+  }
 }

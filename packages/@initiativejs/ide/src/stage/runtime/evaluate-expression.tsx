@@ -22,9 +22,8 @@ export function evaluateExpression(
     let i = 0;
     return expr.selectors.reduce(
       (target, selector) => {
-        if (selector.type === "property") {
-          return target[selector.propertyName];
-        }
+        if (selector.type === "property") return target[selector.propertyName];
+
         const args = expr.args
           .slice(i, (i += selector.memberType.parameters.length))
           .map((arg) =>
@@ -32,9 +31,14 @@ export function evaluateExpression(
               ? evaluateExpression(arg, definitions, ancestorOutputs)
               : undefined,
           );
-        return selector.type === "method"
-          ? target[selector.methodName](...args)
-          : target(...args);
+        switch (selector.type) {
+          case "method":
+            return target[selector.methodName](...args);
+          case "call":
+            return target(...args);
+          case "extension-method":
+            return selector.definition.function(target, ...args);
+        }
       },
       expr.head.type === "scene-input"
         ? null!

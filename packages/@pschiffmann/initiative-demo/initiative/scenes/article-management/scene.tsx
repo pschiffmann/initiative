@@ -1,3 +1,4 @@
+import { toCurrencyString } from "#initiative/extension-methods/index.js";
 import {
   ArticleRepository,
   EditArticleBloc,
@@ -16,9 +17,9 @@ import {
   type StackSchema,
 } from "#initiative/nodes/index.js";
 import {
-  OutputTypes,
-  OutputsProviderProps,
-  SlotComponentProps,
+  type OutputTypes,
+  type OutputsProviderProps,
+  type SlotComponentProps,
 } from "@initiativejs/schema/code-gen-helpers";
 import { createContext, useContext } from "react";
 
@@ -253,7 +254,7 @@ function NameColumn_Adapter() {
 function PriceColumn_Adapter() {
   return (
     <MuiTypography
-      text={useContext(ArticlesTable$rowContext).price.toString(undefined)}
+      text={toCurrencyString(useContext(ArticlesTable$rowContext).price)}
       variant={"body2"}
     />
   );

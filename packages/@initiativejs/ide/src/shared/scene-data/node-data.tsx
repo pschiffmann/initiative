@@ -1,6 +1,5 @@
 import { InputAttributes, NodeSchema } from "@initiativejs/schema";
 import { validateNodeId } from "@initiativejs/schema/internals";
-import * as $Object from "@pschiffmann/std/object";
 import {
   Expression,
   ExpressionJson,
@@ -393,11 +392,14 @@ export class NodeData {
   }
 
   toJson(): NodeJson {
-    return {
-      type: this.type,
-      inputs: $Object.map(this.inputs, (_, expression) => expression.toJson()),
-      slots: this.slots,
-    };
+    const inputs: Record<string, ExpressionJson> = {};
+    this.forEachInput((expression, attributes, inputName, index) => {
+      if (!expression) return;
+      const inputKey =
+        index === undefined ? inputName : `${inputName}::${index}`;
+      inputs[inputKey] = expression.toJson();
+    });
+    return { type: this.type, inputs, slots: this.slots };
   }
 
   static empty(

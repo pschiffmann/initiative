@@ -165,6 +165,11 @@ const expressionSelectorJsonSchemas = {
     type: "string",
     args: "array",
   },
+  "extension-method": {
+    type: "string",
+    extensionMethodName: "string",
+    args: "array",
+  },
 } satisfies Record<ExpressionSelectorJson["type"], ObjectSchema>;
 
 interface ObjectSchema {

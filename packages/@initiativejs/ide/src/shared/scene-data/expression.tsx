@@ -1,4 +1,8 @@
-import { JsonLiteralSchema, t } from "@initiativejs/schema";
+import {
+  ExtensionMethodDefinition,
+  JsonLiteralSchema,
+  t,
+} from "@initiativejs/schema";
 
 export type ExpressionJson =
   | JsonLiteralExpressionJson
@@ -33,7 +37,8 @@ export interface NodeOutputExpressionJson {
 export type ExpressionSelectorJson =
   | PropertySelectorJson
   | MethodSelectorJson
-  | CallSelectorJson;
+  | CallSelectorJson
+  | ExtensionMethodSelectorJson;
 
 export interface PropertySelectorJson {
   readonly type: "property";
@@ -51,11 +56,22 @@ export interface CallSelectorJson {
   readonly args: readonly (ExpressionJson | null)[];
 }
 
+export interface ExtensionMethodSelectorJson {
+  readonly type: "extension-method";
+  readonly extensionMethodName: string;
+  readonly args: readonly (ExpressionJson | null)[];
+}
+
 export interface ValidateExpressionContext {
   /**
-   * Throws an error if no literal with `literalName` exists.
+   * Throws an error if no literal with `schemaName` exists.
    */
   getJsonLiteralSchema(schemaName: string): JsonLiteralSchema;
+
+  /**
+   * Throwns an error if no extension method with `schemaName` exists.
+   */
+  getExtensionMethodDefinition(schemaName: string): ExtensionMethodDefinition;
 
   /**
    * Throws an error if `nodeId` is not an ancestor of the node this
@@ -204,7 +220,11 @@ export class EnumValueExpression extends Expression {
   }
 }
 
-type ExpressionSelector = PropertySelector | MethodSelector | CallSelector;
+type ExpressionSelector =
+  | PropertySelector
+  | MethodSelector
+  | CallSelector
+  | ExtensionMethodSelector;
 
 interface PropertySelector extends PropertySelectorJson {
   readonly memberType: t.Type;
@@ -216,6 +236,12 @@ interface MethodSelector extends Omit<MethodSelectorJson, "args"> {
 
 interface CallSelector extends Omit<CallSelectorJson, "args"> {
   readonly memberType: t.Function;
+}
+
+interface ExtensionMethodSelector
+  extends Omit<ExtensionMethodSelectorJson, "extensionMethodName" | "args"> {
+  readonly memberType: t.Function;
+  readonly definition: ExtensionMethodDefinition;
 }
 
 export class MemberAccessExpression extends Expression {
@@ -242,6 +268,7 @@ export class MemberAccessExpression extends Expression {
       const memberType = MemberAccessExpression.#resolveSelectorMemberType(
         selector,
         returnType,
+        ctx,
       );
       if (selector.type === "property") {
         returnType = memberType;
@@ -262,9 +289,24 @@ export class MemberAccessExpression extends Expression {
       returnType = fn.returnType;
       args.push(...selectorArgs.args);
       isComplete &&= selectorArgs.isComplete;
-      return selector.type === "method"
-        ? { type: "method", methodName: selector.methodName, memberType: fn }
-        : { type: "call", memberType: fn };
+      switch (selector.type) {
+        case "method":
+          return {
+            type: "method",
+            methodName: selector.methodName,
+            memberType: fn,
+          };
+        case "call":
+          return { type: "call", memberType: fn };
+        case "extension-method":
+          return {
+            type: "extension-method",
+            memberType: fn,
+            definition: ctx.getExtensionMethodDefinition(
+              selector.extensionMethodName,
+            ),
+          };
+      }
     });
 
     if (!returnType.isAssignableTo(expectedType)) {
@@ -390,10 +432,19 @@ export class MemberAccessExpression extends Expression {
               startIndex: i + 1,
             });
       i += selector.memberType.parameters.length;
-      result +=
-        selector.type === "method"
-          ? `.${selector.methodName}(${args})`
-          : `(${args})`;
+      switch (selector.type) {
+        case "method":
+          result += `.${selector.methodName}(${args})`;
+          break;
+        case "call":
+          result += `(${args})`;
+          break;
+        case "extension-method": {
+          const displayName = selector.definition.schema.name.split("::")[1];
+          result += `.🅴${displayName}(${args})`;
+          break;
+        }
+      }
     }
     return result;
   }
@@ -411,6 +462,7 @@ export class MemberAccessExpression extends Expression {
   static #resolveSelectorMemberType(
     json: ExpressionSelectorJson,
     target: t.Type,
+    ctx: ResolveExpressionContext,
   ): t.Type {
     switch (json.type) {
       case "property": {
@@ -439,11 +491,21 @@ export class MemberAccessExpression extends Expression {
         }
         return target;
       }
+      case "extension-method": {
+        const name = json.extensionMethodName;
+        const { schema } = ctx.getExtensionMethodDefinition(name);
+        if (!target.isAssignableTo(schema.self)) {
+          throw new Error(
+            `Extension method '${name}' doesn't exist on type '${target}'.`,
+          );
+        }
+        return schema.type;
+      }
     }
   }
 
   static #resolveSelectorArgs(
-    json: MethodSelectorJson | CallSelectorJson,
+    json: MethodSelectorJson | CallSelectorJson | ExtensionMethodSelectorJson,
     memberType: t.Function,
     ctx: ResolveExpressionContext,
     parent: MemberAccessExpression,
@@ -453,7 +515,9 @@ export class MemberAccessExpression extends Expression {
       const prefix =
         json.type === "method"
           ? `Method '${json.methodName}'`
-          : `Function '${memberType}'`;
+          : json.type === "call"
+          ? `Function '${memberType}'`
+          : `Extension method '${json.extensionMethodName}'`;
       throw new Error(
         `${prefix} expects ${memberType.parameters.length} arguments, but ` +
           `got ${json.args.length}.`,
@@ -484,16 +548,33 @@ export class MemberAccessExpression extends Expression {
   ): ExpressionSelectorJson[] {
     let nextArg = 0;
     return selectors.flatMap((selector) => {
-      if (selector.type === "property") {
-        const { memberType, ...json } = selector;
-        return json;
+      switch (selector.type) {
+        case "property": {
+          const { memberType, ...json } = selector;
+          return json;
+        }
+        case "method":
+        case "call": {
+          const { memberType, ...json } = selector;
+          const args = argsJson.slice(
+            nextArg,
+            (nextArg += memberType.parameters.length),
+          );
+          return { ...json, args };
+        }
+        case "extension-method": {
+          const { memberType, definition } = selector;
+          const args = argsJson.slice(
+            nextArg,
+            (nextArg += memberType.parameters.length),
+          );
+          return {
+            type: "extension-method",
+            extensionMethodName: definition.schema.name,
+            args,
+          };
+        }
       }
-      const { memberType, ...json } = selector;
-      const args = argsJson.slice(
-        nextArg,
-        (nextArg += memberType.parameters.length),
-      );
-      return { ...json, args };
     });
   }
 }

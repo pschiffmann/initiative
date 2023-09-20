@@ -6,6 +6,7 @@ import {
   NodeData,
   SceneDocument,
 } from "#shared";
+import { NodeDefinition } from "@initiativejs/schema";
 import { ImportNames } from "./imports.js";
 
 export function generateNodeRuntime(
@@ -14,6 +15,7 @@ export function generateNodeRuntime(
   nodeId: string,
 ): string {
   const nodeData = document.getNode(nodeId);
+  const definition = document.definitions.getNode(nodeData.type);
 
   let result = "";
 
@@ -26,17 +28,13 @@ export function generateNodeRuntime(
   }
 
   // generateNodeAdapter
-  result +=
-    generateNodeAdapter(
-      nodeData,
-      importNames.nodeComponents.get(nodeData.type)!,
-      importNames,
-    ) + "\n";
+  result += generateNodeAdapter(nodeData, definition, importNames) + "\n";
   //
 
   // generateNodeOutputContexts
   if (Object.keys(nodeData.schema.outputAttributes).length > 0) {
-    result += generateNodeOuptputContexts(nodeData, importNames) + "\n";
+    result +=
+      generateNodeOuptputContexts(nodeData, definition, importNames) + "\n";
   }
   //
 
@@ -63,13 +61,18 @@ export function generateNodeRuntime(
       continue;
     }
     result +=
-      generateSlotComponent(nodeData, slotname, data, importNames) + "\n";
+      generateSlotComponent(nodeData, definition, slotname, data, importNames) +
+      "\n";
   }
   //
 
   // generateNodeOutputsProvider
   if (nodeData.schema.hasRegularOutputs()) {
-    result += `${generateNodeOutputsProvider(nodeData, importNames)}\n`;
+    result += `${generateNodeOutputsProvider(
+      nodeData,
+      definition,
+      importNames,
+    )}\n`;
   }
   //
 
@@ -83,13 +86,14 @@ export function generateNodeRuntime(
 
 function generateNodeAdapter(
   nodeData: NodeData,
-  componentname: string,
+  definition: NodeDefinition,
   importNames: ImportNames,
 ): string {
+  const componentName = importNames.importBinding(definition);
   let result: string = "";
   result += `function ${nodeData.id}_Adapter() { \n`;
   result += `return ( \n`;
-  result += `<${componentname} \n`;
+  result += `<${componentName} \n`;
 
   // inputs
   const inputResultsMap: Map<string, string | Array<string>> = new Map();
@@ -104,7 +108,7 @@ function generateNodeAdapter(
       if (expression === null) {
         inputResultsMap.set(inputName, "undefined");
       } else {
-        inputResultsMap.set(inputName, provideValue(expression));
+        inputResultsMap.set(inputName, provideValue(expression, importNames));
       }
     } else {
       if (!inputResultsMap.has(inputName)) {
@@ -117,7 +121,7 @@ function generateNodeAdapter(
       if (expression === null) {
         arraycheck.push("undefined");
       } else {
-        arraycheck.push(provideValue(expression));
+        arraycheck.push(provideValue(expression, importNames));
       }
     }
   });
@@ -180,19 +184,32 @@ function generateNodeAdapter(
 
 function generateNodeOuptputContexts(
   nodeData: NodeData,
+  definition: NodeDefinition,
   importNames: ImportNames,
 ): string {
   let result: string = "";
-  const schemaName = importNames.nodeComponents.get(nodeData.type);
+  const createContext = importNames.importBinding({
+    moduleName: "react",
+    exportName: "createContext",
+  });
+  const schemaName = importNames.importType({
+    moduleName: definition.moduleName,
+    exportName: definition.exportName + "Schema",
+  });
+  const outputTypes = importNames.importType({
+    moduleName: "@initiativejs/schema/code-gen-helpers",
+    exportName: "OutputTypes",
+  });
   for (const output of Object.keys(nodeData.schema.outputAttributes)) {
-    result += `const ${nodeData.id}$${output}Context = createContext<`;
-    result += `OutputTypes<${schemaName}Schema>["${output}"]>(null!);\n`;
+    result += `const ${nodeData.id}$${output}Context = ${createContext}<`;
+    result += `${outputTypes}<${schemaName}>["${output}"]>(null!);\n`;
   }
   return result;
 }
 
 function generateNodeOutputsProvider(
   nodeData: NodeData,
+  definition: NodeDefinition,
   importNames: ImportNames,
 ): string {
   let result: string = "";
@@ -203,8 +220,15 @@ function generateNodeOutputsProvider(
   }
   result += `children,\n`;
   // TODO
-  const schemaName = importNames.nodeComponents.get(nodeData.type);
-  result += `}: OutputsProviderProps<${schemaName}Schema>`;
+  const schemaName = importNames.importType({
+    moduleName: definition.moduleName,
+    exportName: definition.exportName + "Schema",
+  });
+  const outputsProviderProps = importNames.importType({
+    moduleName: "@initiativejs/schema/code-gen-helpers",
+    exportName: "OutputsProviderProps",
+  });
+  result += `}: ${outputsProviderProps}<${schemaName}>`;
   result += `) {\n`;
   result += `return (\n`;
   result += recursiveDivInserter(nodeData.id, outputNames, "{children}");
@@ -215,10 +239,19 @@ function generateNodeOutputsProvider(
 
 function generateSlotComponent(
   nodeData: NodeData,
+  definition: NodeDefinition,
   slotName: string,
   children: Array<string | null>,
   importNames: ImportNames,
 ): string {
+  const schemaName = importNames.importType({
+    moduleName: definition.moduleName,
+    exportName: definition.exportName + "Schema",
+  });
+  const slotComponentProps = importNames.importType({
+    moduleName: "@initiativejs/schema/code-gen-helpers",
+    exportName: "SlotComponentProps",
+  });
   let result: string = ``;
   result += `function ${nodeData.id}_${slotName}({ `;
   const list: Array<string> = Object.keys(nodeData.schema.outputAttributes);
@@ -227,9 +260,7 @@ function generateSlotComponent(
   }
   // TODO done?
   result += `index `;
-  result += `}: SlotComponentProps<${importNames.nodeComponents.get(
-    nodeData.type,
-  )}Schema, "${slotName}">) {\n`;
+  result += `}: ${slotComponentProps}<${schemaName}, "${slotName}">) {\n`;
   result += `switch (index) {\n`;
   if (children[0] !== null) {
     for (let index = 0; index < children.length; index++) {
@@ -263,7 +294,10 @@ function recursiveDivInserter(
   `;
 }
 
-function provideValue(expression: Expression): string {
+function provideValue(
+  expression: Expression,
+  importNames: ImportNames,
+): string {
   if (
     expression instanceof JsonLiteralExpression ||
     expression instanceof EnumValueExpression
@@ -271,24 +305,38 @@ function provideValue(expression: Expression): string {
     return JSON.stringify(expression.value);
   }
   if (expression instanceof MemberAccessExpression) {
-    const head =
+    const useContext = importNames.importBinding({
+      moduleName: "react",
+      exportName: "useContext",
+    });
+    let i = 0;
+    return expression.selectors.reduce(
+      (target, selector) => {
+        if (selector.type === "property") {
+          return `${target}.${selector.propertyName}`;
+        }
+
+        const args = expression.args
+          .slice(i, (i += selector.memberType.parameters.length))
+          .map((arg) => (arg ? provideValue(arg, importNames) : "undefined"));
+        switch (selector.type) {
+          case "method":
+            return `${target}.${selector.methodName}(${args})`;
+          case "call":
+            return `${target}(${args})`;
+          case "extension-method": {
+            const extensionMethod = importNames.importBinding(
+              selector.definition,
+            );
+            return `${extensionMethod}(${target}, ${args})`;
+          }
+        }
+      },
       expression.head.type === "scene-input"
         ? "TODO"
-        : `useContext(${expression.head.nodeId}$` +
-          `${expression.head.outputName}Context)`;
-    let i = 0;
-    const tail = expression.selectors.map((selector) => {
-      if (selector.type === "property") {
-        return `.${selector.propertyName}`;
-      }
-      const args = expression.args
-        .slice(i, (i += selector.memberType.parameters.length))
-        .map((arg) => (arg ? provideValue(arg) : "undefined"));
-      return selector.type === "method"
-        ? `.${selector.methodName}(${args})`
-        : `(${args})`;
-    });
-    return head + tail.join("");
+        : `${useContext}(${expression.head.nodeId}$` +
+            `${expression.head.outputName}Context)`,
+    );
   }
   throw new Error("Unreachable");
 }

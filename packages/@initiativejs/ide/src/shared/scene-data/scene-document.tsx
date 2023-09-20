@@ -312,6 +312,9 @@ export class SceneDocument {
       getJsonLiteralSchema: (schemaName) => {
         return this.definitions.getJsonLiteral(schemaName);
       },
+      getExtensionMethodDefinition: (schemaName) => {
+        return this.definitions.getExtensionMethod(schemaName);
+      },
       getNodeOutputType: (nodeId, outputName) => {
         let { parent } = node;
         while (parent) {

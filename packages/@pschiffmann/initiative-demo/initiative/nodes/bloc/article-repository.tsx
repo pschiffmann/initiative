@@ -1,6 +1,6 @@
 import { NodeComponentProps } from "@initiativejs/schema";
 import { useCallback, useState } from "react";
-import { Article } from "../../libraries/article.schema.js";
+import { Article } from "../../types.js";
 import { ArticleRepositorySchema } from "./article-repository.schema.js";
 
 export function ArticleRepository({
