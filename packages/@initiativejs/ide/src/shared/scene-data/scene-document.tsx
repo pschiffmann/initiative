@@ -7,12 +7,30 @@ import {
 } from "./expression.js";
 import { Listener, Listeners, Unsubscribe } from "./listeners.js";
 import { NodeData, NodeParent } from "./node-data.js";
+import {
+  SceneJson,
+  sceneDocumentFromJson,
+  sceneDocumentToJson,
+} from "./serialization.js";
 
 export type SceneDocumentPatch =
   | CreateNodePatch
   | DeleteNodePatch
   | RenameNodePatch
-  | SetNodeInputPatch;
+  | SetNodeInputPatch
+  | CopyNodePatch
+  | PasteNodePatch;
+
+export interface CopyNodePatch {
+  readonly type: "copy-node";
+  readonly nodeId: string;
+}
+
+export interface PasteNodePatch {
+  readonly type: "paste-node";
+  readonly nodeId: string;
+  readonly slotName: string;
+}
 
 export interface CreateNodePatch {
   readonly type: "create-node";
@@ -38,6 +56,7 @@ export interface SetNodeInputPatch {
   readonly expression: ExpressionJson | null;
   readonly inputName: string;
   readonly index?: number;
+  readonly sceneReady?: boolean;
 }
 
 export class SceneDocument {
@@ -49,6 +68,7 @@ export class SceneDocument {
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
   #version = 0;
+  #clipboard: SceneJson | null = null;
 
   getRootNodeId(): string | null {
     return this.#rootNodeId;
@@ -56,6 +76,10 @@ export class SceneDocument {
 
   hasNode(nodeId: string): boolean {
     return this.#nodes.has(nodeId);
+  }
+
+  hasClipboard(): boolean {
+    return this.#clipboard ? true : false;
   }
 
   getVersion(): number {
@@ -111,29 +135,64 @@ export class SceneDocument {
   }
 
   applyPatch(patch: SceneDocumentPatch): void {
+    let changedNodeIds: string[];
     switch (patch.type) {
       case "create-node":
-        patch.parent
+        changedNodeIds = patch.parent
           ? this.#createNode(patch, patch.parent)
           : this.#createRootNode(patch);
         break;
       case "delete-node":
-        patch.nodeId === this.#rootNodeId
-          ? this.#deleteRootNode()
-          : this.#deleteNode(patch);
+        changedNodeIds =
+          patch.nodeId === this.#rootNodeId
+            ? this.#deleteRootNode()
+            : this.#deleteNode(patch);
         break;
       case "rename-node":
-        this.#renameNode(patch);
+        changedNodeIds = this.#renameNode(patch);
         break;
       case "set-node-input":
-        this.#setNodeInput(patch);
+        changedNodeIds = this.#setNodeInput(patch);
+        break;
+      case "copy-node":
+        changedNodeIds = this.#copyNode(patch);
+        break;
+      case "paste-node":
+        changedNodeIds = this.#pasteNode(patch);
         break;
     }
     this.#version++;
+    this.#changeListeners.notify(changedNodeIds);
     this.#patchListeners.notify(patch);
   }
 
-  #createRootNode({ nodeType, nodeId }: CreateNodePatch): void {
+  #copyNode({ nodeId }: CopyNodePatch): string[] {
+    // recursive copy from this node
+    this.#clipboard = sceneDocumentToJson(this, nodeId);
+    console.log(this.#clipboard);
+    return [];
+  }
+
+  #pasteNode({ nodeId, slotName }: PasteNodePatch): string[] {
+    // recursive paste to this parent node
+    console.log(nodeId);
+    if (this.#clipboard === null) return [];
+    console.log(
+      sceneDocumentFromJson(this.definitions, "virtualScene", this.#clipboard),
+    );
+
+    const virtualScene: SceneDocument | undefined = sceneDocumentFromJson(
+      this.definitions,
+      "virtualScene",
+      this.#clipboard,
+    ).document;
+
+    if (virtualScene === undefined) {
+    }
+    return [];
+  }
+
+  #createRootNode({ nodeType, nodeId }: CreateNodePatch): string[] {
     if (this.#rootNodeId !== null) {
       throw new Error("SceneDocument is not empty.");
     }
@@ -143,13 +202,13 @@ export class SceneDocument {
     this.#nodes.set(nodeId, NodeData.empty(schema, nodeId, null));
     this.#rootNodeId = nodeId;
 
-    this.#changeListeners.notify([nodeId]);
+    return [nodeId];
   }
 
   #createNode(
     { nodeType, nodeId: childId }: CreateNodePatch,
     { nodeId: parentId, slotName }: Omit<NodeParent, "index">,
-  ): void {
+  ): string[] {
     const { schema } = this.definitions.getNode(nodeType);
     childId ??= this.#generateNodeId(schema);
     if (this.#nodes.has(childId)) {
@@ -169,18 +228,18 @@ export class SceneDocument {
       );
     }
 
-    this.#changeListeners.notify([parentId, childId]);
+    return [parentId, childId];
   }
 
-  #deleteRootNode(): void {
+  #deleteRootNode(): string[] {
     const nodeIds = [...this.#nodes.keys()];
     this.#rootNodeId = null;
     this.#nodes.clear();
 
-    this.#changeListeners.notify(nodeIds);
+    return nodeIds;
   }
 
-  #deleteNode({ nodeId }: DeleteNodePatch): void {
+  #deleteNode({ nodeId }: DeleteNodePatch): string[] {
     const node = this.getNode(nodeId);
     const [parentNode, movedChildren] = this.#nodes
       .get(node.parent!.nodeId)!
@@ -202,10 +261,10 @@ export class SceneDocument {
       this.#nodes.delete(nodeId);
     }
 
-    this.#changeListeners.notify(changedIds);
+    return changedIds;
   }
 
-  #renameNode({ nodeId: oldId, newId }: RenameNodePatch): void {
+  #renameNode({ nodeId: oldId, newId }: RenameNodePatch): string[] {
     if (this.#nodes.has(newId)) {
       throw new Error(`A node with id '${newId}' already exists.`);
     }
@@ -233,7 +292,7 @@ export class SceneDocument {
       if (!changedIds.includes(childId)) changedIds.push(childId);
     }
 
-    this.#changeListeners.notify(changedIds);
+    return changedIds;
   }
 
   /**
@@ -287,7 +346,8 @@ export class SceneDocument {
     expression,
     inputName,
     index,
-  }: SetNodeInputPatch): void {
+    sceneReady,
+  }: SetNodeInputPatch): string[] {
     const oldNode = this.getNode(nodeId);
     const newNode = oldNode.setInput(
       expression &&
@@ -301,7 +361,7 @@ export class SceneDocument {
     );
     this.#nodes.set(nodeId, newNode);
 
-    this.#changeListeners.notify([nodeId]);
+    return [nodeId];
   }
 
   #createValidateExpressionContext(

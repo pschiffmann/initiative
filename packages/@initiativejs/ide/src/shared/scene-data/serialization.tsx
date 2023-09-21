@@ -75,6 +75,7 @@ export function sceneDocumentFromJson(
           expression,
         });
       } catch (e) {
+        console.log(e);
         errors.push(
           `Can't set input '${inputKey}' of node '${nodeId}': ` +
             `${e instanceof Error ? e.message : e}`,
@@ -91,14 +92,16 @@ export function sceneDocumentFromJson(
   return errors.length ? { errors } : { document };
 }
 
-export function sceneDocumentToJson(document: SceneDocument): SceneJson {
-  const rootNode = document.getRootNodeId();
-
+export function sceneDocumentToJson(
+  document: SceneDocument,
+  rootNode = document.getRootNodeId(),
+  sceneReady?: boolean,
+): SceneJson {
   const nodes: { [nodeId: string]: NodeJson } = {};
   const queue = rootNode ? [rootNode] : [];
   for (const nodeId of queue) {
     const node = document.getNode(nodeId);
-    nodes[nodeId] = node.toJson();
+    nodes[nodeId] = node.toJson(sceneReady ? rootNode! : undefined);
     node.forEachSlot((childId) => {
       if (childId) queue.push(childId);
     });

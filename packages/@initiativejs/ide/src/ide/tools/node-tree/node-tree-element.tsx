@@ -5,14 +5,19 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { NodeData, SceneDocument, useNode } from "#shared";
+import {
+  NodeData,
+  SceneDocument,
+  useNode,
+  useSceneDocumentVersion,
+} from "#shared";
 import { CommandController } from "@initiativejs/react-command";
 import {
   TonalPalette,
   argbFromHex,
   hexFromArgb,
 } from "@material/material-color-utilities";
-import { memo, useContext, useMemo, useState } from "react";
+import { memo, useCallback, useContext, useMemo, useState } from "react";
 import { CreateNodeDialog } from "./create-node-dialog.js";
 
 const cls = bemClasses("initiative-node-tree-element");
@@ -69,6 +74,15 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
     () => new CommandController<string>(),
   );
 
+  useSceneDocumentVersion(document);
+  const pasteSelectedNode = (slotName: string) => {
+    document.applyPatch({
+      type: "paste-node",
+      nodeId,
+      slotName,
+    });
+  };
+
   return (
     <div className={cls.block()}>
       <div
@@ -106,12 +120,20 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
                 />
                 {slotName}
                 {(isCollectionSlot || !nodeData.slots[slotName]) && (
-                  <IconButton
-                    className={cls.element("add-button")}
-                    label="Add"
-                    icon="add"
-                    onPress={() => createNodeDialogController.send(slotName)}
-                  />
+                  <>
+                    <IconButton
+                      className={cls.element("add-button")}
+                      label="Add"
+                      icon="add"
+                      onPress={() => createNodeDialogController.send(slotName)}
+                    />
+                    <IconButton
+                      label="Paste node"
+                      icon="content_paste"
+                      disabled={!document.hasClipboard()}
+                      onPress={() => pasteSelectedNode(slotName)}
+                    />
+                  </>
                 )}
               </div>
               {!isCollapsed && (

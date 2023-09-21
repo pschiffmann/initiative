@@ -143,6 +143,7 @@ export class NodeSchema<
    */
   getInputAttributes(inputName: string): InputAttributes {
     if (!this.inputAttributes[inputName]) {
+      console.log("schema");
       throw new Error(
         `Input '${inputName}' doesn't exist on schema '${this.name}'.`,
       );

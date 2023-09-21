@@ -172,6 +172,7 @@ export class NodeData {
         index < 0 ||
         index >= this.collectionSlotSizes[slot]
       ) {
+        console.log("data");
         throw new Error(`Invalid index '${index}' for input '${inputName}'.`);
       }
       inputKey = `${inputName}::${index}`;
@@ -391,13 +392,17 @@ export class NodeData {
     );
   }
 
-  toJson(): NodeJson {
+  toJson(rootNode?: string): NodeJson {
     const inputs: Record<string, ExpressionJson> = {};
     this.forEachInput((expression, attributes, inputName, index) => {
       if (!expression) return;
+      //
+      if (rootNode) {
+      }
       const inputKey =
         index === undefined ? inputName : `${inputName}::${index}`;
       inputs[inputKey] = expression.toJson();
+      //
     });
     return { type: this.type, inputs, slots: this.slots };
   }

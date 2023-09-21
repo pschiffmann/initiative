@@ -28,6 +28,10 @@ export function NodeTree({
 
   const rootNodeId = useRootNodeId(document);
 
+  const copySelectedNode = useCallback(() => {
+    document.applyPatch({ type: "copy-node", nodeId: selectedNode! });
+  }, [document, selectedNode]);
+
   const renameSelectedNode = useCallback(() => {
     const newId = prompt("Enter new node id");
     if (!newId) return;
@@ -56,6 +60,12 @@ export function NodeTree({
       title="Nodes"
       actions={
         <>
+          <IconButton
+            label="Copy node"
+            icon="copy_all"
+            disabled={!selectedNode}
+            onPress={copySelectedNode}
+          />
           <IconButton
             label="Rename node"
             icon="edit"
