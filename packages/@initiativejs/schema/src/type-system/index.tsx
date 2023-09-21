@@ -7,6 +7,7 @@ export * from "./function.js";
 export * from "./null.js";
 export * from "./number.js";
 export * from "./resolve-type.js";
+export * from "./serialization.js";
 export * from "./string.js";
 export * from "./tuple.js";
 export * from "./type.js";
