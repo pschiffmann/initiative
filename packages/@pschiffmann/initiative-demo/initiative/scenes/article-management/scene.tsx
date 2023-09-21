@@ -14,10 +14,12 @@ import {
   type I18nSchema,
   type MuiDialogSchema,
   type MuiTableSchema,
+  type StackSchema,
 } from "#initiative/nodes/index.js";
 import {
   type OutputTypes,
   type OutputsProviderProps,
+  type SlotComponentProps,
 } from "@initiativejs/schema/code-gen-helpers";
 import { createContext, useContext } from "react";
 
@@ -96,7 +98,7 @@ function PageLayout_Adapter() {
   );
 }
 
-function PageLayout_child({ index }: any) {
+function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
   switch (index) {
     case 0:
       return <PageTitle_Adapter />;
@@ -181,7 +183,10 @@ const ArticlesTable$rowContext = createContext<
   OutputTypes<MuiTableSchema>["row"]
 >(null!);
 
-function ArticlesTable_column({ row, index }: any) {
+function ArticlesTable_column({
+  row,
+  index,
+}: SlotComponentProps<MuiTableSchema, "column">) {
   switch (index) {
     case 0:
       return (
@@ -378,7 +383,9 @@ function EditArticleFormLayout_Adapter() {
   );
 }
 
-function EditArticleFormLayout_child({ index }: any) {
+function EditArticleFormLayout_child({
+  index,
+}: SlotComponentProps<StackSchema, "child">) {
   switch (index) {
     case 0:
       return <EditArticleNameTextField_Adapter />;

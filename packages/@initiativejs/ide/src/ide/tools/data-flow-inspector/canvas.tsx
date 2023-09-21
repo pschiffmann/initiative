@@ -1,5 +1,5 @@
 import { bemClasses } from "#design-system";
-import { SceneDocument } from "../../../shared/index.js";
+import { SceneDocument } from "#shared";
 import { Layout, expressionEvaluation, useLayout } from "./layout-algorithm.js";
 import { Line } from "./line.js";
 import { NodeBox } from "./node-box.js";

@@ -1,6 +1,6 @@
 import { Dialog, DialogCommand, bemClasses } from "#design-system";
+import { SceneDocument } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
-import { SceneDocument } from "../../../shared/index.js";
 import { Canvas } from "./canvas.js";
 
 const cls = bemClasses("initiative-data-flow-inspector");
