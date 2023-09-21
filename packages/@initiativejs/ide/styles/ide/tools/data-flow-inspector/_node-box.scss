@@ -1,0 +1,67 @@
+@use "../../../design-system/color";
+
+.initiative-data-flow-inspector-node-box {
+  --initiative-data-flow-inspector-node-box-fill-color: #{color.role(
+      "surface-container-highest"
+    )};
+  --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
+      "on-surface"
+    )};
+
+  position: absolute;
+  width: 320px;
+  display: grid;
+  grid-template-columns:
+    [id-start input-socket-start type-start] 20px
+    [input-socket-end input-name-start] 1fr
+    [input-name-end input-button-start] 20px
+    [input-button-end output-button-start] 20px
+    [output-button-end output-name-start] 1fr
+    [output-name-end output-socket-start] 20px
+    [id-end output-socket-end type-end];
+  grid-template-rows: [id-start] 24px [id-end type-start] 24px [type-end];
+  grid-auto-rows: 24px;
+  grid-auto-flow: dense;
+  grid-template-areas:
+    "id id id id id id"
+    "type type type type type type";
+  gap: 0 4px;
+  place-items: center start;
+  padding: 8px 4px;
+  border-radius: 8px;
+  background-color: var(--initiative-data-flow-inspector-node-box-fill-color);
+  color: --initiative-data-flow-inspector-node-box-stroke-color;
+
+  &__id {
+    grid-area: id;
+    margin-inline: 4px;
+  }
+  &__type {
+    grid-area: type;
+    align-self: start;
+    margin-inline: 4px;
+    opacity: 0.72;
+  }
+  &__input-socket {
+    grid-column: input-socket;
+    --initiative-icon-button-density: -1;
+  }
+  &__input-name {
+    grid-column: input-name;
+  }
+  &__input-button {
+    grid-column: input-button;
+    --initiative-icon-button-density: -1;
+  }
+  &__output-button {
+    grid-column: output-button;
+    --initiative-icon-button-density: -1;
+  }
+  &__output-name {
+    grid-column: output-name;
+  }
+  &__output-socket {
+    grid-column: output-socket;
+    --initiative-icon-button-density: -1;
+  }
+}
