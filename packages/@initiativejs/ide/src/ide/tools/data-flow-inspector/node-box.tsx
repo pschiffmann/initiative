@@ -61,25 +61,23 @@ export function NodeBox({ data, focus, positioning }: NodeBoxProps) {
       <Typography className={cls.element("type")} variant="label-medium" noWrap>
         {data.type}
       </Typography>
-      {data.forEachInput((expression, type, inputName, index) => (
-        <Input
-          data={data}
-          name={index === undefined ? inputName : `${inputName}::${index}`}
-        ></Input>
-      ))}
-      {schema.forEachOutput((type) => (
-        <Output data={data} name={type}></Output>
+      {data.forEachInput((expression, type, inputName, index) => {
+        const inputKey =
+          index === undefined ? inputName : `${inputName}::${index}`;
+        return <Input key={inputKey} name={inputKey} />;
+      })}
+      {schema.forEachOutput((outputName) => (
+        <Output key={outputName} name={outputName} />
       ))}
     </div>
   );
 }
 
 interface InputOutputProps {
-  data: NodeData;
   name: string;
 }
 
-function Input({ data, name }: InputOutputProps) {
+function Input({ name }: InputOutputProps) {
   return (
     <>
       <IconButton
@@ -104,7 +102,7 @@ function Input({ data, name }: InputOutputProps) {
   );
 }
 
-function Output({ data, name }: InputOutputProps) {
+function Output({ name }: InputOutputProps) {
   return (
     <>
       <IconButton

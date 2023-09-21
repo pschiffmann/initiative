@@ -1,7 +1,7 @@
 import { Dialog, DialogCommand, bemClasses } from "#design-system";
 import { CommandController } from "@initiativejs/react-command";
 import { SceneDocument } from "../../../shared/index.js";
-import { DataFlowAbsoluteContainer } from "./data-flow-absolute-container.js";
+import { Canvas } from "./canvas.js";
 
 const cls = bemClasses("initiative-data-flow-inspector");
 
@@ -18,10 +18,7 @@ export function DataFlowInspector({
 }: DataFlowInspectorProps) {
   return (
     <Dialog className={cls.block()} commandStream={controller}>
-      <DataFlowAbsoluteContainer
-        document={document}
-        selectedNode={selectedNode}
-      />
+      <Canvas document={document} selectedNode={selectedNode} />
     </Dialog>
   );
 }
