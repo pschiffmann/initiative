@@ -50,12 +50,31 @@ export function NodeTree({
     }
   }, [document, selectedNode]);
 
+  const undoLastPatch = useCallback(() => {
+    try {
+      const undoPatch = document.getUndo();
+      switch (undoPatch?.type) {
+        case "rename-node":
+          onSelectedNodeChange(undoPatch.newId);
+      }
+      document.undoPatch();
+    } catch (e) {
+      alert(`${e}`);
+    }
+  }, [document]);
+
   return (
     <ToolFrame
       className={cls.block(className)}
       title="Nodes"
       actions={
         <>
+          <IconButton
+            label="Undo"
+            icon="undo"
+            disabled={false}
+            onPress={undoLastPatch}
+          />
           <IconButton
             label="Rename node"
             icon="edit"

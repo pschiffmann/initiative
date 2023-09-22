@@ -39,12 +39,15 @@ export function sceneDocumentFromJson(
       return false;
     }
     try {
-      document.applyPatch({
-        type: "create-node",
-        nodeType: nodeJson.type,
-        parent,
-        nodeId,
-      });
+      document.applyPatch(
+        {
+          type: "create-node",
+          nodeType: nodeJson.type,
+          parent,
+          nodeId,
+        },
+        true,
+      );
       queue.push(nodeId);
       return true;
     } catch (e) {
@@ -67,13 +70,16 @@ export function sceneDocumentFromJson(
         continue;
       }
       try {
-        document.applyPatch({
-          type: "set-node-input",
-          nodeId,
-          inputName,
-          index,
-          expression,
-        });
+        document.applyPatch(
+          {
+            type: "set-node-input",
+            nodeId,
+            inputName,
+            index,
+            expression,
+          },
+          true,
+        );
       } catch (e) {
         errors.push(
           `Can't set input '${inputKey}' of node '${nodeId}': ` +

@@ -40,6 +40,11 @@ export interface SetNodeInputPatch {
   readonly index?: number;
 }
 
+interface PatchBuffer {
+  time: Date;
+  patch: SceneDocumentPatch;
+}
+
 export class SceneDocument {
   constructor(
     readonly name: string,
@@ -49,6 +54,7 @@ export class SceneDocument {
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
   #version = 0;
+  #patchbuffer: Array<PatchBuffer> = [];
 
   getRootNodeId(): string | null {
     return this.#rootNodeId;
@@ -110,30 +116,188 @@ export class SceneDocument {
     }
   }
 
-  applyPatch(patch: SceneDocumentPatch): void {
-    switch (patch.type) {
+  getUndo(): SceneDocumentPatch | undefined {
+    return this.#patchbuffer.length === 0
+      ? undefined
+      : this.#patchbuffer[this.#patchbuffer.length - 1].patch;
+  }
+
+  undoPatch(recursion?: boolean): void {
+    if (!this.#patchbuffer.length) return;
+    const current = this.#patchbuffer.pop()!;
+    if (!current) return;
+    const next = this.#patchbuffer[this.#patchbuffer.length - 1];
+    switch (current.patch.type) {
       case "create-node":
-        patch.parent
-          ? this.#createNode(patch, patch.parent)
-          : this.#createRootNode(patch);
+        this.applyPatch(current.patch, true);
+        if (!next) break;
+        if (next.patch.type !== "set-node-input") {
+          if (next.patch.type !== "create-node") break;
+        }
+        if (next.time !== current.time) break;
+        recursion = true;
         break;
       case "delete-node":
-        patch.nodeId === this.#rootNodeId
-          ? this.#deleteRootNode()
-          : this.#deleteNode(patch);
+        this.applyPatch(current.patch, true);
         break;
       case "rename-node":
-        this.#renameNode(patch);
+        this.applyPatch(current.patch, true);
         break;
       case "set-node-input":
-        this.#setNodeInput(patch);
+        this.applyPatch(current.patch, true);
+        if (!next) break;
+        if (next.patch.type !== "set-node-input") {
+          if (next.patch.type !== "create-node") break;
+          if (next.time !== current.time) break;
+        } else {
+          if (next.time !== current.time) {
+            if (next.patch.nodeId !== current.patch.nodeId) break;
+            if (next.patch.inputName !== current.patch.inputName) break;
+            if (next.patch.index !== current.patch.index) break;
+            if (current.time.getTime() - next.time.getTime() > 200) break;
+          }
+        }
+        recursion = true;
+        break;
+    }
+    if (recursion) this.undoPatch();
+  }
+
+  applyPatch(patch: SceneDocumentPatch, undopatch?: boolean): void {
+    let changedNodeIds: string[];
+    switch (patch.type) {
+      case "create-node":
+        changedNodeIds = patch.parent
+          ? this.#createNode(patch, patch.parent)
+          : this.#createRootNode(patch);
+        if (undopatch) break;
+        this.#patchbuffer.push({
+          time: new Date(),
+          patch: {
+            type: "delete-node",
+            nodeId: patch.parent ? changedNodeIds[1] : changedNodeIds[0],
+          },
+        });
+        break;
+      case "delete-node":
+        if (!undopatch) {
+          this.#patchbuffer.push(
+            ...this.#fillBufferOnDeleteNode(patch.nodeId, new Date()),
+          );
+        }
+        changedNodeIds =
+          patch.nodeId === this.#rootNodeId
+            ? this.#deleteRootNode()
+            : this.#deleteNode(patch);
+        break;
+      case "rename-node":
+        if (!undopatch) {
+          this.#patchbuffer.push({
+            time: new Date(),
+            patch: {
+              newId: patch.nodeId,
+              nodeId: patch.newId,
+              type: "rename-node",
+            },
+          });
+        }
+        changedNodeIds = this.#renameNode(patch);
+        break;
+      case "set-node-input":
+        if (
+          this.getNode(patch.nodeId).inputs[
+            patch.index === undefined
+              ? patch.inputName
+              : `${patch.inputName}::${patch.index}`
+          ] &&
+          !undopatch
+        ) {
+          this.#patchbuffer.push({
+            time: new Date(),
+            patch: {
+              type: "set-node-input",
+              nodeId: patch.nodeId,
+              inputName: patch.inputName,
+              index: patch.index,
+              expression: this.getNode(patch.nodeId).inputs[
+                patch.index === undefined
+                  ? patch.inputName
+                  : `${patch.inputName}::${patch.index}`
+              ]?.toJson(),
+            },
+          });
+        }
+        changedNodeIds = this.#setNodeInput(patch);
         break;
     }
     this.#version++;
+    this.#changeListeners.notify(changedNodeIds);
     this.#patchListeners.notify(patch);
   }
 
-  #createRootNode({ nodeType, nodeId }: CreateNodePatch): void {
+  #fillBufferOnDeleteNode(nodeId: string, timestamp: Date): Array<PatchBuffer> {
+    const output: Array<PatchBuffer> = new Array();
+    if (!nodeId) return output;
+    output.push(...this.#bufferRecreateInputs(nodeId, timestamp));
+    output.push(...this.#bufferRecreateNodes(nodeId, timestamp).reverse());
+    return output;
+  }
+  #bufferRecreateNodes(
+    nodeId: string | null,
+    timestamp: Date,
+  ): Array<PatchBuffer> {
+    const output: Array<PatchBuffer> = new Array();
+    if (!nodeId) return output;
+    const node: NodeData = this.getNode(nodeId);
+    output.push({
+      time: timestamp,
+      patch: {
+        type: "create-node",
+        nodeType: node.type,
+        parent: { index: undefined, ...node.parent! },
+        nodeId: nodeId,
+      },
+    });
+    output.push(
+      ...node
+        .forEachSlot((childId) => this.#bufferRecreateNodes(childId, timestamp))
+        .flat(1),
+    );
+    return output;
+  }
+  #bufferRecreateInputs(
+    nodeId: string | null,
+    timestamp: Date,
+  ): Array<PatchBuffer> {
+    const output: Array<PatchBuffer> = new Array();
+    if (!nodeId) return output;
+    const node: NodeData = this.getNode(nodeId);
+    output.push(
+      ...node
+        .forEachSlot((childId) =>
+          this.#bufferRecreateInputs(childId, timestamp),
+        )
+        .flat(1),
+    );
+    output.reverse();
+    const nodeInputs: Array<PatchBuffer> = node.forEachInput(
+      (expression, attributes, inputName, index) => ({
+        time: timestamp,
+        patch: {
+          type: "set-node-input",
+          nodeId: nodeId,
+          inputName: inputName,
+          index: index,
+          expression: expression ? expression.toJson() : null,
+        },
+      }),
+    );
+    nodeInputs.reverse();
+    output.push(...nodeInputs);
+    return output;
+  }
+
+  #createRootNode({ nodeType, nodeId }: CreateNodePatch): string[] {
     if (this.#rootNodeId !== null) {
       throw new Error("SceneDocument is not empty.");
     }
@@ -143,13 +307,13 @@ export class SceneDocument {
     this.#nodes.set(nodeId, NodeData.empty(schema, nodeId, null));
     this.#rootNodeId = nodeId;
 
-    this.#changeListeners.notify([nodeId]);
+    return [nodeId];
   }
 
   #createNode(
     { nodeType, nodeId: childId }: CreateNodePatch,
     { nodeId: parentId, slotName }: Omit<NodeParent, "index">,
-  ): void {
+  ): string[] {
     const { schema } = this.definitions.getNode(nodeType);
     childId ??= this.#generateNodeId(schema);
     if (this.#nodes.has(childId)) {
@@ -169,18 +333,18 @@ export class SceneDocument {
       );
     }
 
-    this.#changeListeners.notify([parentId, childId]);
+    return [parentId, childId];
   }
 
-  #deleteRootNode(): void {
+  #deleteRootNode(): string[] {
     const nodeIds = [...this.#nodes.keys()];
     this.#rootNodeId = null;
     this.#nodes.clear();
 
-    this.#changeListeners.notify(nodeIds);
+    return nodeIds;
   }
 
-  #deleteNode({ nodeId }: DeleteNodePatch): void {
+  #deleteNode({ nodeId }: DeleteNodePatch): string[] {
     const node = this.getNode(nodeId);
     const [parentNode, movedChildren] = this.#nodes
       .get(node.parent!.nodeId)!
@@ -202,10 +366,10 @@ export class SceneDocument {
       this.#nodes.delete(nodeId);
     }
 
-    this.#changeListeners.notify(changedIds);
+    return changedIds;
   }
 
-  #renameNode({ nodeId: oldId, newId }: RenameNodePatch): void {
+  #renameNode({ nodeId: oldId, newId }: RenameNodePatch): string[] {
     if (this.#nodes.has(newId)) {
       throw new Error(`A node with id '${newId}' already exists.`);
     }
@@ -233,7 +397,7 @@ export class SceneDocument {
       if (!changedIds.includes(childId)) changedIds.push(childId);
     }
 
-    this.#changeListeners.notify(changedIds);
+    return changedIds;
   }
 
   /**
@@ -287,7 +451,7 @@ export class SceneDocument {
     expression,
     inputName,
     index,
-  }: SetNodeInputPatch): void {
+  }: SetNodeInputPatch): string[] {
     const oldNode = this.getNode(nodeId);
     const newNode = oldNode.setInput(
       expression &&
@@ -301,7 +465,7 @@ export class SceneDocument {
     );
     this.#nodes.set(nodeId, newNode);
 
-    this.#changeListeners.notify([nodeId]);
+    return [nodeId];
   }
 
   #createValidateExpressionContext(
