@@ -1,7 +1,35 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
 .initiative-data-flow-inspector {
-  inset: 16px;
-  width: auto;
-  height: auto;
-  margin: 0;
-  padding: 16px;
+  &[open] {
+    inset: 16px;
+    width: auto;
+    height: auto;
+    margin: 0;
+
+    display: grid;
+    grid:
+      "canvas" 1fr
+      "control" auto
+      / 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  &__canvas {
+    grid-area: canvas;
+  }
+
+  &__control {
+    grid-area: control;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    @include typography.role("body-medium");
+  }
+
+  &__input {
+    accent-color: color.role("brand");
+  }
 }

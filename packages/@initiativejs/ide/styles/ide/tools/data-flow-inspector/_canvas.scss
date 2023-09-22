@@ -1,14 +1,25 @@
 @use "../../../design-system/color";
 
 .initiative-data-flow-inspector-canvas {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background-color: color.role("surface");
+  box-shadow: 0 0 8px rgb(0 0 0 / 54%) inset;
   overflow: auto;
 
+  &__container {
+    position: relative;
+  }
+
   &__line {
-    fill: transparent;
+    fill: none;
     stroke-width: 2;
+
+    &:hover {
+      stroke: color.role("brand");
+      stroke-width: 4;
+    }
 
     &--io {
       stroke: color.role("on-surface");
