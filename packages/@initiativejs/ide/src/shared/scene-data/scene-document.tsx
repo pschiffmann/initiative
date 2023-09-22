@@ -122,7 +122,8 @@ export class SceneDocument {
       : this.#patchbuffer[this.#patchbuffer.length - 1].patch;
   }
 
-  undoPatch(recursion?: boolean): void {
+  undoPatch(): void {
+    let recursion: boolean = false;
     if (!this.#patchbuffer.length) return;
     const current = this.#patchbuffer.pop()!;
     if (!current) return;
@@ -146,17 +147,8 @@ export class SceneDocument {
       case "set-node-input":
         this.applyPatch(current.patch, true);
         if (!next) break;
-        if (next.patch.type !== "set-node-input") {
-          if (next.patch.type !== "create-node") break;
-          if (next.time !== current.time) break;
-        } else {
-          if (next.time !== current.time) {
-            if (next.patch.nodeId !== current.patch.nodeId) break;
-            if (next.patch.inputName !== current.patch.inputName) break;
-            if (next.patch.index !== current.patch.index) break;
-            if (current.time.getTime() - next.time.getTime() > 200) break;
-          }
-        }
+        if (next.patch.type !== "set-node-input") break;
+        if (next.time !== current.time) break;
         recursion = true;
         break;
     }
@@ -212,20 +204,37 @@ export class SceneDocument {
           ] &&
           !undopatch
         ) {
-          this.#patchbuffer.push({
-            time: new Date(),
-            patch: {
-              type: "set-node-input",
-              nodeId: patch.nodeId,
-              inputName: patch.inputName,
-              index: patch.index,
-              expression: this.getNode(patch.nodeId).inputs[
-                patch.index === undefined
-                  ? patch.inputName
-                  : `${patch.inputName}::${patch.index}`
-              ]?.toJson(),
-            },
-          });
+          const previousPatch = this.#patchbuffer.pop();
+          if (previousPatch) this.#patchbuffer.push(previousPatch);
+          const timestamp = new Date();
+          let omitChange: Boolean = false;
+          switch (true) {
+            case true:
+              if (!previousPatch) break;
+              if (previousPatch!.patch.type !== "set-node-input") break;
+              if (previousPatch!.patch.nodeId !== patch.nodeId) break;
+              if (previousPatch!.patch.index !== patch.index) break;
+              if (timestamp.getTime() - previousPatch!.time.getTime() > 200)
+                break;
+            default:
+              omitChange = true;
+          }
+          if (!omitChange) {
+            this.#patchbuffer.push({
+              time: timestamp,
+              patch: {
+                type: "set-node-input",
+                nodeId: patch.nodeId,
+                inputName: patch.inputName,
+                index: patch.index,
+                expression: this.getNode(patch.nodeId).inputs[
+                  patch.index === undefined
+                    ? patch.inputName
+                    : `${patch.inputName}::${patch.index}`
+                ]?.toJson(),
+              },
+            });
+          }
         }
         changedNodeIds = this.#setNodeInput(patch);
         break;
@@ -233,6 +242,7 @@ export class SceneDocument {
     this.#version++;
     this.#changeListeners.notify(changedNodeIds);
     this.#patchListeners.notify(patch);
+    console.log("Buffer: ", this.#patchbuffer);
   }
 
   #fillBufferOnDeleteNode(nodeId: string, timestamp: Date): Array<PatchBuffer> {
