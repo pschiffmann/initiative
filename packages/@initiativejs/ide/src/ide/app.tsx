@@ -18,9 +18,10 @@ const cls = bemClasses("initiative-editor");
 
 export interface AppProps {
   definitions: Definitions;
+  formatJsFile?(source: string): string | Promise<string>;
 }
 
-export function App({ definitions }: AppProps) {
+export function App({ definitions, formatJsFile }: AppProps) {
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export function App({ definitions }: AppProps) {
         <div ref={rootRef} className={cls.block()}>
           <WorkspaceManager
             className={cls.element("workspace-manager")}
+            formatJsFile={formatJsFile}
             document={document}
             onDocumentChange={(document) => {
               setSelectedNode(null);

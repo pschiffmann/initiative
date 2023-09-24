@@ -4,10 +4,9 @@ import { Workspace } from "./workspace.js";
 
 const idbKey = "@initiativejs/ide::last-used-workspace";
 
-export function useWorkspace(): [
-  Workspace | null,
-  (workspace: Workspace | null) => void,
-] {
+export function useWorkspace(
+  formatJsFile?: (source: string) => string | Promise<string>,
+): [Workspace | null, (workspace: Workspace | null) => void] {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
 
   const [, forceUpdate] = useState({});
@@ -24,7 +23,7 @@ export function useWorkspace(): [
         !cancelled &&
         lastUsedWorkspace instanceof FileSystemDirectoryHandle
       ) {
-        setWorkspace(new Workspace(lastUsedWorkspace));
+        setWorkspace(new Workspace(lastUsedWorkspace, formatJsFile));
       }
     })();
 

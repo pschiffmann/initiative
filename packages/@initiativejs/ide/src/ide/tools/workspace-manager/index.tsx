@@ -20,17 +20,19 @@ export { Workspace } from "./workspace.js";
 const cls = bemClasses("initiative-workspace-manager");
 
 export interface SceneManagerProps {
+  formatJsFile?(source: string): string | Promise<string>;
   document: SceneDocument | null;
   onDocumentChange(document: SceneDocument | null): void;
   className?: string;
 }
 
 export function WorkspaceManager({
+  formatJsFile,
   document,
   onDocumentChange,
   className,
 }: SceneManagerProps) {
-  const [workspace, setWorkspace] = useWorkspace();
+  const [workspace, setWorkspace] = useWorkspace(formatJsFile);
 
   const [openWorkspaceDialogController] = useState(
     () => new CommandController<DialogCommand>(),

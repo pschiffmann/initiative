@@ -15,7 +15,10 @@ export type WorkspaceState =
   | "error";
 
 export class Workspace {
-  constructor(readonly rootDirectory: FileSystemDirectoryHandle) {
+  constructor(
+    readonly rootDirectory: FileSystemDirectoryHandle,
+    readonly formatJsFile?: (source: string) => string | Promise<string>,
+  ) {
     this.#initialize();
   }
 
@@ -105,11 +108,13 @@ export class Workspace {
     );
     await jsonFileWritable.close();
 
+    let sceneTsx = generateCodeForScene(document);
+    if (this.formatJsFile) sceneTsx = await this.formatJsFile(sceneTsx);
     const tsxFile = await sceneDirectory.getFileHandle("scene.tsx", {
       create: true,
     });
     const tsxFileWritable = await tsxFile.createWritable();
-    await tsxFileWritable.write(generateCodeForScene(document));
+    await tsxFileWritable.write(sceneTsx);
     await tsxFileWritable.close();
   }
 

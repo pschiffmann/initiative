@@ -74,12 +74,6 @@ export function generateNodeRuntime(
       importNames,
     )}\n`;
   }
-  //
-
-  // test
-  console.log(nodeData);
-  // console.log(importNames);
-  // test
 
   return result;
 }
