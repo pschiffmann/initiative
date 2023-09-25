@@ -40,8 +40,11 @@ export interface SetNodeInputPatch {
   readonly index?: number;
 }
 
-interface PatchBuffer {
-  time: Date;
+interface PatchBufferNode {
+  time?: Date;
+  previous: PatchBufferNode | undefined;
+  next: PatchBufferNode | undefined;
+  stepId: number;
   patch: SceneDocumentPatch;
 }
 
@@ -54,7 +57,11 @@ export class SceneDocument {
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
   #version = 0;
-  #patchbuffer: Array<PatchBuffer> = [];
+  #patchbuffer: {
+    nextNode?: PatchBufferNode;
+    previousNode?: PatchBufferNode;
+    oldestNode?: PatchBufferNode;
+  } = {};
 
   getRootNodeId(): string | null {
     return this.#rootNodeId;
@@ -117,25 +124,19 @@ export class SceneDocument {
   }
 
   getUndo(): SceneDocumentPatch | undefined {
-    return this.#patchbuffer.length === 0
-      ? undefined
-      : this.#patchbuffer[this.#patchbuffer.length - 1].patch;
+    return this.#patchbuffer.previousNode?.patch;
   }
 
   undoPatch(): void {
     let recursion: boolean = false;
-    if (!this.#patchbuffer.length) return;
-    const current = this.#patchbuffer.pop()!;
+    const current = this.#patchbuffer.previousNode;
     if (!current) return;
-    const next = this.#patchbuffer[this.#patchbuffer.length - 1];
+    const previous = current.previous;
     switch (current.patch.type) {
       case "create-node":
         this.applyPatch(current.patch, true);
-        if (!next) break;
-        if (next.patch.type !== "set-node-input") {
-          if (next.patch.type !== "create-node") break;
-        }
-        if (next.time !== current.time) break;
+        if (!previous) break;
+        if (previous.stepId !== current.stepId) break;
         recursion = true;
         break;
       case "delete-node":
@@ -146,35 +147,42 @@ export class SceneDocument {
         break;
       case "set-node-input":
         this.applyPatch(current.patch, true);
-        if (!next) break;
-        if (next.patch.type !== "set-node-input") break;
-        if (next.time !== current.time) break;
+        if (!previous) break;
+        if (previous.stepId !== current.stepId) break;
         recursion = true;
         break;
     }
+    this.#patchbuffer.nextNode = current;
+    this.#patchbuffer.previousNode = previous;
     if (recursion) this.undoPatch();
   }
 
   applyPatch(patch: SceneDocumentPatch, undopatch?: boolean): void {
     let changedNodeIds: string[];
+    const previous = this.#patchbuffer.previousNode;
     switch (patch.type) {
       case "create-node":
         changedNodeIds = patch.parent
           ? this.#createNode(patch, patch.parent)
           : this.#createRootNode(patch);
         if (undopatch) break;
-        this.#patchbuffer.push({
-          time: new Date(),
+        this.#patchbuffer.previousNode = {
+          previous: previous,
+          next: undefined,
+          stepId: previous ? previous.stepId + 1 : 0,
           patch: {
             type: "delete-node",
             nodeId: patch.parent ? changedNodeIds[1] : changedNodeIds[0],
           },
-        });
+        };
         break;
       case "delete-node":
         if (!undopatch) {
-          this.#patchbuffer.push(
-            ...this.#fillBufferOnDeleteNode(patch.nodeId, new Date()),
+          this.#patchbuffer.previousNode = this.#fillBufferOnDeleteNode(
+            patch.nodeId,
+            previous,
+            new Date(),
+            previous ? previous.stepId : 0,
           );
         }
         changedNodeIds =
@@ -184,14 +192,16 @@ export class SceneDocument {
         break;
       case "rename-node":
         if (!undopatch) {
-          this.#patchbuffer.push({
-            time: new Date(),
+          this.#patchbuffer.previousNode = {
+            previous: previous,
+            next: undefined,
+            stepId: previous ? previous.stepId + 1 : 0,
             patch: {
               newId: patch.nodeId,
               nodeId: patch.newId,
               type: "rename-node",
             },
-          });
+          };
         }
         changedNodeIds = this.#renameNode(patch);
         break;
@@ -204,24 +214,22 @@ export class SceneDocument {
           ] &&
           !undopatch
         ) {
-          const previousPatch = this.#patchbuffer.pop();
-          if (previousPatch) this.#patchbuffer.push(previousPatch);
           const timestamp = new Date();
           let omitChange: Boolean = false;
           switch (true) {
             case true:
-              if (!previousPatch) break;
-              if (previousPatch!.patch.type !== "set-node-input") break;
-              if (previousPatch!.patch.nodeId !== patch.nodeId) break;
-              if (previousPatch!.patch.index !== patch.index) break;
-              if (timestamp.getTime() - previousPatch!.time.getTime() > 200)
-                break;
+              if (!previous) break;
+              if (previous.patch.type !== "set-node-input") break;
+              if (!previous.time) break;
+              if (timestamp.getTime() - previous.time.getTime() > 200) break;
             default:
               omitChange = true;
           }
           if (!omitChange) {
-            this.#patchbuffer.push({
-              time: timestamp,
+            this.#patchbuffer.previousNode = {
+              previous: previous,
+              next: undefined,
+              stepId: previous ? previous.stepId + 1 : 0,
               patch: {
                 type: "set-node-input",
                 nodeId: patch.nodeId,
@@ -233,11 +241,19 @@ export class SceneDocument {
                     : `${patch.inputName}::${patch.index}`
                 ]?.toJson(),
               },
-            });
+              time: timestamp,
+            };
           }
         }
         changedNodeIds = this.#setNodeInput(patch);
         break;
+    }
+    if (!undopatch) {
+      if (!previous) {
+        this.#patchbuffer.oldestNode = this.#patchbuffer.previousNode;
+      } else {
+        previous.next = this.#patchbuffer.previousNode;
+      }
     }
     this.#version++;
     this.#changeListeners.notify(changedNodeIds);
@@ -245,53 +261,68 @@ export class SceneDocument {
     console.log("Buffer: ", this.#patchbuffer);
   }
 
-  #fillBufferOnDeleteNode(nodeId: string, timestamp: Date): Array<PatchBuffer> {
-    const output: Array<PatchBuffer> = new Array();
-    if (!nodeId) return output;
-    output.push(...this.#bufferRecreateInputs(nodeId, timestamp));
-    output.push(...this.#bufferRecreateNodes(nodeId, timestamp).reverse());
-    return output;
+  #fillBufferOnDeleteNode(
+    nodeId: string,
+    previous: PatchBufferNode | undefined,
+    timestamp: Date,
+    stepId: number,
+  ): PatchBufferNode {
+    const outputArray: Array<PatchBufferNode> = new Array();
+    outputArray.push(...this.#bufferRecreateInputs(nodeId, stepId, timestamp));
+    outputArray.push(...this.#bufferRecreateNodes(nodeId, stepId).reverse());
+    for (const node of outputArray) {
+      previous ? (previous.next = node) : null;
+      node.previous = previous;
+      previous = node;
+    }
+    return outputArray.pop()!;
   }
   #bufferRecreateNodes(
     nodeId: string | null,
-    timestamp: Date,
-  ): Array<PatchBuffer> {
-    const output: Array<PatchBuffer> = new Array();
+    stepId: number,
+  ): Array<PatchBufferNode> {
+    const output: Array<PatchBufferNode> = new Array();
     if (!nodeId) return output;
     const node: NodeData = this.getNode(nodeId);
     output.push({
-      time: timestamp,
+      stepId: stepId,
+      previous: undefined,
+      next: undefined,
       patch: {
         type: "create-node",
         nodeType: node.type,
-        parent: { index: undefined, ...node.parent! },
+        parent: { ...node.parent! },
         nodeId: nodeId,
       },
     });
     output.push(
       ...node
-        .forEachSlot((childId) => this.#bufferRecreateNodes(childId, timestamp))
+        .forEachSlot((childId) => this.#bufferRecreateNodes(childId, stepId))
         .flat(1),
     );
     return output;
   }
   #bufferRecreateInputs(
     nodeId: string | null,
+    stepId: number,
     timestamp: Date,
-  ): Array<PatchBuffer> {
-    const output: Array<PatchBuffer> = new Array();
+  ): Array<PatchBufferNode> {
+    const output: Array<PatchBufferNode> = new Array();
     if (!nodeId) return output;
     const node: NodeData = this.getNode(nodeId);
     output.push(
       ...node
         .forEachSlot((childId) =>
-          this.#bufferRecreateInputs(childId, timestamp),
+          this.#bufferRecreateInputs(childId, stepId, timestamp),
         )
         .flat(1),
     );
     output.reverse();
-    const nodeInputs: Array<PatchBuffer> = node.forEachInput(
+    const nodeInputs: Array<PatchBufferNode> = node.forEachInput(
       (expression, attributes, inputName, index) => ({
+        previous: undefined,
+        next: undefined,
+        stepId: stepId,
         time: timestamp,
         patch: {
           type: "set-node-input",
