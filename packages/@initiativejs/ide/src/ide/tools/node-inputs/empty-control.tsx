@@ -6,6 +6,7 @@ import {
   DialogCommand,
   IconButton,
   MaterialIcon,
+  TextFieldControl,
   bemClasses,
 } from "#design-system";
 import {
@@ -21,6 +22,7 @@ import { DefinitionsContext } from "../../context.js";
 import { ExpressionLhs, generateHelpText } from "./expression-control.js";
 import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
 import { SceneDocumentContext } from "./use-scene-document.js";
+import { validateNodeInputName } from "@initiativejs/schema/internals";
 
 const cls = bemClasses("initiative-node-inputs-empty-control");
 
@@ -144,7 +146,10 @@ interface SceneInputsGroupProps {
 
 function SceneInputsGroup({ expectedType, onSelect }: SceneInputsGroupProps) {
   const document = useContext(SceneDocumentContext);
-  return document.sceneInputs.size === 0 ? null : (
+
+  const [controller] = useState(() => new CommandController<DialogCommand>());
+
+  return (
     <Group title="Scene inputs">
       {[...document.sceneInputs].map(([inputName, { type, doc }]) => (
         <TypeOption
@@ -157,7 +162,68 @@ function SceneInputsGroup({ expectedType, onSelect }: SceneInputsGroupProps) {
           onSelect={onSelect}
         />
       ))}
+
+      <button onClick={() => controller.send("open")}>add new</button>
+      <Dialog commandStream={controller}>
+        <CreateSceneInputDialogContent
+          controller={controller}
+          expectedType={expectedType}
+          onSelect={onSelect}
+        />
+      </Dialog>
     </Group>
+  );
+}
+
+interface CreateSceneInputDialogContentProps {
+  controller: CommandController<DialogCommand>;
+  expectedType: t.Type;
+  onSelect(value: ExpressionJson): void;
+}
+
+function CreateSceneInputDialogContent({
+  controller,
+  expectedType,
+  onSelect,
+}: CreateSceneInputDialogContentProps) {
+  const document = useContext(SceneDocumentContext);
+  const [inputName, setInputName] = useState("");
+  const errorMessage = !/^[a-z][A-Za-z0-9]*$/.test(inputName)
+    ? "Must match /^[a-z][A-Za-z0-9]*$/."
+    : document.sceneInputs.has(inputName)
+    ? "A scene input with this name already exists."
+    : undefined;
+
+  function createSceneInput() {
+    document.applyPatch({
+      type: "set-scene-input",
+      inputName,
+      inputJson: { type: t.toJson(expectedType) },
+    });
+    onSelect({ type: "scene-input", inputName, selectors: [] });
+  }
+
+  return (
+    <AlertDialogContent
+      title="Add new scene input"
+      actions={
+        <>
+          <Button label="Close" onPress={() => controller.send("close")} />
+          <Button
+            label="Create"
+            disabled={!!errorMessage}
+            onPress={createSceneInput}
+          />
+        </>
+      }
+    >
+      <TextFieldControl
+        label="Input name"
+        errorText={errorMessage}
+        value={inputName}
+        onChange={setInputName}
+      />
+    </AlertDialogContent>
   );
 }
 
