@@ -1,4 +1,4 @@
-import { Definitions, NodeSchema } from "@initiativejs/schema";
+import { Definitions, NodeSchema, t } from "@initiativejs/schema";
 import {
   Expression,
   ExpressionJson,
@@ -7,12 +7,20 @@ import {
 } from "./expression.js";
 import { Listener, Listeners, Unsubscribe } from "./listeners.js";
 import { NodeData, NodeParent } from "./node-data.js";
+import { SceneInputJson } from "./serialization.js";
 
 export type SceneDocumentPatch =
+  | SetSceneInputPatch
   | CreateNodePatch
   | DeleteNodePatch
   | RenameNodePatch
   | SetNodeInputPatch;
+
+export interface SetSceneInputPatch {
+  readonly type: "set-scene-input";
+  readonly inputName: string;
+  readonly inputJson: SceneInputJson | null;
+}
 
 export interface CreateNodePatch {
   readonly type: "create-node";
@@ -40,15 +48,26 @@ export interface SetNodeInputPatch {
   readonly index?: number;
 }
 
+export interface SceneInputData {
+  readonly type: t.Type;
+  readonly doc?: string;
+  readonly debugValue?: Expression;
+}
+
 export class SceneDocument {
   constructor(
     readonly name: string,
     readonly definitions: Definitions,
   ) {}
 
+  #sceneInputs = new Map<string, SceneInputData>();
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
   #version = 0;
+
+  get sceneInputs(): ReadonlyMap<string, SceneInputData> {
+    return this.#sceneInputs;
+  }
 
   getRootNodeId(): string | null {
     return this.#rootNodeId;
@@ -112,6 +131,9 @@ export class SceneDocument {
 
   applyPatch(patch: SceneDocumentPatch): void {
     switch (patch.type) {
+      case "set-scene-input":
+        this.#setSceneInput(patch);
+        break;
       case "create-node":
         patch.parent
           ? this.#createNode(patch, patch.parent)
@@ -131,6 +153,46 @@ export class SceneDocument {
     }
     this.#version++;
     this.#patchListeners.notify(patch);
+  }
+
+  #setSceneInput({ inputName, inputJson }: SetSceneInputPatch): void {
+    const oldData = this.#sceneInputs.get(inputName);
+    if (inputJson) {
+      const type = t.fromJson(inputJson.type, this.definitions);
+      if (oldData && oldData.type !== type) {
+        throw new Error(`Can't change type of scene input '${inputName}'.`);
+      }
+
+      const ctx: ValidateExpressionContext = {
+        getJsonLiteralSchema: (schemaName) => {
+          return this.definitions.getJsonLiteral(schemaName);
+        },
+        getExtensionMethodDefinition: (schemaName) => {
+          return this.definitions.getExtensionMethod(schemaName);
+        },
+        getNodeOutputType() {
+          throw new Error(
+            `Debug value for scene input '${inputName}' can't be connected ` +
+              `to node outputs.`,
+          );
+        },
+        getSceneInputType() {
+          throw new Error(
+            `Debug value for scene input '${inputName}' can't be connected ` +
+              `to scene inputs.`,
+          );
+        },
+      };
+      this.#sceneInputs.set(inputName, {
+        type,
+        doc: inputJson.doc,
+        debugValue:
+          inputJson.debugValue &&
+          Expression.fromJson(inputJson.debugValue, type, ctx),
+      });
+    } else {
+      throw new Error(`Scene inputs can't be deleted.`);
+    }
   }
 
   #createRootNode({ nodeType, nodeId }: CreateNodePatch): void {
@@ -336,7 +398,11 @@ export class SceneDocument {
         throw new Error(`Node '${nodeId}' is not an ancestor of this node.`);
       },
       getSceneInputType: (inputName) => {
-        throw new Error("Unimplemented");
+        const inputData = this.#sceneInputs.get(inputName);
+        if (!inputData) {
+          throw new Error(`Scene input '${inputName}' doesn't exist.`);
+        }
+        return inputData.type;
       },
     };
   }

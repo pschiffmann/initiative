@@ -1,4 +1,4 @@
-import { Definitions } from "@initiativejs/schema";
+import { Definitions, t } from "@initiativejs/schema";
 import { ExpressionJson, ExpressionSelectorJson } from "./expression.js";
 import { NodeJson, NodeParent } from "./node-data.js";
 import { SceneDocument } from "./scene-document.js";
@@ -8,7 +8,14 @@ import { SceneDocument } from "./scene-document.js";
  */
 export interface SceneJson {
   readonly rootNode: string | null;
+  readonly inputs: { readonly [inputName: string]: SceneInputJson };
   readonly nodes: { readonly [nodeId: string]: NodeJson };
+}
+
+export interface SceneInputJson {
+  readonly type: t.TypeJson;
+  readonly doc?: string;
+  readonly debugValue?: ExpressionJson;
 }
 
 export function sceneDocumentFromJson(
@@ -28,6 +35,19 @@ export function sceneDocumentFromJson(
     return { errors };
   }
 
+  // Parse `sceneJson.inputs`
+  for (const [inputName, inputJson] of Object.entries(sceneJson.inputs)) {
+    try {
+      document.applyPatch({ type: "set-scene-input", inputName, inputJson });
+    } catch (e) {
+      errors.push(
+        `Can't create scene input '${inputName}': ` +
+          (e instanceof Error ? e.message : e),
+      );
+    }
+  }
+
+  // Parse `sceneJson.nodes`
   const queue: string[] = [];
 
   function discoverNode(
@@ -92,6 +112,15 @@ export function sceneDocumentFromJson(
 }
 
 export function sceneDocumentToJson(document: SceneDocument): SceneJson {
+  const inputs: { [inputName: string]: SceneInputJson } = {};
+  for (const [inputName, inputData] of document.sceneInputs) {
+    inputs[inputName] = {
+      type: t.toJson(inputData.type),
+      doc: inputData.doc,
+      debugValue: inputData.debugValue?.toJson(),
+    };
+  }
+
   const rootNode = document.getRootNodeId();
 
   const nodes: { [nodeId: string]: NodeJson } = {};
@@ -104,7 +133,7 @@ export function sceneDocumentToJson(document: SceneDocument): SceneJson {
     });
   }
 
-  return { rootNode, nodes };
+  return { rootNode, inputs, nodes };
 }
 
 //
@@ -118,6 +147,7 @@ export function sceneDocumentToJson(document: SceneDocument): SceneJson {
 ///////////////////////////////////////
 
 const sceneJsonSchema = {
+  inputs: "object",
   rootNode: "string",
   nodes: "object",
 } satisfies ObjectSchema;

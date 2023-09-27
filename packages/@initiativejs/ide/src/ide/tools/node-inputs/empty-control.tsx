@@ -11,6 +11,7 @@ import {
 import {
   ExpressionJson,
   NodeOutputExpressionJson,
+  SceneDocument,
   SceneInputExpressionJson,
 } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
@@ -19,6 +20,7 @@ import { Children, ReactNode, useContext, useId, useState } from "react";
 import { DefinitionsContext } from "../../context.js";
 import { ExpressionLhs, generateHelpText } from "./expression-control.js";
 import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
+import { SceneDocumentContext } from "./use-scene-document.js";
 
 const cls = bemClasses("initiative-node-inputs-empty-control");
 
@@ -77,6 +79,7 @@ function DialogContent({ expectedType, onSelect }: DialogContentProps) {
   return (
     <>
       <LiteralsGroup expectedType={expectedType} onSelect={onSelect} />
+      <SceneInputsGroup expectedType={expectedType} onSelect={onSelect} />
       {ancestors.map(({ nodeId, slotName, schema }) => (
         <NodeOutputGroup
           key={nodeId}
@@ -131,6 +134,30 @@ function LiteralsGroup({ expectedType, onSelect }: LiteralsGroupProps) {
 
   return options.length === 0 ? null : (
     <Group title="Static value">{options}</Group>
+  );
+}
+
+interface SceneInputsGroupProps {
+  expectedType: t.Type;
+  onSelect(value: ExpressionJson): void;
+}
+
+function SceneInputsGroup({ expectedType, onSelect }: SceneInputsGroupProps) {
+  const document = useContext(SceneDocumentContext);
+  return document.sceneInputs.size === 0 ? null : (
+    <Group title="Scene inputs">
+      {[...document.sceneInputs].map(([inputName, { type, doc }]) => (
+        <TypeOption
+          key={inputName}
+          label={inputName}
+          type={type}
+          doc={doc}
+          expectedType={expectedType}
+          expression={{ type: "scene-input", inputName, selectors: [] }}
+          onSelect={onSelect}
+        />
+      ))}
+    </Group>
   );
 }
 

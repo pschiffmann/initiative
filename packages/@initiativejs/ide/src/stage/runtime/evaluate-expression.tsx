@@ -6,10 +6,12 @@ import {
 } from "#shared";
 import { Definitions } from "@initiativejs/schema";
 import { AncestorOutputs } from "./node-outputs.js";
+import { SceneInputs } from "./scene-inputs.js";
 
 export function evaluateExpression(
   expr: Expression,
   definitions: Definitions,
+  sceneInputs: SceneInputs,
   ancestorOutputs: AncestorOutputs,
 ): any {
   if (
@@ -28,7 +30,12 @@ export function evaluateExpression(
           .slice(i, (i += selector.memberType.parameters.length))
           .map((arg) =>
             arg
-              ? evaluateExpression(arg, definitions, ancestorOutputs)
+              ? evaluateExpression(
+                  arg,
+                  definitions,
+                  sceneInputs,
+                  ancestorOutputs,
+                )
               : undefined,
           );
         switch (selector.type) {
@@ -41,7 +48,7 @@ export function evaluateExpression(
         }
       },
       expr.head.type === "scene-input"
-        ? null!
+        ? sceneInputs[expr.head.inputName]
         : ancestorOutputs[`${expr.head.nodeId}::${expr.head.outputName}`],
     );
   }

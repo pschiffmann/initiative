@@ -16,6 +16,7 @@ import {
   SlotComponents,
   createSlotComponents,
 } from "./slot-component.js";
+import { useSceneInputs } from "./scene-inputs.js";
 
 export function createNodeAdapterComponent(
   runtime: SceneRuntime,
@@ -64,13 +65,14 @@ export function createOutputsProviderComponent(
 }
 
 function useInputs(definitions: Definitions, nodeData: NodeData) {
+  const sceneInputs = useSceneInputs();
   const ancestorOutputs = useContext(AncestorOutputsContext);
 
   const inputs: Record<string, any> = {};
   nodeData.forEachInput((expr, attributes, inputName, index) => {
     const value =
       expr && (!(expr instanceof MemberAccessExpression) || expr.isComplete)
-        ? evaluateExpression(expr, definitions, ancestorOutputs)
+        ? evaluateExpression(expr, definitions, sceneInputs, ancestorOutputs)
         : undefined;
     if (index === undefined) {
       inputs[inputName] = value;
