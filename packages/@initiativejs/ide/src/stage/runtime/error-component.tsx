@@ -1,7 +1,7 @@
 import { NodeData } from "#shared";
 import { CSSProperties } from "react";
 
-const rootStyle: CSSProperties = {
+export const rootStyle: CSSProperties = {
   padding: 8,
   backgroundColor: "darkred",
   color: "white",

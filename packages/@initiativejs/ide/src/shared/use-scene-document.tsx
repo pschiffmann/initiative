@@ -1,6 +1,15 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { NodeData, SceneDocument } from "./scene-data/index.js";
 
+export function useSceneInputs(document: SceneDocument) {
+  const onChange = useCallback(
+    (onStoreChange: () => void) => document.listen("change", onStoreChange),
+    [document],
+  );
+  const getSceneInputs = useCallback(() => document.sceneInputs, []);
+  return useSyncExternalStore(onChange, getSceneInputs);
+}
+
 export function useNode(document: SceneDocument, nodeId: string): NodeData {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),

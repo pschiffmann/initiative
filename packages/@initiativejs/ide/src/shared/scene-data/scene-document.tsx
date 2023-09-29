@@ -48,6 +48,17 @@ export interface SetNodeInputPatch {
   readonly index?: number;
 }
 
+/**
+ * Contains the scene input names and node ids that were changed by a patch.
+ *
+ * If a node was renamed, `nodeIds` contains both the old and new node id. If a
+ * node was deleted, contains all subtree node ids.
+ */
+export interface SceneDocumentChangeSet {
+  readonly sceneInputs?: readonly string[];
+  readonly nodeIds?: readonly string[];
+}
+
 export interface SceneInputData {
   readonly type: t.Type;
   readonly doc?: string;
@@ -60,7 +71,7 @@ export class SceneDocument {
     readonly definitions: Definitions,
   ) {}
 
-  #sceneInputs = new Map<string, SceneInputData>();
+  #sceneInputs: ReadonlyMap<string, SceneInputData> = new Map();
   #rootNodeId: string | null = null;
   #nodes = new Map<string, NodeData>();
   #version = 0;
@@ -183,16 +194,20 @@ export class SceneDocument {
           );
         },
       };
-      this.#sceneInputs.set(inputName, {
+      const newData: SceneInputData = {
         type,
         doc: inputJson.doc,
         debugValue:
           inputJson.debugValue &&
           Expression.fromJson(inputJson.debugValue, type, ctx),
-      });
+      };
+      const sceneInputs = new Map(this.#sceneInputs);
+      sceneInputs.set(inputName, newData);
+      this.#sceneInputs = sceneInputs;
     } else {
       throw new Error(`Scene inputs can't be deleted.`);
     }
+    this.#changeListeners.notify({ sceneInputs: [inputName] });
   }
 
   #createRootNode({ nodeType, nodeId }: CreateNodePatch): void {
@@ -205,7 +220,7 @@ export class SceneDocument {
     this.#nodes.set(nodeId, NodeData.empty(schema, nodeId, null));
     this.#rootNodeId = nodeId;
 
-    this.#changeListeners.notify([nodeId]);
+    this.#changeListeners.notify({ nodeIds: [nodeId] });
   }
 
   #createNode(
@@ -231,7 +246,7 @@ export class SceneDocument {
       );
     }
 
-    this.#changeListeners.notify([parentId, childId]);
+    this.#changeListeners.notify({ nodeIds: [parentId, childId] });
   }
 
   #deleteRootNode(): void {
@@ -239,7 +254,7 @@ export class SceneDocument {
     this.#rootNodeId = null;
     this.#nodes.clear();
 
-    this.#changeListeners.notify(nodeIds);
+    this.#changeListeners.notify({ nodeIds });
   }
 
   #deleteNode({ nodeId }: DeleteNodePatch): void {
@@ -264,7 +279,7 @@ export class SceneDocument {
       this.#nodes.delete(nodeId);
     }
 
-    this.#changeListeners.notify(changedIds);
+    this.#changeListeners.notify({ nodeIds: changedIds });
   }
 
   #renameNode({ nodeId: oldId, newId }: RenameNodePatch): void {
@@ -295,7 +310,7 @@ export class SceneDocument {
       if (!changedIds.includes(childId)) changedIds.push(childId);
     }
 
-    this.#changeListeners.notify(changedIds);
+    this.#changeListeners.notify({ nodeIds: changedIds });
   }
 
   /**
@@ -363,7 +378,7 @@ export class SceneDocument {
     );
     this.#nodes.set(nodeId, newNode);
 
-    this.#changeListeners.notify([nodeId]);
+    this.#changeListeners.notify({ nodeIds: [nodeId] });
   }
 
   #createValidateExpressionContext(
@@ -411,10 +426,13 @@ export class SceneDocument {
   // Listeners
   //
 
-  #changeListeners = new Listeners<readonly string[]>();
+  #changeListeners = new Listeners<SceneDocumentChangeSet>();
   #patchListeners = new Listeners<SceneDocumentPatch>();
 
-  listen(type: "change", listener: Listener<readonly string[]>): Unsubscribe;
+  listen(
+    type: "change",
+    listener: Listener<SceneDocumentChangeSet>,
+  ): Unsubscribe;
   listen(type: "patch", listener: Listener<SceneDocumentPatch>): Unsubscribe;
   listen(type: "change" | "patch", listener: any): Unsubscribe {
     switch (type) {

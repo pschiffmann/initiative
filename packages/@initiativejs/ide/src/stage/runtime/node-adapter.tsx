@@ -10,13 +10,13 @@ import {
   NodeOutputs,
   NodeOutputsProvider,
 } from "./node-outputs.js";
+import { SceneInputsContext } from "./scene-inputs.js";
 import { SceneRuntime } from "./scene-runtime.js";
 import {
   CollectionSlotComponentProps,
   SlotComponents,
   createSlotComponents,
 } from "./slot-component.js";
-import { useSceneInputs } from "./scene-inputs.js";
 
 export function createNodeAdapterComponent(
   runtime: SceneRuntime,
@@ -65,7 +65,7 @@ export function createOutputsProviderComponent(
 }
 
 function useInputs(definitions: Definitions, nodeData: NodeData) {
-  const sceneInputs = useSceneInputs();
+  const sceneInputs = useContext(SceneInputsContext);
   const ancestorOutputs = useContext(AncestorOutputsContext);
 
   const inputs: Record<string, any> = {};

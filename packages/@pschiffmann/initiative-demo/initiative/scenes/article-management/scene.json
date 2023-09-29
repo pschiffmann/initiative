@@ -1,5 +1,17 @@
 {
-  "inputs": {},
+  "inputs": {
+    "message": {
+      "type": {
+        "type": "string"
+      },
+      "doc": "For testing purposes only.",
+      "debugValue": {
+        "type": "json-literal",
+        "schemaName": "@initiativejs/std::string",
+        "value": "Hello debug value"
+      }
+    }
+  },
   "rootNode": "Translations",
   "nodes": {
     "Translations": {
@@ -168,9 +180,7 @@
             {
               "type": "method",
               "methodName": "toString",
-              "args": [
-                null
-              ]
+              "args": [null]
             }
           ]
         },

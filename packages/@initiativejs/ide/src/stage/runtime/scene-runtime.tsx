@@ -5,8 +5,8 @@ import { createNodeAdapterComponent } from "./node-adapter.js";
 
 export class SceneRuntime {
   constructor(readonly document: SceneDocument) {
-    document.listen("change", (nodeIds) => {
-      for (const nodeId of nodeIds) {
+    document.listen("change", ({ nodeIds }) => {
+      for (const nodeId of nodeIds ?? []) {
         if (!document.hasNode(nodeId)) this.#adapterComponents.delete(nodeId);
       }
     });
