@@ -1,0 +1,31 @@
+@use "../../../design-system/color";
+@use "../../../design-system/typography";
+
+.initiative-scene-inputs {
+  &__empty-state {
+    display: grid;
+    place-items: center;
+    @include typography.role("body-medium");
+    color: color.role("on-surface-deemphasized");
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    overflow: auto;
+  }
+
+  &__input-name {
+    flex: 0 0 auto;
+    @include typography.role("title-medium");
+    @include typography.no-wrap();
+
+    &:not(:first-child) {
+      margin-top: 16px;
+      border-top: 1px solid color.role("divider");
+      padding-top: 16px;
+    }
+  }
+}

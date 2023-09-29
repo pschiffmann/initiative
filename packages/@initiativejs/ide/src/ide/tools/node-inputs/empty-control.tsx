@@ -12,7 +12,6 @@ import {
 import {
   ExpressionJson,
   NodeOutputExpressionJson,
-  SceneDocument,
   SceneInputExpressionJson,
 } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
@@ -20,9 +19,8 @@ import { JsonLiteralSchema, NodeSchema, t } from "@initiativejs/schema";
 import { Children, ReactNode, useContext, useId, useState } from "react";
 import { DefinitionsContext } from "../../context.js";
 import { ExpressionLhs, generateHelpText } from "./expression-control.js";
-import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
 import { SceneDocumentContext } from "./use-scene-document.js";
-import { validateNodeInputName } from "@initiativejs/schema/internals";
+import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
 
 const cls = bemClasses("initiative-node-inputs-empty-control");
 

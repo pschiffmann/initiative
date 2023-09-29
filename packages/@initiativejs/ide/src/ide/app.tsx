@@ -11,6 +11,7 @@ import { DefinitionsContext } from "./context.js";
 import { LicenseStatus } from "./tools/license-status/index.js";
 import { NodeInputs } from "./tools/node-inputs/index.js";
 import { NodeTree } from "./tools/node-tree/index.js";
+import { SceneInputs } from "./tools/scene-inputs/index.js";
 import { StageView } from "./tools/stage-view.js";
 import { WorkspaceManager } from "./tools/workspace-manager/index.js";
 
@@ -52,11 +53,18 @@ export function App({ definitions, formatJsFile }: AppProps) {
                 className={cls.element("stage-view")}
                 document={document}
               />
-              <NodeInputs
-                className={cls.element("node-inputs")}
-                document={document}
-                selectedNode={selectedNode}
-              />
+              {selectedNode ? (
+                <NodeInputs
+                  className={cls.element("node-inputs")}
+                  document={document}
+                  selectedNode={selectedNode}
+                />
+              ) : (
+                <SceneInputs
+                  className={cls.element("node-inputs")}
+                  document={document}
+                />
+              )}
             </>
           ) : (
             <>
