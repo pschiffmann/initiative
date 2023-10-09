@@ -3,6 +3,7 @@ import {
   JsonLiteralSchema,
   t,
 } from "@initiativejs/schema";
+import { ObjectMap } from "@pschiffmann/std/object-map";
 
 export type ExpressionJson =
   | JsonLiteralExpressionJson
@@ -19,6 +20,25 @@ export interface JsonLiteralExpressionJson {
 export interface EnumValueExpressionJson {
   readonly type: "enum-value";
   readonly value: string | number;
+}
+
+export interface FluentMessageExpressionJson {
+  readonly type: "fluent-message";
+
+  /**
+   * Keys are locales (like `"en"`, `"de"`), values are the localized messages.
+   */
+  readonly messages: ObjectMap<string>;
+
+  /**
+   * Keys are Fluent variables, values are expressions that provide the variable
+   * value at runtime.
+   *
+   * Example: The Fluent message `Hello, { $user }!` contains a variable `user`
+   * that needs to be interpolated at runtime. Fluent variables can only be
+   * strings or numbers.
+   */
+  readonly args: ObjectMap<ExpressionJson>;
 }
 
 export interface SceneInputExpressionJson {

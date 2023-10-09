@@ -16,15 +16,25 @@ import {
   type MuiTableSchema,
   type StackSchema,
 } from "#initiative/nodes/index.js";
+import { FluentBundle, FluentResource, FluentVariable } from "@fluent/bundle";
 import {
   type OutputTypes,
   type OutputsProviderProps,
   type SlotComponentProps,
 } from "@initiativejs/schema/code-gen-helpers";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useLocale } from "../locale-context.js";
+import ftlUrlDe from "./locale/de.ftl";
+import ftlUrlEn from "./locale/en.ftl";
 
 export function ArticleManagement() {
-  return <Translations_Adapter />;
+  const locale = useLocale();
+  const fluentBundle = useFluentBundle(locale);
+  return (
+    <FluentBundleContext.Provider value={fluentBundle}>
+      <Translations_Adapter />
+    </FluentBundleContext.Provider>
+  );
 }
 
 function Translations_Adapter() {
@@ -90,9 +100,9 @@ function PageLayout_Adapter() {
     <Stack
       flexDirection={"column"}
       gap={3}
-      alignSelf={[undefined, "end", undefined]}
+      alignSelf={[undefined, undefined, "end", undefined]}
       slots={{
-        child: { size: 3, Component: PageLayout_child },
+        child: { size: 4, Component: PageLayout_child },
       }}
     />
   );
@@ -103,8 +113,10 @@ function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
     case 0:
       return <PageTitle_Adapter />;
     case 1:
-      return <NewArticleDialog_Adapter />;
+      return <PageSubtitle_Adapter />;
     case 2:
+      return <NewArticleDialog_Adapter />;
+    case 3:
       return <ArticlesTable_Adapter />;
     default:
       throw new Error(`Invalid index '${index}'.`);
@@ -112,10 +124,23 @@ function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
 }
 
 function PageTitle_Adapter() {
+  const fluentBundle = useContext(FluentBundleContext);
   return (
     <MuiTypography
-      text={useContext(Translations$translateContext)("scene-title")}
+      text={translateMessage(fluentBundle, "page-title", "text")}
       variant={"h3"}
+    />
+  );
+}
+
+function PageSubtitle_Adapter() {
+  const fluentBundle = useContext(FluentBundleContext);
+  return (
+    <MuiTypography
+      text={translateMessage(fluentBundle, "page-subtitle", "text", {
+        user: "Philipp",
+      })}
+      variant={undefined}
     />
   );
 }
@@ -167,10 +192,16 @@ function NewArticleDialog_OutputsProvider({
 }
 
 function ArticlesTable_Adapter() {
+  const fluentBundle = useContext(FluentBundleContext);
   return (
     <MuiTable
       rows={useContext(ArticleRepository$articlesContext)}
-      header={["Id", "Name", "Price", "Action"]}
+      header={[
+        translateMessage(fluentBundle, "articles-table", "header-0"),
+        translateMessage(fluentBundle, "articles-table", "header-1"),
+        translateMessage(fluentBundle, "articles-table", "header-2"),
+        translateMessage(fluentBundle, "articles-table", "header-3"),
+      ]}
       align={[undefined, undefined, "right", undefined]}
       slots={{
         column: { size: 4, Component: ArticlesTable_column },
@@ -428,4 +459,60 @@ function UpdateArticleButton_Adapter() {
       onPress={useContext(EditArticleBloc$saveContext)}
     />
   );
+}
+
+//
+// i18n
+//
+
+const ftlCache = new Map<string, Promise<string>>();
+
+const FluentBundleContext = createContext<FluentBundle | null>(null);
+
+function useFluentBundle(locale: string) {
+  const [bundle, setBundle] = useState<FluentBundle | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    let ftlPromise = ftlCache.get(locale);
+    if (!ftlPromise) {
+      switch (locale) {
+        case "de":
+          ftlPromise = fetch(ftlUrlDe).then((r) => r.text());
+          break;
+        case "en":
+          ftlPromise = fetch(ftlUrlEn).then((r) => r.text());
+          break;
+        default:
+          throw new Error(`Unsupported locale: ${locale}`);
+      }
+      ftlCache.set(locale, ftlPromise);
+    }
+    ftlPromise.then((source) => {
+      if (cancelled) return;
+      const bundle = new FluentBundle(locale);
+      bundle.addResource(new FluentResource(source));
+      setBundle(bundle);
+    });
+
+    return () => {
+      cancelled = true;
+      setBundle(null);
+    };
+  }, [locale]);
+
+  return bundle;
+}
+
+function translateMessage(
+  bundle: FluentBundle | null,
+  nodeId: string,
+  inputKey: string,
+  args?: Record<string, FluentVariable>,
+): string {
+  const pattern = bundle?.getMessage(nodeId)?.attributes?.[inputKey];
+  return pattern
+    ? bundle!.formatPattern(pattern, args, [])
+    : `${nodeId}.${inputKey}`;
 }
