@@ -1,9 +1,5 @@
 import { ButtonControl, TextAreaControl, bemClasses } from "#design-system";
-import {
-  SceneDocument,
-  SceneInputJson,
-  useSceneDocumentVersion,
-} from "#shared";
+import { SceneDocument, SceneInputJson, useSceneInputs } from "#shared";
 import { t } from "@initiativejs/schema";
 import { ToolFrame } from "../tool-frame.js";
 
@@ -15,7 +11,7 @@ export interface SceneInputsProps {
 }
 
 export function SceneInputs({ document, className }: SceneInputsProps) {
-  useSceneDocumentVersion(document);
+  useSceneInputs(document);
   return (
     <ToolFrame className={cls.block(className)} title="Scene Inputs">
       {document.sceneInputs.size === 0 ? (
