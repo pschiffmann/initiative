@@ -1,3 +1,4 @@
+export * from "./debug-value-schema.js";
 export * from "./extension-method-schema.js";
 export * from "./json-literal-schema.js";
 export { type NodeComponentProps } from "./node-schema-inference.js";

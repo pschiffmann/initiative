@@ -1,5 +1,6 @@
 import { ComponentType } from "react";
 import * as t from "../type-system/index.js";
+import { DebugValueSchema, DebugValueSchemas } from "./debug-value-schema.js";
 import { ExtensionMethodSchema } from "./extension-method-schema.js";
 import { JsonLiteralSchema } from "./json-literal-schema.js";
 import { NodeSchema } from "./node-schema.js";
@@ -18,16 +19,67 @@ export interface ExtensionMethodDefinition {
   readonly function: (...args: any) => any;
 }
 
-export class Definitions {
+interface JsonLiteralDefinition {
+  readonly moduleName: string;
+  readonly schema: JsonLiteralSchema;
+}
+
+export class Definitions<D extends DebugValueSchemas = DebugValueSchemas> {
   constructor(
-    readonly entities: ReadonlyMap<string, t.Entity>,
     readonly extensionMethods: ReadonlyMap<string, ExtensionMethodDefinition>,
     readonly nodes: ReadonlyMap<string, NodeDefinition>,
-    readonly jsonLiterals: ReadonlyMap<string, JsonLiteralSchema>,
+    readonly jsonLiterals: ReadonlyMap<string, JsonLiteralDefinition>,
+    readonly debugValues: ReadonlyMap<string, DebugValueSchema>,
   ) {}
 
+  #entities: ReadonlyMap<string, t.Entity> | null = null;
+
+  #initializeEntities() {
+    const entities = (this.#entities = new Map<string, t.Entity>());
+
+    function visit(type: t.Type) {
+      if (t.Array.is(type)) {
+        visit(type.element);
+      } else if (type instanceof t.Entity) {
+        entities.set(type.name, type);
+      } else if (t.Function.is(type)) {
+        for (const parameter of type.parameters) {
+          visit(parameter);
+        }
+        visit(type.returnType);
+      } else if (t.Tuple.is(type)) {
+        for (const element of type.elements) {
+          visit(element);
+        }
+      } else if (t.Union.is(type)) {
+        for (const element of type.elements) {
+          visit(element);
+        }
+      }
+    }
+
+    for (const { schema } of this.extensionMethods.values()) {
+      visit(schema.type);
+    }
+    for (const { schema } of this.nodes.values()) {
+      for (const { type } of Object.values(schema.inputAttributes)) {
+        visit(type);
+      }
+      for (const { type } of Object.values(schema.outputAttributes)) {
+        visit(type);
+      }
+    }
+    for (const { schema } of this.jsonLiterals.values()) {
+      visit(schema.type);
+    }
+    for (const { type } of this.debugValues.values()) {
+      visit(type);
+    }
+  }
+
   getEntity(entityName: string): t.Entity {
-    const entity = this.entities.get(entityName);
+    if (!this.#entities) this.#initializeEntities();
+    const entity = this.#entities!.get(entityName);
     if (entity) return entity;
     throw new Error(`Entity '${entityName}' not found.`);
   }
@@ -45,104 +97,124 @@ export class Definitions {
   }
 
   getJsonLiteral(name: string): JsonLiteralSchema {
-    const schema = this.jsonLiterals.get(name);
-    if (schema) return schema;
+    const definition = this.jsonLiterals.get(name);
+    if (definition) return definition.schema;
     throw new Error(`JsonLiteral '${name}' not found.`);
   }
 
-  merge(other: Definitions): [hasErrors: boolean, definitions: Definitions] {
-    let hasErrors = false;
-    const entities = new Map(this.entities);
-    for (const [entityName, entityType] of other.entities) {
-      if (entities.has(entityName)) {
-        hasErrors = true;
-        console.error(``);
-      } else {
-        entities.set(entityName, entityType);
-      }
-    }
+  getDebugValue(name: string): DebugValueSchema {
+    const schema = this.debugValues.get(name);
+    if (schema) return schema;
+    throw new Error(`DebugValue '${name}' not found.`);
+  }
 
+  merge(
+    other: Definitions,
+    reportError: (message: string) => void,
+  ): Definitions<D> {
     const extensionMethods = new Map(this.extensionMethods);
-    for (const [name, schema] of other.extensionMethods) {
-      if (extensionMethods.has(name)) {
-        hasErrors = true;
-        console.error(``);
+    for (const [name, otherDefinition] of other.extensionMethods) {
+      const thisDefinition = extensionMethods.get(name);
+      if (thisDefinition) {
+        reportError(
+          `Modules '${thisDefinition.moduleName}' and ` +
+            `'${otherDefinition.moduleName}' both export an extension method ` +
+            `'${name}'.`,
+        );
       } else {
-        extensionMethods.set(name, schema);
+        extensionMethods.set(name, otherDefinition);
       }
     }
 
     const nodes = new Map(this.nodes);
-    for (const [nodeName, nodeSchema] of other.nodes) {
-      if (nodes.has(nodeName)) {
-        hasErrors = true;
-        console.error(``);
+    for (const [name, otherDefinition] of other.nodes) {
+      const thisDefinition = nodes.get(name);
+      if (thisDefinition) {
+        reportError(
+          `Modules '${thisDefinition.moduleName}' and ` +
+            `'${otherDefinition.moduleName}' both export a node schema ` +
+            `'${name}'.`,
+        );
       } else {
-        nodes.set(nodeName, nodeSchema);
+        nodes.set(name, otherDefinition);
       }
     }
 
     const jsonLiterals = new Map(this.jsonLiterals);
-    for (const [name, schema] of other.jsonLiterals) {
-      if (jsonLiterals.has(name)) {
-        hasErrors = true;
-        console.error(``);
+    for (const [name, otherDefinition] of other.jsonLiterals) {
+      const thisDefinition = jsonLiterals.get(name);
+      if (thisDefinition) {
+        reportError(
+          `Modules '${thisDefinition.moduleName}' and ` +
+            `'${otherDefinition.moduleName}' both export a node schema ` +
+            `'${name}'.`,
+        );
       } else {
-        jsonLiterals.set(name, schema);
+        jsonLiterals.set(name, otherDefinition);
       }
     }
 
-    return [
-      hasErrors,
-      new Definitions(entities, extensionMethods, nodes, jsonLiterals),
-    ];
+    if (other.debugValues.size) {
+      throw new Error(`Can't merge 'Definitions.debugValues'.`);
+    }
+
+    return new Definitions(
+      extensionMethods,
+      nodes,
+      jsonLiterals,
+      this.debugValues,
+    );
   }
 }
 
 export type ModuleRef = [moduleName: string, module: Object];
 
-export function resolveDefinitions(
+export function resolveDefinitions<D extends DebugValueSchemas>(
   moduleRefs: readonly ModuleRef[],
-): [hasErrors: boolean, definitions: Definitions] {
+  debugValues?: D,
+  errors?: string[],
+): Definitions<D> {
   if (moduleRefs.length === 0) {
     throw new Error(`'moduleRefs' must not be empty.`);
   }
+
+  function reportError(message: string) {
+    if (errors) {
+      errors.push(message);
+    } else {
+      throw new Error(message);
+    }
+  }
+
   return moduleRefs
-    .map((moduleRef) => processModule(moduleRef))
-    .reduce(([errors1, definitions1], [errors2, definitions2]) => {
-      const [mergeErrors, mergedDefinitions] = definitions1.merge(definitions2);
-      return [errors1 || errors2 || mergeErrors, mergedDefinitions];
-    });
+    .map((moduleRef) => processModule(moduleRef, reportError))
+    .reduce(
+      (definitions1, definitions2) =>
+        definitions1.merge(definitions2, reportError),
+      new Definitions(
+        new Map(),
+        new Map(),
+        new Map(),
+        new Map(Object.entries(debugValues ?? {})),
+      ),
+    );
 }
 
-function processModule([moduleName, module]: ModuleRef): [
-  hasErrors: boolean,
-  definitions: Definitions,
-] {
-  let hasErrors = false;
-  const entities = new Map<string, t.Entity>();
+function processModule(
+  [moduleName, module]: ModuleRef,
+  reportError: (message: string) => void,
+): Definitions {
   const extensionMethodSchemas = new Map<string, ExtensionMethodSchema>();
   const nodeSchemas = new Map<string, NodeSchema>();
-  const jsonLiterals = new Map<string, JsonLiteralSchema>();
+  const jsonLiterals = new Map<string, JsonLiteralDefinition>();
   const otherExports = new Map<string, unknown>();
   for (const [exportName, value] of Object.entries(module)) {
-    if (value instanceof t.Entity) {
-      if (entities.has(value.name) && entities.get(value.name) !== value) {
-        hasErrors = true;
-        console.error(
-          `Module '${moduleName}' exports multiple 't.entity()' types with ` +
-            `name '${value.name}'. Do create entity types only once, then ` +
-            `reference that instance in all schemas that need it.`,
-        );
-      } else {
-        entities.set(value.name, value);
-      }
-    } else if (value instanceof ExtensionMethodSchema) {
+    if (value instanceof ExtensionMethodSchema) {
       extensionMethodSchemas.set(exportName, value);
     } else if (value instanceof NodeSchema) {
       nodeSchemas.set(exportName, value);
     } else if (value instanceof JsonLiteralSchema) {
-      jsonLiterals.set(value.name, value);
+      jsonLiterals.set(value.name, { moduleName, schema: value });
     } else {
       otherExports.set(exportName, value);
     }
@@ -155,12 +227,9 @@ function processModule([moduleName, module]: ModuleRef): [
       exportName,
       schema,
       otherExports,
+      reportError,
     );
-    if (definition) {
-      extensionMethods.set(schema.name, definition);
-    } else {
-      hasErrors = true;
-    }
+    if (definition) extensionMethods.set(schema.name, definition);
   }
 
   const nodes = new Map<string, NodeDefinition>();
@@ -170,30 +239,23 @@ function processModule([moduleName, module]: ModuleRef): [
       exportName,
       schema,
       otherExports,
+      reportError,
     );
-    if (definition) {
-      nodes.set(schema.name, definition);
-    } else {
-      hasErrors = true;
-    }
+    if (definition) nodes.set(schema.name, definition);
   }
 
   if (otherExports.size) {
-    hasErrors = true;
     const unmatchedExportsNames = [...otherExports.keys()]
       .map((name) => `'${name}'`)
       .join(", ");
-    console.error(
+    reportError(
       `Module '${moduleName}' exports the following names that don't belong ` +
-        `to a NodeSchema: ${unmatchedExportsNames}. Did you forget to export ` +
-        `a schema?`,
+        `to a schema: ${unmatchedExportsNames}. Did you forget to export ` +
+        `schemas for these values?`,
     );
   }
 
-  return [
-    hasErrors,
-    new Definitions(entities, extensionMethods, nodes, jsonLiterals),
-  ];
+  return new Definitions(extensionMethods, nodes, jsonLiterals, new Map());
 }
 
 function resolveExtensionMethodDefinition(
@@ -201,9 +263,10 @@ function resolveExtensionMethodDefinition(
   schemaExportName: string,
   schema: ExtensionMethodSchema,
   otherExports: Map<string, unknown>,
+  reportError: (message: string) => void,
 ): ExtensionMethodDefinition | null {
   if (!schemaExportName.endsWith("Schema")) {
-    console.error(
+    reportError(
       `Module '${moduleName}' exports ExtensionMethodSchema '${schema.name}' ` +
         `with an invalid name. The export name is '${schemaExportName}', but ` +
         `it must end with 'Schema'.`,
@@ -216,8 +279,8 @@ function resolveExtensionMethodDefinition(
   );
   const fn = otherExports.get(functionExportName) as (...args: any) => any;
   otherExports.delete(functionExportName);
-  if (typeof fn !== "function") {
-    console.error(
+  if (!fn) {
+    reportError(
       `Module '${moduleName}' exports an ExtensionMethodSchema ` +
         `'${schema.name}' as '${schemaExportName}', but doesn't export a ` +
         `function as '${functionExportName}'.`,
@@ -237,9 +300,10 @@ function resolveNodeDefinition(
   schemaExportName: string,
   schema: NodeSchema,
   otherExports: Map<string, unknown>,
+  reportError: (message: string) => void,
 ): NodeDefinition | null {
   if (!schemaExportName.endsWith("Schema")) {
-    console.error(
+    reportError(
       `Module '${moduleName}' exports NodeSchema '${schema.name}' with an ` +
         `invalid name. The export name is '${schemaExportName}', but it must ` +
         `end with 'Schema'.`,
@@ -253,7 +317,7 @@ function resolveNodeDefinition(
   const component = otherExports.get(componentExportName) as ComponentType;
   otherExports.delete(componentExportName);
   if (!component) {
-    console.error(
+    reportError(
       `Module '${moduleName}' exports a NodeSchema '${schema.name}' as ` +
         `'${schemaExportName}', but doesn't export a React component as ` +
         `'${componentExportName}'.`,

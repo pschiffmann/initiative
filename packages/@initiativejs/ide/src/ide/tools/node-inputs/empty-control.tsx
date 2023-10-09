@@ -120,7 +120,7 @@ function LiteralsGroup({ expectedType, onSelect }: LiteralsGroupProps) {
       }
     }
   }
-  for (const schema of definitions.jsonLiterals.values()) {
+  for (const { schema } of definitions.jsonLiterals.values()) {
     if (schema.type.isAssignableTo(expectedType)) {
       options.push(
         <JsonLiteralOption
