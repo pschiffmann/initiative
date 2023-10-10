@@ -36,7 +36,7 @@ export function EnumValueControl({
       noOptionSelectedLabel=""
       value={expression.value}
       onChange={(value) => onChange(expression.withValue(value))}
-      onClear={() => onChange(expression.withDeleted())}
+      onClear={() => onChange(null)}
     />
   );
 }

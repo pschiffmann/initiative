@@ -19,13 +19,14 @@ import {
 const cls = bemClasses("initiative-node-inputs-member-access-control");
 
 export function MemberAccessControl({
+  parent,
   name,
   expectedType,
   optional,
   doc,
   expression,
   onChange,
-}: Omit<ExpressionControlProps<MemberAccessExpression>, "parent">) {
+}: ExpressionControlProps<MemberAccessExpression>) {
   const [controller] = useState(() => new CommandController<DialogCommand>());
   return (
     <>
@@ -51,6 +52,7 @@ export function MemberAccessControl({
           }
         >
           <MemberAccessControlInternal
+            parent={parent}
             name={name}
             expectedType={expectedType}
             optional={optional}
@@ -65,65 +67,73 @@ export function MemberAccessControl({
 }
 
 function MemberAccessControlInternal({
+  parent,
   name,
   expectedType,
   optional,
   doc,
   expression,
   onChange,
-}: Omit<ExpressionControlProps<MemberAccessExpression>, "parent">) {
+}: ExpressionControlProps<MemberAccessExpression>) {
   return (
     <>
       <ButtonControl
-        className={cls.element("root")}
+        className={cls.element(
+          "selectors",
+          null,
+          parent !== "member-access-expression" && "root",
+        )}
         label={name}
         helpText={generateHelpText(name, expectedType, optional, doc)}
-        dense={!!expression.parent}
+        dense={parent === "member-access-expression"}
         value={expression.toString("truncated")}
         adornmentIcon="function"
         onClear={
-          !expression.parent
-            ? undefined
-            : () => onChange(expression.withDeleted())
+          parent === "member-access-expression"
+            ? () => onChange(null)
+            : undefined
         }
       />
-      <div className={cls.element("args")}>
-        {expression.args.map((arg, i) => {
-          const [argExpectedType, argIsOptional] =
-            expression.getExpectedTypeForArg(i);
-          return !arg ? (
-            <EmptyControl
-              key={i}
-              parent="member-access-expression"
-              name={`${expression.parameterPrefix}${i + 1}`}
-              expectedType={argExpectedType}
-              optional={argIsOptional}
-              onSelect={(value) => onChange(expression.withArg(i, value))}
-            />
-          ) : arg instanceof MemberAccessExpression ? (
-            <MemberAccessControlInternal
-              key={i}
-              name={`${expression.parameterPrefix}${i + 1}`}
-              expectedType={argExpectedType}
-              optional={argIsOptional}
-              // doc=???
-              expression={arg}
-              onChange={onChange}
-            />
-          ) : (
-            <ExpressionControl
-              key={i}
-              parent="member-access-expression"
-              name={`${expression.parameterPrefix}${i + 1}`}
-              expectedType={argExpectedType}
-              optional={argIsOptional}
-              // doc=???
-              expression={arg}
-              onChange={onChange}
-            />
-          );
-        })}
-      </div>
+      {expression.args.length !== 0 && (
+        <div className={cls.element("args")}>
+          {expression.args.map((arg, i) => {
+            const [argExpectedType, argIsOptional] =
+              expression.getExpectedTypeForArg(i);
+            return !arg ? (
+              <EmptyControl
+                key={i}
+                parent="member-access-expression"
+                name={`${expression.parameterPrefix}${i + 1}`}
+                expectedType={argExpectedType}
+                optional={argIsOptional}
+                onSelect={(value) => onChange(expression.withArg(i, value))}
+              />
+            ) : arg instanceof MemberAccessExpression ? (
+              <MemberAccessControlInternal
+                key={i}
+                parent="member-access-expression"
+                name={`${expression.parameterPrefix}${i + 1}`}
+                expectedType={argExpectedType}
+                optional={argIsOptional}
+                // doc=???
+                expression={arg}
+                onChange={(value) => onChange(expression.withArg(i, value))}
+              />
+            ) : (
+              <ExpressionControl
+                key={i}
+                parent="member-access-expression"
+                name={`${expression.parameterPrefix}${i + 1}`}
+                expectedType={argExpectedType}
+                optional={argIsOptional}
+                // doc=???
+                expression={arg}
+                onChange={(value) => onChange(expression.withArg(i, value))}
+              />
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

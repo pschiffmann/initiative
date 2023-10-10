@@ -91,18 +91,7 @@ export interface ResolveExpressionContext extends ValidateExpressionContext {
   parameterPrefixes: Iterator<string>;
 }
 
-interface ExpressionParent {
-  readonly expression: MemberAccessExpression;
-  readonly index: number;
-}
-
 export abstract class Expression {
-  constructor(readonly parent: ExpressionParent | null) {}
-
-  withDeleted(): ExpressionJson | null {
-    return this.parent?.expression.withArg(this.parent.index, null) ?? null;
-  }
-
   abstract toJson(): ExpressionJson;
 
   static fromJson(
@@ -110,28 +99,25 @@ export abstract class Expression {
     inputType: t.Type,
     ctx: ValidateExpressionContext,
   ): Expression {
-    return this._fromJson(
-      json,
-      inputType,
-      { ...ctx, parameterPrefixes: generateParameterPrefixes() },
-      null,
-    );
+    return this._fromJson(json, inputType, {
+      ...ctx,
+      parameterPrefixes: generateParameterPrefixes(),
+    });
   }
 
   protected static _fromJson(
     json: ExpressionJson,
     expectedType: t.Type,
     ctx: ResolveExpressionContext,
-    parent: ExpressionParent | null,
   ): Expression {
     switch (json.type) {
       case "json-literal":
-        return new JsonLiteralExpression(json, expectedType, ctx, parent);
+        return new JsonLiteralExpression(json, expectedType, ctx);
       case "enum-value":
-        return new EnumValueExpression(json, expectedType, parent);
+        return new EnumValueExpression(json, expectedType);
       case "scene-input":
       case "node-output":
-        return new MemberAccessExpression(json, expectedType, ctx, parent);
+        return new MemberAccessExpression(json, expectedType, ctx);
     }
   }
 }
@@ -141,7 +127,6 @@ export class JsonLiteralExpression extends Expression {
     json: JsonLiteralExpressionJson,
     expectedType: t.Type,
     ctx: ResolveExpressionContext,
-    parent: ExpressionParent | null,
   ) {
     const schema = ctx.getJsonLiteralSchema(json.schemaName);
     if (!schema.type.isAssignableTo(expectedType)) {
@@ -157,7 +142,7 @@ export class JsonLiteralExpression extends Expression {
           `literal: ${error}`,
       );
     }
-    super(parent);
+    super();
     this.value = json.value;
     this.schema = schema;
   }
@@ -166,19 +151,14 @@ export class JsonLiteralExpression extends Expression {
   readonly schema: JsonLiteralSchema;
 
   withValue(value: unknown): ExpressionJson {
-    const json: JsonLiteralExpressionJson = {
-      type: "json-literal",
-      schemaName: this.schema!.name,
-      value,
-    };
-    return this.parent?.expression.withArg(this.parent.index, json) ?? json;
+    return { ...this.toJson(), value };
   }
 
   override toString(): string {
     return this.schema.format(this.value);
   }
 
-  override toJson(): ExpressionJson {
+  override toJson(): JsonLiteralExpressionJson {
     return {
       type: "json-literal",
       schemaName: this.schema!.name,
@@ -188,11 +168,7 @@ export class JsonLiteralExpression extends Expression {
 }
 
 export class EnumValueExpression extends Expression {
-  constructor(
-    json: EnumValueExpressionJson,
-    expectedType: t.Type,
-    parent: ExpressionParent | null,
-  ) {
+  constructor(json: EnumValueExpressionJson, expectedType: t.Type) {
     const actualType = t.resolveType(json.value);
     if (!actualType.isAssignableTo(expectedType)) {
       throw new Error(
@@ -200,22 +176,21 @@ export class EnumValueExpression extends Expression {
           `'${expectedType}'.`,
       );
     }
-    super(parent);
+    super();
     this.value = json.value;
   }
 
   readonly value: string | number;
 
   withValue(value: string | number): ExpressionJson {
-    const json: EnumValueExpressionJson = { type: "enum-value", value };
-    return this.parent?.expression.withArg(this.parent.index, json) ?? json;
+    return { ...this.toJson(), value };
   }
 
   override toString(): string {
     return JSON.stringify(this.value);
   }
 
-  override toJson(): ExpressionJson {
+  override toJson(): EnumValueExpressionJson {
     return { type: "enum-value", value: this.value };
   }
 }
@@ -252,9 +227,8 @@ export class MemberAccessExpression extends Expression {
     }: SceneInputExpressionJson | NodeOutputExpressionJson,
     expectedType: t.Type,
     ctx: ResolveExpressionContext,
-    parent: ExpressionParent | null,
   ) {
-    super(parent);
+    super();
 
     const parameterPrefix = ctx.parameterPrefixes.next().value!;
 
@@ -283,8 +257,6 @@ export class MemberAccessExpression extends Expression {
         selector,
         fn,
         ctx,
-        this,
-        args.length,
       );
       returnType = fn.returnType;
       args.push(...selectorArgs.args);
@@ -361,14 +333,13 @@ export class MemberAccessExpression extends Expression {
   }
 
   withArg(index: number, arg: ExpressionJson | null): ExpressionJson {
-    const json: SceneInputExpressionJson | NodeOutputExpressionJson = {
+    return {
       ...this.head,
       selectors: MemberAccessExpression.#generateSelectorJson(
         this.selectors,
         this.args.map((arg) => arg?.toJson() ?? null).with(index, arg),
       ),
     };
-    return this.parent?.expression.withArg(this.parent.index, json) ?? json;
   }
 
   replaceNodeOutput(
@@ -508,8 +479,6 @@ export class MemberAccessExpression extends Expression {
     json: MethodSelectorJson | CallSelectorJson | ExtensionMethodSelectorJson,
     memberType: t.Function,
     ctx: ResolveExpressionContext,
-    parent: MemberAccessExpression,
-    parentIndexStart: number,
   ): { args: (Expression | null)[]; isComplete: boolean } {
     if (json.args.length !== memberType.parameters.length) {
       const prefix =
@@ -532,7 +501,6 @@ export class MemberAccessExpression extends Expression {
             ? memberType.parameters[i]
             : t.optional(memberType.parameters[i]),
           ctx,
-          { expression: parent, index: parentIndexStart + i },
         ),
     );
     const isComplete = args.every((arg, i) => {

@@ -41,7 +41,7 @@ export function ExpressionControl({
         dense={parent === "member-access-expression"}
         value={expression.value}
         onChange={(value) => onChange(expression.withValue(value))}
-        onClear={() => onChange(expression.withDeleted())}
+        onClear={() => onChange(null)}
       />
     );
   }
@@ -61,6 +61,7 @@ export function ExpressionControl({
   if (expression instanceof MemberAccessExpression) {
     return (
       <MemberAccessControl
+        parent={parent}
         name={name}
         expectedType={expectedType}
         optional={optional}

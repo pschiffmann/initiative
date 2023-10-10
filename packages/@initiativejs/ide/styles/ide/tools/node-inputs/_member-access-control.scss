@@ -4,8 +4,10 @@
 .initiative-node-inputs-member-access-control {
   min-width: 600px;
 
-  &__root {
-    margin-bottom: 4px;
+  &__selectors {
+    &--root {
+      margin-bottom: 4px;
+    }
   }
 
   &__args {
