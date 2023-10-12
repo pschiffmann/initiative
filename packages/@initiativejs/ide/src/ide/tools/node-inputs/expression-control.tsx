@@ -6,6 +6,7 @@ import {
   MemberAccessExpression,
 } from "#shared";
 import { t } from "@initiativejs/schema";
+import { EmptyControl } from "./empty-control.js";
 import { EnumValueControl } from "./enum-value-control.js";
 import { MemberAccessControl } from "./member-access-control.js";
 
@@ -17,22 +18,21 @@ export interface ExpressionLhs {
   readonly doc?: string;
 }
 
-export interface ExpressionControlProps<T extends Expression>
+export interface ExpressionControlProps<T extends Expression | null>
   extends ExpressionLhs {
   expression: T;
   onChange(value: ExpressionJson | null): void;
 }
 
 export function ExpressionControl({
-  parent,
-  name,
-  expectedType,
-  optional,
-  doc,
   expression,
-  onChange,
-}: ExpressionControlProps<Expression>) {
+  ...props
+}: ExpressionControlProps<Expression | null>) {
+  if (!expression) {
+    return <EmptyControl expression={expression} {...props} />;
+  }
   if (expression instanceof JsonLiteralExpression) {
+    const { parent, name, expectedType, optional, doc, onChange } = props;
     const Control = expression.schema.control;
     return (
       <Control
@@ -46,30 +46,10 @@ export function ExpressionControl({
     );
   }
   if (expression instanceof EnumValueExpression) {
-    return (
-      <EnumValueControl
-        parent={parent}
-        name={name}
-        expectedType={expectedType}
-        optional={optional}
-        doc={doc}
-        expression={expression}
-        onChange={onChange}
-      />
-    );
+    return <EnumValueControl expression={expression} {...props} />;
   }
   if (expression instanceof MemberAccessExpression) {
-    return (
-      <MemberAccessControl
-        parent={parent}
-        name={name}
-        expectedType={expectedType}
-        optional={optional}
-        doc={doc}
-        expression={expression}
-        onChange={onChange}
-      />
-    );
+    return <MemberAccessControl expression={expression} {...props} />;
   }
   throw new Error("Unreachable");
 }

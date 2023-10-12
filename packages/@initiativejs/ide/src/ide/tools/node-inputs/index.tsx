@@ -2,10 +2,9 @@ import { bemClasses } from "#design-system";
 import { ExpressionJson, SceneDocument, useNode } from "#shared";
 import { Fragment } from "react";
 import { ToolFrame } from "../tool-frame.js";
-import { EmptyControl } from "./empty-control.js";
 import { ExpressionControl } from "./expression-control.js";
-import { SelectedNodeAncestorsProvider } from "./use-selected-node-ancestors.js";
 import { SceneDocumentContext } from "./use-scene-document.js";
+import { SelectedNodeAncestorsProvider } from "./use-selected-node-ancestors.js";
 
 const cls = bemClasses("initiative-node-inputs");
 
@@ -69,16 +68,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
 
           {nodeData.forEachInput(
             (expression, { type, optional }, inputName, index) =>
-              index !== undefined ? null : expression === null ? (
-                <EmptyControl
-                  key={inputName}
-                  parent="node"
-                  name={inputName}
-                  expectedType={type}
-                  optional={optional}
-                  onSelect={(value) => setNodeInput(value, inputName)}
-                />
-              ) : (
+              index !== undefined ? null : (
                 <ExpressionControl
                   key={inputName}
                   parent="node"
@@ -106,18 +96,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
                       nodeData.schema.inputAttributes[inputName];
                     const expression =
                       nodeData.inputs[`${inputName}::${index}`];
-                    return !expression ? (
-                      <EmptyControl
-                        key={inputName}
-                        parent="node"
-                        name={inputName}
-                        expectedType={type}
-                        optional={optional}
-                        onSelect={(value) =>
-                          setNodeInput(value, inputName, index)
-                        }
-                      />
-                    ) : (
+                    return (
                       <ExpressionControl
                         key={inputName}
                         parent="node"

@@ -18,15 +18,14 @@ import { CommandController } from "@initiativejs/react-command";
 import { JsonLiteralSchema, NodeSchema, t } from "@initiativejs/schema";
 import { Children, ReactNode, useContext, useId, useState } from "react";
 import { DefinitionsContext } from "../../context.js";
-import { ExpressionLhs, generateHelpText } from "./expression-control.js";
+import {
+  ExpressionControlProps,
+  generateHelpText,
+} from "./expression-control.js";
 import { SceneDocumentContext } from "./use-scene-document.js";
 import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
 
 const cls = bemClasses("initiative-node-inputs-empty-control");
-
-export interface EmptyControlProps extends ExpressionLhs {
-  onSelect(value: ExpressionJson): void;
-}
 
 export function EmptyControl({
   parent,
@@ -34,8 +33,8 @@ export function EmptyControl({
   expectedType,
   optional,
   doc,
-  onSelect,
-}: EmptyControlProps) {
+  onChange,
+}: ExpressionControlProps<null>) {
   const [controller] = useState(() => new CommandController<DialogCommand>());
   return (
     <>
@@ -61,7 +60,7 @@ export function EmptyControl({
             <Button label="Close" onPress={() => controller.send("close")} />
           }
         >
-          <DialogContent expectedType={expectedType} onSelect={onSelect} />
+          <DialogContent expectedType={expectedType} onSelect={onChange} />
         </AlertDialogContent>
       </Dialog>
     </>

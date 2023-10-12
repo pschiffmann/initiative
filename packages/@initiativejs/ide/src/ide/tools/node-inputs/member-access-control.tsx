@@ -9,7 +9,6 @@ import {
 import { MemberAccessExpression } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
 import { useState } from "react";
-import { EmptyControl } from "./empty-control.js";
 import {
   ExpressionControl,
   ExpressionControlProps,
@@ -99,16 +98,7 @@ function MemberAccessControlInternal({
           {expression.args.map((arg, i) => {
             const [argExpectedType, argIsOptional] =
               expression.getExpectedTypeForArg(i);
-            return !arg ? (
-              <EmptyControl
-                key={i}
-                parent="member-access-expression"
-                name={`${expression.parameterPrefix}${i + 1}`}
-                expectedType={argExpectedType}
-                optional={argIsOptional}
-                onSelect={(value) => onChange(expression.withArg(i, value))}
-              />
-            ) : arg instanceof MemberAccessExpression ? (
+            return arg instanceof MemberAccessExpression ? (
               <MemberAccessControlInternal
                 key={i}
                 parent="member-access-expression"
