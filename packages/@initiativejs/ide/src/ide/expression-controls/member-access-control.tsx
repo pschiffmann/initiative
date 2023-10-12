@@ -15,7 +15,7 @@ import {
   generateHelpText,
 } from "./index.js";
 
-const cls = bemClasses("initiative-node-inputs-member-access-control");
+const cls = bemClasses("initiative-member-access-expression-control");
 
 export function MemberAccessControl({
   parent,

@@ -1,7 +1,7 @@
 @use "../../../design-system/color";
 @use "../../../design-system/typography";
 
-.initiative-node-inputs-empty-control {
+.initiative-empty-expression-control {
   min-width: 600px;
 
   &__empty-state {
@@ -37,6 +37,10 @@
     @include typography.role("title-medium");
     @include typography.no-wrap();
     cursor: default;
+  }
+
+  &__add-scene-input-button {
+    --initiative-button-density: -3;
   }
 
   &__option {

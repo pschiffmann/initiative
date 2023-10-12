@@ -23,7 +23,7 @@ import { DefinitionsContext } from "../context.js";
 import { ExpressionControlProps, generateHelpText } from "./index.js";
 import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
 
-const cls = bemClasses("initiative-node-inputs-empty-control");
+const cls = bemClasses("initiative-empty-expression-control");
 
 export function EmptyControl({
   parent,
@@ -189,7 +189,12 @@ function SceneInputsGroup({ expectedType, onSelect }: SceneInputsGroupProps) {
         />
       ))}
 
-      <button onClick={() => controller.send("open")}>add new</button>
+      <Button
+        className={cls.element("add-scene-input-button")}
+        label="Add new"
+        startIcon="add"
+        onPress={() => controller.send("open")}
+      />
       <Dialog commandStream={controller}>
         <CreateSceneInputDialogContent
           controller={controller}

@@ -1,9 +1,6 @@
 @use "../../../design-system/color";
 @use "../../../design-system/typography";
 
-@use "empty-control";
-@use "member-access-control";
-
 .initiative-node-inputs {
   &__empty-state {
     display: grid;

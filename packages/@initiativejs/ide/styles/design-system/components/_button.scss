@@ -5,6 +5,7 @@
   // Public
   --initiative-button-fill-color: transparent;
   --initiative-button-stroke-color: #{color.role("on-surface")};
+  --initiative-button-density: 0;
 
   // Private
   --initiative-button-state-layer-opacity: 0%;
@@ -15,8 +16,8 @@
     --initiative-button-state-layer-opacity: 12%;
   }
 
-  min-width: 64px;
-  height: 32px;
+  min-width: calc(64px + var(--initiative-button-density) * 4px);
+  height: calc(32px + var(--initiative-button-density) * 4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,7 +34,7 @@
   user-select: none;
 
   // Reset browser defaults
-  padding: 0 12px;
+  padding: 0 calc(12px + var(--initiative-button-density) * 2px);
   border: none;
   outline: none;
 
