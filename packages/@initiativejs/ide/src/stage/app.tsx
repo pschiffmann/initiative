@@ -1,5 +1,5 @@
 import { Definitions, t } from "@initiativejs/schema";
-import { Scene } from "./runtime/index.js";
+import { RootScene } from "./runtime/root-scene.js";
 import { useEditorConnection } from "./use-editor-connection.js";
 
 export interface StageProps<D extends Definitions> {
@@ -7,10 +7,13 @@ export interface StageProps<D extends Definitions> {
   debugValues: ResolveDebugValueTypes<D>;
 }
 
-export function Stage<D extends Definitions>({ definitions }: StageProps<D>) {
+export function Stage<D extends Definitions>({
+  definitions,
+  debugValues,
+}: StageProps<D>) {
   const runtime = useEditorConnection(definitions);
   return runtime ? (
-    <Scene runtime={runtime} />
+    <RootScene runtime={runtime} debugValues={debugValues} />
   ) : (
     <div>Connecting to InitiativeJS editor ...</div>
   );

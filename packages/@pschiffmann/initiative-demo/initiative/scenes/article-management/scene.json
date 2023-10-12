@@ -1,18 +1,19 @@
 {
+  "rootNode": "Translations",
   "inputs": {
-    "message": {
+    "article": {
       "type": {
-        "type": "string"
+        "type": "entity",
+        "name": "@pschiffmann/initiative-demo::Article"
       },
       "doc": "For testing purposes only.",
       "debugValue": {
-        "type": "json-literal",
-        "schemaName": "@initiativejs/std::string",
-        "value": "Hello debug value"
+        "type": "debug-value",
+        "debugValueName": "article",
+        "selectors": []
       }
     }
   },
-  "rootNode": "Translations",
   "nodes": {
     "Translations": {
       "type": "@pschiffmann/initiative-demo::I18n",
@@ -55,19 +56,12 @@
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "text": {
-          "type": "node-output",
-          "nodeId": "Translations",
-          "outputName": "translate",
+          "type": "scene-input",
+          "inputName": "article",
           "selectors": [
             {
-              "type": "call",
-              "args": [
-                {
-                  "type": "json-literal",
-                  "schemaName": "@initiativejs/std::string",
-                  "value": "scene-title"
-                }
-              ]
+              "type": "property",
+              "propertyName": "name"
             }
           ]
         },
@@ -180,7 +174,9 @@
             {
               "type": "method",
               "methodName": "toString",
-              "args": [null]
+              "args": [
+                null
+              ]
             }
           ]
         },

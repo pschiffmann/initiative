@@ -1,9 +1,15 @@
 import { intern } from "./interning.js";
 import { MembersFactory, Type } from "./type.js";
 
+export interface EntityTypeSource {
+  readonly moduleName: string;
+  readonly exportName: string;
+}
+
 class InitiativeEntity<T = unknown> extends Type<T> {
   constructor(
     readonly name: string,
+    readonly typeSource: EntityTypeSource,
     members: MembersFactory<T>,
   ) {
     super(members);
@@ -77,9 +83,10 @@ class InitiativeEntity<T = unknown> extends Type<T> {
  */
 function initiativeEntity<T>(
   name: string,
+  typeSource: EntityTypeSource,
   members: MembersFactory<T> = null,
 ): () => InitiativeEntity<T> {
-  const entity = new InitiativeEntity<T>(name, members);
+  const entity = new InitiativeEntity<T>(name, typeSource, members);
   const interned = intern(entity);
   if (entity !== interned) {
     throw new Error(`Entity with name '${name}' is already defined.`);

@@ -5,6 +5,6 @@ import { createRoot } from "react-dom/client";
 const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
-    <ArticleManagement />
+    <ArticleManagement article={{ id: 12345, name: "Frog", price: 499 }} />
   </StrictMode>,
 );

@@ -1,26 +1,28 @@
 import { useRootNodeId } from "#shared";
-import { rootStyle } from "./error-component.js";
-import { SceneInputsContext, useDebugValues } from "./scene-inputs.js";
+import { SceneInputsProvider } from "./ancestor-outputs.js";
+import { ErrorComponent } from "./error-component.js";
 import { SceneRuntime } from "./scene-runtime.js";
 
 export interface SceneProps {
-  readonly runtime: SceneRuntime;
+  runtime: SceneRuntime;
+  sceneInputs: ReadonlyMap<string, any>;
 }
 
-export function Scene({ runtime }: SceneProps) {
-  const debugValues = useDebugValues(runtime.document);
+export function Scene({ runtime, sceneInputs }: SceneProps) {
   const rootNodeId = useRootNodeId(runtime.document);
-
   if (!rootNodeId) {
-    return <div style={rootStyle}>Error: The scene is empty.</div>;
-  } else if (typeof debugValues === "string") {
-    return <div style={rootStyle}>{debugValues}</div>;
+    return (
+      <ErrorComponent
+        title={`Error in scene '${runtime.document.name}':`}
+        details={["The scene is empty."]}
+      />
+    );
   }
 
   const NodeAdapter = runtime.getAdapterComponent(rootNodeId);
   return (
-    <SceneInputsContext.Provider value={debugValues}>
+    <SceneInputsProvider sceneInputs={sceneInputs}>
       <NodeAdapter />
-    </SceneInputsContext.Provider>
+    </SceneInputsProvider>
   );
 }

@@ -1,5 +1,8 @@
-import { t, resolveDefinitions } from "@initiativejs/schema";
-import { articleType } from "./types.js";
+import { resolveDefinitions, t } from "@initiativejs/schema";
+import { article } from "./types.js";
+
+// Prevent VS Code `organize imports` command from removing this import.
+t;
 
 const errors: string[] = [];
 export const definitions = resolveDefinitions(
@@ -16,7 +19,7 @@ export const definitions = resolveDefinitions(
   ],
   {
     article: {
-      type: articleType(),
+      type: article(),
     },
   },
   errors,

@@ -6,8 +6,9 @@ export interface Article {
   price: number;
 }
 
-export const articleType = t.entity<Article>(
+export const article = t.entity<Article>(
   "@pschiffmann/initiative-demo::Article",
+  { moduleName: "#initiative/types.js", exportName: "Article" },
   () => ({
     properties: {
       id: {

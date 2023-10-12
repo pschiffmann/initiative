@@ -1,7 +1,6 @@
-import { NodeData } from "#shared";
 import { CSSProperties } from "react";
 
-export const rootStyle: CSSProperties = {
+const rootStyle: CSSProperties = {
   padding: 8,
   backgroundColor: "darkred",
   color: "white",
@@ -14,22 +13,21 @@ const listStyle = {
 };
 
 export interface ErrorComponentProps {
-  nodeData: NodeData;
+  title: string;
+  details?: readonly string[];
 }
 
-export function ErrorComponent({ nodeData }: ErrorComponentProps) {
-  const errors = nodeData.errors!;
+export function ErrorComponent({ title, details }: ErrorComponentProps) {
   return (
     <div style={rootStyle}>
-      <b>Error in node '{nodeData.id}':</b>
-      <ul style={listStyle}>
-        {[...errors.invalidInputs].map((inputKey) => (
-          <li key={inputKey}>Input '{inputKey}' has invalid value.</li>
-        ))}
-        {[...errors.missingSlots].map((slotName) => (
-          <li key={slotName}>Slot '{slotName}' is required.</li>
-        ))}
-      </ul>
+      <b>{title}</b>
+      {details && (
+        <ul style={listStyle}>
+          {details.map((message, i) => (
+            <li key={i}>{message}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

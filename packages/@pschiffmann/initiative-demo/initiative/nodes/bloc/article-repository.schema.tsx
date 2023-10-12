@@ -1,15 +1,15 @@
 import { NodeSchema, t, trimDocText } from "@initiativejs/schema";
-import { articleType } from "../../types.js";
+import { article } from "../../types.js";
 
 export const ArticleRepositorySchema = new NodeSchema(
   "@pschiffmann/initiative-demo::ArticleRepository",
   {
     outputs: {
       articles: {
-        type: t.array(articleType()),
+        type: t.array(article()),
       },
       updateArticle: {
-        type: t.function(articleType())()(),
+        type: t.function(article())()(),
         doc: trimDocText(
           `Searches for an existing article with the same 'article.id' and
            replaces it with 'article'.

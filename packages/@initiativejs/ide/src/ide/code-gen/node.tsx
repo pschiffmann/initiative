@@ -7,6 +7,11 @@ import {
   SceneDocument,
 } from "#shared";
 import { NodeDefinition } from "@initiativejs/schema";
+import {
+  generateContextProviderJsx,
+  getNodeOutputContextName,
+  getSceneInputContextName,
+} from "./context.js";
 import { ImportNames } from "./imports.js";
 
 export function generateNodeRuntime(
@@ -195,7 +200,8 @@ function generateNodeOuptputContexts(
     exportName: "OutputTypes",
   });
   for (const output of Object.keys(nodeData.schema.outputAttributes)) {
-    result += `const ${nodeData.id}$${output}Context = ${createContext}<`;
+    const contextName = getNodeOutputContextName(nodeData.id, output);
+    result += `const ${contextName} = ${createContext}<`;
     result += `${outputTypes}<${schemaName}>["${output}"]>(null!);\n`;
   }
   return result;
@@ -225,7 +231,7 @@ function generateNodeOutputsProvider(
   result += `}: ${outputsProviderProps}<${schemaName}>`;
   result += `) {\n`;
   result += `return (\n`;
-  result += recursiveDivInserter(nodeData.id, outputNames, "{children}");
+  result += generateContextProviderJsx(nodeData.id, outputNames, "{children}");
   result += `)\n`;
   result += `}`;
   return result;
@@ -260,7 +266,7 @@ function generateSlotComponent(
     for (let index = 0; index < children.length; index++) {
       result += `case ${index}:\n`;
       result += `return (\n`;
-      result += `${recursiveDivInserter(
+      result += `${generateContextProviderJsx(
         nodeData.id,
         list,
         `<${children[index]}_Adapter />`,
@@ -273,19 +279,6 @@ function generateSlotComponent(
   result += `}\n`;
   result += `}`;
   return result;
-}
-
-function recursiveDivInserter(
-  id: string,
-  list: Array<string>,
-  end: string,
-): string {
-  const [output, ...rest] = list;
-  if (output === undefined) return `${end}\n`;
-  return `<${id}$${output}Context.Provider value={${output}}>
-    ${recursiveDivInserter(id, rest, end)}
-  </${id}$${output}Context.Provider>
-  `;
 }
 
 function provideValue(
@@ -303,34 +296,47 @@ function provideValue(
       moduleName: "react",
       exportName: "useContext",
     });
-    let i = 0;
-    return expression.selectors.reduce(
-      (target, selector) => {
-        if (selector.type === "property") {
-          return `${target}.${selector.propertyName}`;
-        }
+    let head: string;
+    switch (expression.head.type) {
+      case "scene-input": {
+        const contextName = getSceneInputContextName(expression.head.inputName);
+        head = `${useContext}(${contextName})`;
+        break;
+      }
+      case "node-output": {
+        const contextName = getNodeOutputContextName(
+          expression.head.nodeId,
+          expression.head.outputName,
+        );
+        head = `${useContext}(${contextName})`;
+        break;
+      }
+      case "debug-value":
+        throw new Error("Unreachable");
+    }
 
-        const args = expression.args
-          .slice(i, (i += selector.memberType.parameters.length))
-          .map((arg) => (arg ? provideValue(arg, importNames) : "undefined"));
-        switch (selector.type) {
-          case "method":
-            return `${target}.${selector.methodName}(${args})`;
-          case "call":
-            return `${target}(${args})`;
-          case "extension-method": {
-            const extensionMethod = importNames.importBinding(
-              selector.definition,
-            );
-            return `${extensionMethod}(${target}, ${args})`;
-          }
+    let i = 0;
+    return expression.selectors.reduce((target, selector) => {
+      if (selector.type === "property") {
+        return `${target}.${selector.propertyName}`;
+      }
+
+      const args = expression.args
+        .slice(i, (i += selector.memberType.parameters.length))
+        .map((arg) => (arg ? provideValue(arg, importNames) : "undefined"));
+      switch (selector.type) {
+        case "method":
+          return `${target}.${selector.methodName}(${args})`;
+        case "call":
+          return `${target}(${args})`;
+        case "extension-method": {
+          const extensionMethod = importNames.importBinding(
+            selector.definition,
+          );
+          return `${extensionMethod}(${target}, ${args})`;
         }
-      },
-      expression.head.type === "scene-input"
-        ? "TODO"
-        : `${useContext}(${expression.head.nodeId}$` +
-            `${expression.head.outputName}Context)`,
-    );
+      }
+    }, head);
   }
   throw new Error("Unreachable");
 }

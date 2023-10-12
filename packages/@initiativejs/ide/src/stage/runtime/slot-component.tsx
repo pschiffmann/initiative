@@ -1,16 +1,17 @@
 import { useNode } from "#shared";
 import { NodeSchema } from "@initiativejs/schema";
+import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, FunctionComponent } from "react";
-import { NodeOutputs, NodeOutputsProvider } from "./node-outputs.js";
+import { NodeOutputsProvider } from "./ancestor-outputs.js";
 import { SceneRuntime } from "./scene-runtime.js";
 
 export interface SlotComponents {
   readonly [slotName: string]:
-    | ComponentType<NodeOutputs>
+    | ComponentType<ObjectMap<any>>
     | ComponentType<CollectionSlotComponentProps>;
 }
 
-export interface CollectionSlotComponentProps extends NodeOutputs {
+export interface CollectionSlotComponentProps extends ObjectMap<any> {
   readonly index: number;
 }
 
@@ -69,7 +70,7 @@ function createSlotComponent(
   nodeId: string,
   slotName: string,
 ) {
-  const result: FunctionComponent<NodeOutputs> = (outputs) => {
+  const result: FunctionComponent<ObjectMap<any>> = (outputs) => {
     const nodeData = useNode(runtime.document, nodeId);
     const ChildAdapter = runtime.getAdapterComponent(nodeData.slots[slotName]);
     return (

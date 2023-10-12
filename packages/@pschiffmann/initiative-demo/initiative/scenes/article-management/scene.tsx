@@ -16,6 +16,7 @@ import {
   type MuiTableSchema,
   type StackSchema,
 } from "#initiative/nodes/index.js";
+import { type Article } from "#initiative/types.js";
 import {
   type OutputTypes,
   type OutputsProviderProps,
@@ -23,8 +24,23 @@ import {
 } from "@initiativejs/schema/code-gen-helpers";
 import { createContext, useContext } from "react";
 
-export function ArticleManagement() {
-  return <Translations_Adapter />;
+export {
+  Scene as ArticleManagement,
+  type SceneProps as ArticleManagementProps,
+};
+
+const Scene$articleContext = createContext<Article>(null!);
+
+interface SceneProps {
+  article: Article;
+}
+
+function Scene({ article }: SceneProps) {
+  return (
+    <Scene$articleContext.Provider value={article}>
+      <Translations_Adapter />
+    </Scene$articleContext.Provider>
+  );
 }
 
 function Translations_Adapter() {
@@ -114,7 +130,7 @@ function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
 function PageTitle_Adapter() {
   return (
     <MuiTypography
-      text={useContext(Translations$translateContext)("scene-title")}
+      text={useContext(Scene$articleContext).name}
       variant={"h3"}
     />
   );

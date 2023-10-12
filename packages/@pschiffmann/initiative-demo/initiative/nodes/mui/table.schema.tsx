@@ -1,12 +1,12 @@
 import { NodeSchema, t } from "@initiativejs/schema";
-import { articleType } from "../../types.js";
+import { article } from "../../types.js";
 
 export const MuiTableSchema = new NodeSchema(
   "@pschiffmann/initiative-demo::MuiTable",
   {
     inputs: {
       rows: {
-        type: t.array(articleType()),
+        type: t.array(article()),
       },
     },
     slots: {
@@ -26,7 +26,7 @@ export const MuiTableSchema = new NodeSchema(
         },
         outputs: {
           row: {
-            type: articleType(),
+            type: article(),
           },
         },
       },

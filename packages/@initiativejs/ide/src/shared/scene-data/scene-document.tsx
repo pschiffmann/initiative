@@ -193,6 +193,9 @@ export class SceneDocument {
               `to scene inputs.`,
           );
         },
+        getDebugValueType: (debugValueName) => {
+          return this.definitions.getDebugValue(debugValueName).type;
+        },
       };
       const newData: SceneInputData = {
         type,
@@ -418,6 +421,11 @@ export class SceneDocument {
           throw new Error(`Scene input '${inputName}' doesn't exist.`);
         }
         return inputData.type;
+      },
+      getDebugValueType() {
+        throw new Error(
+          `Expressions of type 'debug-value' are not assignable to node inputs.`,
+        );
       },
     };
   }

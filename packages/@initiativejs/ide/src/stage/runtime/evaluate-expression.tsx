@@ -5,14 +5,14 @@ import {
   MemberAccessExpression,
 } from "#shared";
 import { Definitions } from "@initiativejs/schema";
-import { AncestorOutputs } from "./node-outputs.js";
-import { SceneInputs } from "./scene-inputs.js";
+import { ObjectMap } from "@pschiffmann/std/object-map";
+import { AncestorOutputs } from "./ancestor-outputs.js";
 
 export function evaluateExpression(
   expr: Expression,
   definitions: Definitions,
-  sceneInputs: SceneInputs,
-  ancestorOutputs: AncestorOutputs,
+  debugValues: ObjectMap<any> | null,
+  ancestorOutputs: AncestorOutputs | null,
 ): any {
   if (
     expr instanceof JsonLiteralExpression ||
@@ -33,7 +33,7 @@ export function evaluateExpression(
               ? evaluateExpression(
                   arg,
                   definitions,
-                  sceneInputs,
+                  debugValues,
                   ancestorOutputs,
                 )
               : undefined,
@@ -48,8 +48,10 @@ export function evaluateExpression(
         }
       },
       expr.head.type === "scene-input"
-        ? sceneInputs[expr.head.inputName]
-        : ancestorOutputs[`${expr.head.nodeId}::${expr.head.outputName}`],
+        ? ancestorOutputs!.getSceneInput(expr.head.inputName)
+        : expr.head.type === "node-output"
+        ? ancestorOutputs!.getNodeOutput(expr.head.nodeId, expr.head.outputName)
+        : debugValues![expr.head.debugValueName],
     );
   }
   throw new Error("Unreachable");

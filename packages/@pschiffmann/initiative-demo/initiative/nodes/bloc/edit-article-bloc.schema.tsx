@@ -1,15 +1,15 @@
 import { NodeSchema, t } from "@initiativejs/schema";
-import { articleType } from "../../types.js";
+import { article } from "../../types.js";
 
 export const EditArticleBlocSchema = new NodeSchema(
   "@pschiffmann/initiative-demo::EditArticleBloc",
   {
     inputs: {
       article: {
-        type: articleType(),
+        type: article(),
       },
       updateArticle: {
-        type: t.function(articleType())()(),
+        type: t.function(article())()(),
       },
     },
     outputs: {

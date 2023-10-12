@@ -1,16 +1,12 @@
 import { MemberAccessExpression, NodeData } from "#shared";
 import { Definitions, NodeSchema } from "@initiativejs/schema";
 import * as $Object from "@pschiffmann/std/object";
-import { ComponentType, FunctionComponent, useContext } from "react";
+import { ObjectMap } from "@pschiffmann/std/object-map";
+import { ComponentType, FunctionComponent } from "react";
 import { useNode } from "../../shared/use-scene-document.js";
+import { NodeOutputsProvider, useAncestorOutputs } from "./ancestor-outputs.js";
 import { ErrorComponent } from "./error-component.js";
 import { evaluateExpression } from "./evaluate-expression.js";
-import {
-  AncestorOutputsContext,
-  NodeOutputs,
-  NodeOutputsProvider,
-} from "./node-outputs.js";
-import { SceneInputsContext } from "./scene-inputs.js";
 import { SceneRuntime } from "./scene-runtime.js";
 import {
   CollectionSlotComponentProps,
@@ -37,7 +33,17 @@ export function createNodeAdapterComponent(
     const inputs = useInputs(document.definitions, nodeData);
     const slots = slotComponents && useSlotsPropValue(slotComponents, nodeData);
     return nodeData.errors ? (
-      <ErrorComponent nodeData={nodeData} />
+      <ErrorComponent
+        title={`Error in node '${nodeId}':`}
+        details={[
+          ...[...nodeData.errors.invalidInputs].map(
+            (inputKey) => `Input '${inputKey}' has invalid value.`,
+          ),
+          ...[...nodeData.errors.missingSlots].map(
+            (slotName) => `Slot '${slotName}' is required.`,
+          ),
+        ]}
+      />
     ) : OutputsProvider ? (
       <NodeImpl OutputsProvider={OutputsProvider} slots={slots} {...inputs} />
     ) : (
@@ -52,7 +58,10 @@ export function createOutputsProviderComponent(
   schema: NodeSchema,
   nodeId: string,
 ) {
-  const result: FunctionComponent<NodeOutputs> = ({ children, ...outputs }) => {
+  const result: FunctionComponent<ObjectMap<any>> = ({
+    children,
+    ...outputs
+  }) => {
     return (
       <NodeOutputsProvider schema={schema} nodeId={nodeId} outputs={outputs}>
         {children}
@@ -65,14 +74,13 @@ export function createOutputsProviderComponent(
 }
 
 function useInputs(definitions: Definitions, nodeData: NodeData) {
-  const sceneInputs = useContext(SceneInputsContext);
-  const ancestorOutputs = useContext(AncestorOutputsContext);
+  const ancestorOutputs = useAncestorOutputs();
 
   const inputs: Record<string, any> = {};
   nodeData.forEachInput((expr, attributes, inputName, index) => {
     const value =
       expr && (!(expr instanceof MemberAccessExpression) || expr.isComplete)
-        ? evaluateExpression(expr, definitions, sceneInputs, ancestorOutputs)
+        ? evaluateExpression(expr, definitions, null, ancestorOutputs)
         : undefined;
     if (index === undefined) {
       inputs[inputName] = value;
@@ -89,7 +97,7 @@ interface SlotPropValue {
   readonly [slotName: string]: {
     readonly size?: number;
     readonly Component:
-      | ComponentType<NodeOutputs>
+      | ComponentType<ObjectMap<any>>
       | ComponentType<CollectionSlotComponentProps>;
   };
 }

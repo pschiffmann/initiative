@@ -179,6 +179,11 @@ const expressionJsonSchemas = {
     outputName: "string",
     selectors: "array",
   },
+  "debug-value": {
+    type: "string",
+    debugValueName: "string",
+    selectors: "array",
+  },
 } satisfies Record<ExpressionJson["type"], ObjectSchema>;
 
 const expressionSelectorJsonSchemas = {
@@ -316,7 +321,8 @@ function isExpression(
         }
         break;
       case "scene-input":
-      case "node-output": {
+      case "node-output":
+      case "debug-value": {
         for (const [i, selector] of json.selectors.entries()) {
           if (typeof selector !== "object" || selector === null) {
             errors.push(`${prefix}.${i} must be a JSON object.`);

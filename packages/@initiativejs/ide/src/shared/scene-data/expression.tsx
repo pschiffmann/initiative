@@ -8,7 +8,8 @@ export type ExpressionJson =
   | JsonLiteralExpressionJson
   | EnumValueExpressionJson
   | SceneInputExpressionJson
-  | NodeOutputExpressionJson;
+  | NodeOutputExpressionJson
+  | DebugValueExpressionJson;
 
 export interface JsonLiteralExpressionJson {
   readonly type: "json-literal";
@@ -31,6 +32,12 @@ export interface NodeOutputExpressionJson {
   readonly type: "node-output";
   readonly nodeId: string;
   readonly outputName: string;
+  readonly selectors: readonly ExpressionSelectorJson[];
+}
+
+export interface DebugValueExpressionJson {
+  readonly type: "debug-value";
+  readonly debugValueName: string;
   readonly selectors: readonly ExpressionSelectorJson[];
 }
 
@@ -85,6 +92,12 @@ export interface ValidateExpressionContext {
    * Throws an error if `scene` doesn't have an input with name `inputName`.
    */
   getSceneInputType(inputName: string): t.Type;
+
+  /**
+   * Throws an error if no debug value with name `debugValueName` exists in
+   * `Definitions`.
+   */
+  getDebugValueType(debugValueName: string): t.Type;
 }
 
 export interface ResolveExpressionContext extends ValidateExpressionContext {
@@ -117,6 +130,7 @@ export abstract class Expression {
         return new EnumValueExpression(json, expectedType);
       case "scene-input":
       case "node-output":
+      case "debug-value":
         return new MemberAccessExpression(json, expectedType, ctx);
     }
   }
@@ -221,21 +235,24 @@ interface ExtensionMethodSelector
 
 export class MemberAccessExpression extends Expression {
   constructor(
-    {
-      selectors: selectorsJson,
-      ...head
-    }: SceneInputExpressionJson | NodeOutputExpressionJson,
+    json:
+      | SceneInputExpressionJson
+      | NodeOutputExpressionJson
+      | DebugValueExpressionJson,
     expectedType: t.Type,
     ctx: ResolveExpressionContext,
   ) {
     super();
 
+    const { selectors: selectorsJson, ...head } = json;
     const parameterPrefix = ctx.parameterPrefixes.next().value!;
 
     let returnType =
       head.type === "scene-input"
         ? ctx.getSceneInputType(head.inputName)
-        : ctx.getNodeOutputType(head.nodeId, head.outputName);
+        : head.type === "node-output"
+        ? ctx.getNodeOutputType(head.nodeId, head.outputName)
+        : ctx.getDebugValueType(head.debugValueName);
     const args: (Expression | null)[] = [];
     let isComplete = true;
     const selectors = selectorsJson.map<ExpressionSelector>((selector) => {
@@ -296,7 +313,8 @@ export class MemberAccessExpression extends Expression {
 
   readonly head:
     | Omit<SceneInputExpressionJson, "selectors">
-    | Omit<NodeOutputExpressionJson, "selectors">;
+    | Omit<NodeOutputExpressionJson, "selectors">
+    | Omit<DebugValueExpressionJson, "selectors">;
 
   readonly selectors: readonly ExpressionSelector[];
 
@@ -384,7 +402,9 @@ export class MemberAccessExpression extends Expression {
     let result =
       this.head.type === "scene-input"
         ? `Scene::${this.head.inputName}`
-        : `<${this.head.nodeId}>.${this.head.outputName}`;
+        : this.head.type === "node-output"
+        ? `<${this.head.nodeId}>.${this.head.outputName}`
+        : `DebugValue::${this.head.debugValueName}`;
 
     let i = 0;
     for (const selector of this.selectors) {
