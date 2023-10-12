@@ -10,6 +10,8 @@ import { EmptyControl } from "./empty-control.js";
 import { EnumValueControl } from "./enum-value-control.js";
 import { MemberAccessControl } from "./member-access-control.js";
 
+export * from "./use-selected-node-ancestors.js";
+
 export interface ExpressionLhs {
   readonly parent: "node" | "member-access-expression";
   readonly name: string;

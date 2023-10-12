@@ -10,19 +10,17 @@ import {
   bemClasses,
 } from "#design-system";
 import {
+  DebugValueExpressionJson,
   ExpressionJson,
   NodeOutputExpressionJson,
   SceneInputExpressionJson,
+  useSceneDocument,
 } from "#shared";
 import { CommandController } from "@initiativejs/react-command";
 import { JsonLiteralSchema, NodeSchema, t } from "@initiativejs/schema";
 import { Children, ReactNode, useContext, useId, useState } from "react";
-import { DefinitionsContext } from "../../context.js";
-import {
-  ExpressionControlProps,
-  generateHelpText,
-} from "./expression-control.js";
-import { SceneDocumentContext } from "./use-scene-document.js";
+import { DefinitionsContext } from "../context.js";
+import { ExpressionControlProps, generateHelpText } from "./index.js";
 import { useSelectedNodeAncestors } from "./use-selected-node-ancestors.js";
 
 const cls = bemClasses("initiative-node-inputs-empty-control");
@@ -78,17 +76,23 @@ function DialogContent({ expectedType, onSelect }: DialogContentProps) {
   return (
     <>
       <LiteralsGroup expectedType={expectedType} onSelect={onSelect} />
-      <SceneInputsGroup expectedType={expectedType} onSelect={onSelect} />
-      {ancestors.map(({ nodeId, slotName, schema }) => (
-        <NodeOutputGroup
-          key={nodeId}
-          nodeId={nodeId}
-          slotName={slotName}
-          schema={schema}
-          expectedType={expectedType}
-          onSelect={onSelect}
-        />
-      ))}
+      {ancestors ? (
+        <>
+          <SceneInputsGroup expectedType={expectedType} onSelect={onSelect} />
+          {ancestors.map(({ nodeId, slotName, schema }) => (
+            <NodeOutputGroup
+              key={nodeId}
+              nodeId={nodeId}
+              slotName={slotName}
+              schema={schema}
+              expectedType={expectedType}
+              onSelect={onSelect}
+            />
+          ))}
+        </>
+      ) : (
+        <DebugValuesGroup expectedType={expectedType} onSelect={onSelect} />
+      )}
       <div className={cls.element("empty-state")}>No options available.</div>
     </>
   );
@@ -136,13 +140,38 @@ function LiteralsGroup({ expectedType, onSelect }: LiteralsGroupProps) {
   );
 }
 
+interface DebugValuesGroupProps {
+  expectedType: t.Type;
+  onSelect(value: ExpressionJson): void;
+}
+
+function DebugValuesGroup({ expectedType, onSelect }: DebugValuesGroupProps) {
+  const debugValues = useSceneDocument().definitions.debugValues;
+
+  return (
+    <Group title="Debug values">
+      {[...debugValues].map(([debugValueName, { type, doc }]) => (
+        <TypeOption
+          key={debugValueName}
+          label={debugValueName}
+          type={type}
+          doc={doc}
+          expectedType={expectedType}
+          expression={{ type: "debug-value", debugValueName, selectors: [] }}
+          onSelect={onSelect}
+        />
+      ))}
+    </Group>
+  );
+}
+
 interface SceneInputsGroupProps {
   expectedType: t.Type;
   onSelect(value: ExpressionJson): void;
 }
 
 function SceneInputsGroup({ expectedType, onSelect }: SceneInputsGroupProps) {
-  const document = useContext(SceneDocumentContext);
+  const document = useSceneDocument();
 
   const [controller] = useState(() => new CommandController<DialogCommand>());
 
@@ -183,7 +212,7 @@ function CreateSceneInputDialogContent({
   expectedType,
   onSelect,
 }: CreateSceneInputDialogContentProps) {
-  const document = useContext(SceneDocumentContext);
+  const document = useSceneDocument();
   const [inputName, setInputName] = useState("");
   const errorMessage = !/^[a-z][A-Za-z0-9]*$/.test(inputName)
     ? "Must match /^[a-z][A-Za-z0-9]*$/."
@@ -195,7 +224,7 @@ function CreateSceneInputDialogContent({
     document.applyPatch({
       type: "set-scene-input",
       inputName,
-      inputJson: { type: t.toJson(expectedType) },
+      inputJson: { type: t.toJson(expectedType), doc: "", debugValue: null },
     });
     onSelect({ type: "scene-input", inputName, selectors: [] });
   }
@@ -304,7 +333,10 @@ interface TypeOptionProps {
   type: t.Type;
   doc?: string;
   expectedType: t.Type;
-  expression: SceneInputExpressionJson | NodeOutputExpressionJson;
+  expression:
+    | SceneInputExpressionJson
+    | NodeOutputExpressionJson
+    | DebugValueExpressionJson;
   onSelect(value: ExpressionJson): void;
 }
 

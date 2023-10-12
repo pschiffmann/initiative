@@ -2,10 +2,7 @@ import { SelectControl } from "#design-system";
 import { EnumValueExpression } from "#shared";
 import { t } from "@initiativejs/schema";
 import { useMemo } from "react";
-import {
-  ExpressionControlProps,
-  generateHelpText,
-} from "./expression-control.js";
+import { ExpressionControlProps, generateHelpText } from "./index.js";
 
 export function EnumValueControl({
   parent,

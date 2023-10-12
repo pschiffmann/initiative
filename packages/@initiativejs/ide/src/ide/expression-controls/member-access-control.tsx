@@ -13,7 +13,7 @@ import {
   ExpressionControl,
   ExpressionControlProps,
   generateHelpText,
-} from "./expression-control.js";
+} from "./index.js";
 
 const cls = bemClasses("initiative-node-inputs-member-access-control");
 

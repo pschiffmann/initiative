@@ -61,8 +61,8 @@ export interface SceneDocumentChangeSet {
 
 export interface SceneInputData {
   readonly type: t.Type;
-  readonly doc?: string;
-  readonly debugValue?: Expression;
+  readonly doc: string;
+  readonly debugValue: Expression | null;
 }
 
 export class SceneDocument {

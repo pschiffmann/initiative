@@ -32,6 +32,9 @@ export {
 const Scene$articleContext = createContext<Article>(null!);
 
 interface SceneProps {
+  /**
+   * For testing purposes only.
+   */
   article: Article;
 }
 

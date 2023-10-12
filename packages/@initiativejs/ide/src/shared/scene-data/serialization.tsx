@@ -14,8 +14,8 @@ export interface SceneJson {
 
 export interface SceneInputJson {
   readonly type: t.TypeJson;
-  readonly doc?: string;
-  readonly debugValue?: ExpressionJson;
+  readonly doc: string;
+  readonly debugValue: ExpressionJson | null;
 }
 
 export function sceneDocumentFromJson(
@@ -117,7 +117,7 @@ export function sceneDocumentToJson(document: SceneDocument): SceneJson {
     inputs[inputName] = {
       type: t.toJson(inputData.type),
       doc: inputData.doc,
-      debugValue: inputData.debugValue?.toJson(),
+      debugValue: inputData.debugValue?.toJson() ?? null,
     };
   }
 
@@ -133,7 +133,7 @@ export function sceneDocumentToJson(document: SceneDocument): SceneJson {
     });
   }
 
-  return { rootNode, inputs, nodes };
+  return { inputs, rootNode, nodes };
 }
 
 //

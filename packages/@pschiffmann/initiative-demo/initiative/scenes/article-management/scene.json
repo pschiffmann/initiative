@@ -1,5 +1,4 @@
 {
-  "rootNode": "Translations",
   "inputs": {
     "article": {
       "type": {
@@ -14,6 +13,7 @@
       }
     }
   },
+  "rootNode": "Translations",
   "nodes": {
     "Translations": {
       "type": "@pschiffmann/initiative-demo::I18n",

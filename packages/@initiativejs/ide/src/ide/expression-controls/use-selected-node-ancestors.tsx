@@ -8,7 +8,9 @@ export interface Ancestor {
   readonly schema: NodeSchema;
 }
 
-const SelectedNodeAncestorsContext = createContext<readonly Ancestor[]>([]);
+const SelectedNodeAncestorsContext = createContext<readonly Ancestor[] | null>(
+  null,
+);
 
 export interface SelectedNodeAncestorsProviderProps {
   document: SceneDocument;
@@ -38,6 +40,6 @@ export function SelectedNodeAncestorsProvider({
   );
 }
 
-export function useSelectedNodeAncestors(): readonly Ancestor[] {
+export function useSelectedNodeAncestors() {
   return useContext(SelectedNodeAncestorsContext);
 }

@@ -1,5 +1,33 @@
-import { useCallback, useSyncExternalStore } from "react";
-import { NodeData, SceneDocument } from "./scene-data/index.js";
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useSyncExternalStore,
+} from "react";
+import { SceneDocument } from "./scene-data/index.js";
+
+const SceneDocumentContext = createContext<SceneDocument>(null!);
+
+export interface SceneDocumentProviderProps {
+  document: SceneDocument;
+  children: ReactNode;
+}
+
+export function SceneDocumentProvider({
+  document,
+  children,
+}: SceneDocumentProviderProps) {
+  return (
+    <SceneDocumentContext.Provider value={document}>
+      {children}
+    </SceneDocumentContext.Provider>
+  );
+}
+
+export function useSceneDocument() {
+  return useContext(SceneDocumentContext);
+}
 
 export function useSceneInputs(document: SceneDocument) {
   const onChange = useCallback(
@@ -10,7 +38,7 @@ export function useSceneInputs(document: SceneDocument) {
   return useSyncExternalStore(onChange, getSceneInputs);
 }
 
-export function useNode(document: SceneDocument, nodeId: string): NodeData {
+export function useNode(document: SceneDocument, nodeId: string) {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
     [document],

@@ -37,7 +37,10 @@ export function generateSceneWithSceneInputs(
     contextObjects.push(
       `const ${contextName} = ${createContext}<${type}>(null!);`,
     );
-    props.push(`${name}: ${type};`);
+    props.push(`/**
+ * ${data.doc.split("\n").join("\n * ")}
+ */
+${name}: ${type};`);
   }
 
   const componentName = sanitizeSceneName(document.name);

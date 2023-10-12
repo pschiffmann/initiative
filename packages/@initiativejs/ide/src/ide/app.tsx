@@ -4,7 +4,7 @@ import {
   bemClasses,
   useColorTheme,
 } from "#design-system";
-import { SceneDocument } from "#shared";
+import { SceneDocument, SceneDocumentProvider } from "#shared";
 import { Definitions } from "@initiativejs/schema";
 import { useRef, useState } from "react";
 import { DefinitionsContext } from "./context.js";
@@ -42,7 +42,7 @@ export function App({ definitions, formatJsFile }: AppProps) {
             }}
           />
           {document ? (
-            <>
+            <SceneDocumentProvider document={document}>
               <NodeTree
                 className={cls.element("node-tree")}
                 document={document}
@@ -65,7 +65,7 @@ export function App({ definitions, formatJsFile }: AppProps) {
                   document={document}
                 />
               )}
-            </>
+            </SceneDocumentProvider>
           ) : (
             <>
               <EmptyTool position="node-tree" />

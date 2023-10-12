@@ -1,6 +1,7 @@
-import { ButtonControl, TextAreaControl, bemClasses } from "#design-system";
+import { TextAreaControl, bemClasses } from "#design-system";
 import { SceneDocument, SceneInputJson, useSceneInputs } from "#shared";
 import { t } from "@initiativejs/schema";
+import { ExpressionControl } from "../../expression-controls/index.js";
 import { ToolFrame } from "../tool-frame.js";
 
 const cls = bemClasses("initiative-scene-inputs");
@@ -51,7 +52,7 @@ function SceneInputControlGroup({
       inputJson: {
         type: t.toJson(type),
         doc,
-        debugValue: debugValue?.toJson(),
+        debugValue: debugValue?.toJson() ?? null,
         ...json,
       },
     });
@@ -60,14 +61,26 @@ function SceneInputControlGroup({
   return (
     <>
       <div className={cls.element("input-name")}>{inputName}</div>
-      <ButtonControl
-        label="type"
-        adornmentIcon="category"
-        value={type.toString()}
+      <ExpressionControl
+        parent="node"
+        name={inputName}
+        expectedType={type}
+        doc={
+          "This value is only used to preview the scene during development. " +
+          "It will not be emitted in production builds, and is not used if " +
+          "this scene is imported in another scene."
+        }
+        expression={debugValue}
+        onChange={(debugValue) => setSceneInput({ debugValue })}
       />
       <TextAreaControl
         label="Documentation"
-        value={doc ?? ""}
+        helpText={
+          "This doc comment is displayed in the IDE when this scene is " +
+          "imported in another scene. It also gets emitted into production " +
+          "builds."
+        }
+        value={doc}
         onChange={(doc) => setSceneInput({ doc: doc || undefined })}
         onClear={() => setSceneInput({ doc: undefined })}
       />
