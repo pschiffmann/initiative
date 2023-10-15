@@ -44,7 +44,7 @@ function FormControlLayout({
       )}
     >
       <div className={cls.element("header")}>
-        <label className={cls.element("label")} htmlFor={id}>
+        <label className={cls.element("label")} htmlFor={id} title={label}>
           {label}
         </label>
         {errorText ? (

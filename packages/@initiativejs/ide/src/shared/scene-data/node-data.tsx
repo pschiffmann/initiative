@@ -1,10 +1,6 @@
 import { InputAttributes, NodeSchema } from "@initiativejs/schema";
 import { validateNodeId } from "@initiativejs/schema/internals";
-import {
-  Expression,
-  ExpressionJson,
-  MemberAccessExpression,
-} from "./expression.js";
+import { Expression, ExpressionJson } from "./expression.js";
 
 /**
  * Node serialization format.
@@ -47,10 +43,7 @@ export class NodeData {
   ) {
     const invalidInputs = new Set<string>();
     this.forEachInput((expr, { optional }, inputName, index) => {
-      if (
-        (!expr && !optional) ||
-        (expr instanceof MemberAccessExpression && !expr.isComplete)
-      ) {
+      if ((!expr && !optional) || expr?.hasErrors) {
         invalidInputs.add(
           index === undefined ? inputName : `${inputName}::${index}`,
         );

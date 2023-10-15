@@ -47,6 +47,7 @@ export function WorkspaceManager({
       const sceneJson = JSON.parse(await workspace!.readSceneJson(name));
       const { errors, document } = sceneDocumentFromJson(
         definitions,
+        workspace!.projectConfig!,
         name,
         sceneJson,
       );

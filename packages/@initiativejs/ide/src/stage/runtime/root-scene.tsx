@@ -1,4 +1,4 @@
-import { MemberAccessExpression, useSceneInputs } from "#shared";
+import { useSceneInputs } from "#shared";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ErrorComponent } from "./error-component.js";
 import { evaluateExpression } from "./evaluate-expression.js";
@@ -15,11 +15,7 @@ export function RootScene({ runtime, debugValues }: RootSceneProps) {
   const sceneInputs = new Map<string, any>();
   const invalidSceneInputs: string[] = [];
   for (const [name, data] of sceneInputData) {
-    if (
-      !data.debugValue ||
-      (data.debugValue instanceof MemberAccessExpression &&
-        !data.debugValue.isComplete)
-    ) {
+    if (!data.debugValue || data.debugValue.hasErrors) {
       invalidSceneInputs.push(name);
     } else {
       sceneInputs.set(

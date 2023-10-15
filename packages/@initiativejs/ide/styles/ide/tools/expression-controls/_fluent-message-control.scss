@@ -1,0 +1,15 @@
+.initiative-fluent-message-expression-control {
+  min-width: 600px;
+
+  &__dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__section-title {
+    &:not(:first-child) {
+      margin-top: 8px;
+    }
+  }
+}

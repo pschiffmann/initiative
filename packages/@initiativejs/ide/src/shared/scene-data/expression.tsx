@@ -1,12 +1,16 @@
+import { FluentBundle, FluentResource } from "@fluent/bundle";
 import {
   ExtensionMethodDefinition,
   JsonLiteralSchema,
   t,
 } from "@initiativejs/schema";
+import { ObjectMap } from "@pschiffmann/std/object-map";
+import { fluentHelpers } from "../index.js";
 
 export type ExpressionJson =
   | JsonLiteralExpressionJson
   | EnumValueExpressionJson
+  | FluentMessageExpressionJson
   | SceneInputExpressionJson
   | NodeOutputExpressionJson
   | DebugValueExpressionJson;
@@ -20,6 +24,25 @@ export interface JsonLiteralExpressionJson {
 export interface EnumValueExpressionJson {
   readonly type: "enum-value";
   readonly value: string | number;
+}
+
+export interface FluentMessageExpressionJson {
+  readonly type: "fluent-message";
+
+  /**
+   * Keys are locales (like `"en"`, `"de"`), values are the localized messages.
+   */
+  readonly messages: ObjectMap<string>;
+
+  /**
+   * Keys are Fluent variables, values are expressions that provide the variable
+   * value at runtime.
+   *
+   * Example: The Fluent message `Hello, { $user }!` contains a variable `user`
+   * that needs to be interpolated at runtime. Fluent variables can only be
+   * strings or numbers.
+   */
+  readonly args: ObjectMap<ExpressionJson>;
 }
 
 export interface SceneInputExpressionJson {
@@ -71,6 +94,11 @@ export interface ExtensionMethodSelectorJson {
 
 export interface ValidateExpressionContext {
   /**
+   * Contains the locales from the project `initiative.json` file, if set.
+   */
+  readonly locales?: readonly string[];
+
+  /**
    * Throws an error if no literal with `schemaName` exists.
    */
   getJsonLiteralSchema(schemaName: string): JsonLiteralSchema;
@@ -105,6 +133,8 @@ export interface ResolveExpressionContext extends ValidateExpressionContext {
 }
 
 export abstract class Expression {
+  constructor(readonly hasErrors: boolean) {}
+
   abstract toJson(): ExpressionJson;
 
   static fromJson(
@@ -128,6 +158,8 @@ export abstract class Expression {
         return new JsonLiteralExpression(json, expectedType, ctx);
       case "enum-value":
         return new EnumValueExpression(json, expectedType);
+      case "fluent-message":
+        return new FluentMessageExpression(json, expectedType, ctx);
       case "scene-input":
       case "node-output":
       case "debug-value":
@@ -156,7 +188,7 @@ export class JsonLiteralExpression extends Expression {
           `literal: ${error}`,
       );
     }
-    super();
+    super(false);
     this.value = json.value;
     this.schema = schema;
   }
@@ -190,7 +222,7 @@ export class EnumValueExpression extends Expression {
           `'${expectedType}'.`,
       );
     }
-    super();
+    super(false);
     this.value = json.value;
   }
 
@@ -206,6 +238,98 @@ export class EnumValueExpression extends Expression {
 
   override toJson(): EnumValueExpressionJson {
     return { type: "enum-value", value: this.value };
+  }
+}
+
+export class FluentMessageExpression extends Expression {
+  constructor(
+    json: FluentMessageExpressionJson,
+    expectedType: t.Type,
+    ctx: ValidateExpressionContext,
+  ) {
+    if (!t.string().isAssignableTo(expectedType)) {
+      throw new Error(
+        `Expression of type 'fluent-message' evalutes to 'string', which is ` +
+          `not assignable to type '${expectedType}'.`,
+      );
+    }
+
+    const { locales } = ctx;
+    if (!locales) {
+      throw new Error(
+        "Can't use 'fluent-message' expressions because localization is not " +
+          "enabled for this project. To enable localization, add a 'locales' " +
+          "key to the 'initiative.json' file.",
+      );
+    }
+
+    let hasErrors = false;
+    const messages: Record<string, string> = {};
+    const variables = new Set<string>();
+    for (const locale of locales) {
+      const message = (messages[locale] = json.messages[locale] ?? "");
+      const bundle = new FluentBundle(locales as string[]);
+      bundle.addResource(
+        new FluentResource(fluentHelpers.encodeFtl("message", message)),
+      );
+      const pattern = bundle.getMessage("message")?.value;
+      if (pattern) {
+        fluentHelpers.resolveFluentVariables(pattern, variables);
+      } else {
+        hasErrors = true;
+      }
+    }
+
+    const args: Record<string, Expression | null> = {};
+    for (const variable of [...variables].sort()) {
+      const expressionJson = json.args[variable];
+      if (expressionJson) {
+        const expression = (args[variable] = Expression.fromJson(
+          expressionJson,
+          t.union(t.string(), t.number()),
+          ctx,
+        ));
+        hasErrors ||= expression.hasErrors;
+      } else {
+        args[variable] = null;
+        hasErrors = true;
+      }
+    }
+
+    super(hasErrors);
+    this.messages = messages;
+    this.args = args;
+  }
+
+  readonly messages: ObjectMap<string>;
+  readonly args: ObjectMap<Expression | null>;
+
+  withMessage(locale: string, message: string): ExpressionJson {
+    return {
+      ...this.toJson(),
+      messages: { ...this.messages, [locale]: message },
+    };
+  }
+
+  withArg(variable: string, expression: ExpressionJson | null): ExpressionJson {
+    const args: Record<string, ExpressionJson> = {};
+    for (const [v, expr] of Object.entries(this.args)) {
+      const json = v === variable ? expression : expr?.toJson();
+      if (json) args[v] = json;
+    }
+    return { ...this.toJson(), args };
+  }
+
+  override toString(): string {
+    return "{fluent-message}";
+  }
+
+  override toJson(): FluentMessageExpressionJson {
+    const args: Record<string, ExpressionJson> = {};
+    for (const [v, expr] of Object.entries(this.args)) {
+      if (expr) args[v] = expr.toJson();
+    }
+    return { type: "fluent-message", messages: this.messages, args };
   }
 }
 
@@ -242,8 +366,6 @@ export class MemberAccessExpression extends Expression {
     expectedType: t.Type,
     ctx: ResolveExpressionContext,
   ) {
-    super();
-
     const { selectors: selectorsJson, ...head } = json;
     const parameterPrefix = ctx.parameterPrefixes.next().value!;
 
@@ -254,7 +376,7 @@ export class MemberAccessExpression extends Expression {
         ? ctx.getNodeOutputType(head.nodeId, head.outputName)
         : ctx.getDebugValueType(head.debugValueName);
     const args: (Expression | null)[] = [];
-    let isComplete = true;
+    let hasErrors = false;
     const selectors = selectorsJson.map<ExpressionSelector>((selector) => {
       const memberType = MemberAccessExpression.#resolveSelectorMemberType(
         selector,
@@ -277,7 +399,7 @@ export class MemberAccessExpression extends Expression {
       );
       returnType = fn.returnType;
       args.push(...selectorArgs.args);
-      isComplete &&= selectorArgs.isComplete;
+      hasErrors ||= selectorArgs.hasErrors;
       switch (selector.type) {
         case "method":
           return {
@@ -304,11 +426,11 @@ export class MemberAccessExpression extends Expression {
       );
     }
 
+    super(hasErrors);
     this.head = head;
     this.selectors = selectors;
     this.args = args;
     this.parameterPrefix = parameterPrefix;
-    this.isComplete = isComplete;
   }
 
   readonly head:
@@ -329,12 +451,6 @@ export class MemberAccessExpression extends Expression {
    * sub-expressions.
    */
   readonly parameterPrefix: string;
-
-  /**
-   * This is false if any required arg is missing, or any sub-expression is
-   * incomplete.
-   */
-  readonly isComplete: boolean;
 
   getExpectedTypeForArg(argIndex: number): [type: t.Type, optional: boolean] {
     for (const selector of this.selectors) {
@@ -499,7 +615,7 @@ export class MemberAccessExpression extends Expression {
     json: MethodSelectorJson | CallSelectorJson | ExtensionMethodSelectorJson,
     memberType: t.Function,
     ctx: ResolveExpressionContext,
-  ): { args: (Expression | null)[]; isComplete: boolean } {
+  ): { args: (Expression | null)[]; hasErrors: boolean } {
     if (json.args.length !== memberType.parameters.length) {
       const prefix =
         json.type === "method"
@@ -523,11 +639,10 @@ export class MemberAccessExpression extends Expression {
           ctx,
         ),
     );
-    const isComplete = args.every((arg, i) => {
-      if (!arg && i < memberType.requiredCount) return false;
-      return !(arg instanceof MemberAccessExpression) || arg.isComplete;
-    });
-    return { args, isComplete };
+    const hasErrors = args.some((arg, i) =>
+      arg ? arg.hasErrors : i < memberType.requiredCount,
+    );
+    return { args, hasErrors };
   }
 
   static #generateSelectorJson(

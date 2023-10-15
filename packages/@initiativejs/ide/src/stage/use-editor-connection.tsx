@@ -36,6 +36,7 @@ export function useEditorConnection(definitions: Definitions) {
           if (data.type === "initialize-stage") {
             ({ document } = sceneDocumentFromJson(
               definitions,
+              data.projectConfig,
               data.sceneName,
               data.sceneJson,
             ));

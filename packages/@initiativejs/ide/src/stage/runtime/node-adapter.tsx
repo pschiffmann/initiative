@@ -1,4 +1,4 @@
-import { MemberAccessExpression, NodeData } from "#shared";
+import { NodeData } from "#shared";
 import { Definitions, NodeSchema } from "@initiativejs/schema";
 import * as $Object from "@pschiffmann/std/object";
 import { ObjectMap } from "@pschiffmann/std/object-map";
@@ -79,7 +79,7 @@ function useInputs(definitions: Definitions, nodeData: NodeData) {
   const inputs: Record<string, any> = {};
   nodeData.forEachInput((expr, attributes, inputName, index) => {
     const value =
-      expr && (!(expr instanceof MemberAccessExpression) || expr.isComplete)
+      expr && !expr.hasErrors
         ? evaluateExpression(expr, definitions, null, ancestorOutputs)
         : undefined;
     if (index === undefined) {

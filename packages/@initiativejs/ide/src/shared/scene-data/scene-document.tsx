@@ -1,4 +1,5 @@
 import { Definitions, NodeSchema, t } from "@initiativejs/schema";
+import { ProjectConfig } from "../project-config.js";
 import {
   Expression,
   ExpressionJson,
@@ -69,6 +70,7 @@ export class SceneDocument {
   constructor(
     readonly name: string,
     readonly definitions: Definitions,
+    readonly projectConfig: ProjectConfig,
   ) {}
 
   #sceneInputs: ReadonlyMap<string, SceneInputData> = new Map();
@@ -175,6 +177,7 @@ export class SceneDocument {
       }
 
       const ctx: ValidateExpressionContext = {
+        locales: this.projectConfig.locales,
         getJsonLiteralSchema: (schemaName) => {
           return this.definitions.getJsonLiteral(schemaName);
         },
@@ -389,6 +392,7 @@ export class SceneDocument {
     // newNodes?: ReadonlyMap<string, NodeData>
   ): ValidateExpressionContext {
     return {
+      locales: this.projectConfig.locales,
       getJsonLiteralSchema: (schemaName) => {
         return this.definitions.getJsonLiteral(schemaName);
       },

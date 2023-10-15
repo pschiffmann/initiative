@@ -1,3 +1,4 @@
+import { ProjectConfig } from "./project-config.js";
 import { SceneDocumentPatch, SceneJson } from "./scene-data/index.js";
 
 export interface ConnectToEditorRequest {
@@ -7,6 +8,7 @@ export interface ConnectToEditorRequest {
 
 export interface InitializeStageCommand {
   readonly type: "initialize-stage";
+  readonly projectConfig: ProjectConfig;
   readonly sceneName: string;
   readonly sceneJson: SceneJson;
 }

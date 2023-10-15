@@ -33,10 +33,11 @@ export function MemberAccessControl({
         label={name}
         helpText={generateHelpText(name, expectedType, optional, doc)}
         errorText={
-          expression.isComplete
-            ? undefined
-            : "Required function arguments are missing."
+          expression.hasErrors
+            ? "Required function arguments are missing or contain errors."
+            : undefined
         }
+        dense={parent !== "node"}
         adornmentIcon="function"
         value={expression.toString()}
         onPress={() => controller.send("open")}
@@ -45,13 +46,13 @@ export function MemberAccessControl({
       <Dialog commandStream={controller}>
         <AlertDialogContent
           className={cls.block()}
-          title={`Configure input '${name}'`}
+          title={`Configure '${name}'`}
           actions={
             <Button label="Close" onPress={() => controller.send("close")} />
           }
         >
           <MemberAccessControlInternal
-            parent={parent}
+            root
             name={name}
             expectedType={expectedType}
             optional={optional}
@@ -65,33 +66,30 @@ export function MemberAccessControl({
   );
 }
 
+interface MemberAccessControlInternalProps
+  extends Omit<ExpressionControlProps<MemberAccessExpression>, "parent"> {
+  root?: boolean;
+}
+
 function MemberAccessControlInternal({
-  parent,
+  root,
   name,
   expectedType,
   optional,
   doc,
   expression,
   onChange,
-}: ExpressionControlProps<MemberAccessExpression>) {
+}: MemberAccessControlInternalProps) {
   return (
     <>
       <ButtonControl
-        className={cls.element(
-          "selectors",
-          null,
-          parent !== "member-access-expression" && "root",
-        )}
+        className={cls.element("selectors", null, root && "root")}
         label={name}
         helpText={generateHelpText(name, expectedType, optional, doc)}
-        dense={parent === "member-access-expression"}
+        dense={!root}
         value={expression.toString("truncated")}
         adornmentIcon="function"
-        onClear={
-          parent === "member-access-expression"
-            ? () => onChange(null)
-            : undefined
-        }
+        onClear={!root ? () => onChange(null) : undefined}
       />
       {expression.args.length !== 0 && (
         <div className={cls.element("args")}>
@@ -101,7 +99,6 @@ function MemberAccessControlInternal({
             return arg instanceof MemberAccessExpression ? (
               <MemberAccessControlInternal
                 key={i}
-                parent="member-access-expression"
                 name={`${expression.parameterPrefix}${i + 1}`}
                 expectedType={argExpectedType}
                 optional={argIsOptional}

@@ -7,6 +7,10 @@ import {
   sceneDocumentToJson,
 } from "#shared";
 import { validateSceneName } from "@initiativejs/schema";
+import {
+  ProjectConfig,
+  parseProjectConfig,
+} from "../../../shared/project-config.js";
 
 export type WorkspaceState =
   | "initializing"
@@ -36,6 +40,11 @@ export class Workspace {
   }
   #error: string | null = null;
 
+  #projectConfig: ProjectConfig | null = null;
+  get projectConfig(): ProjectConfig | null {
+    return this.#projectConfig;
+  }
+
   /**
    * List of scene names to be used with `open()`.
    */
@@ -61,12 +70,27 @@ export class Workspace {
       }
     }
 
+    let projectConfigString: string;
     try {
-      await this.rootDirectory.getFileHandle("initiative.json");
+      projectConfigString = await this.rootDirectory
+        .getFileHandle("initiative.json")
+        .then((f) => f.getFile())
+        .then((f) => f.text());
     } catch (e) {
       console.error(e);
       this.#state = "error";
       this.#error = "The workspace must contain a initiative.json file.";
+      this.#changeListeners.notify();
+      return;
+    }
+
+    try {
+      this.#projectConfig = parseProjectConfig(projectConfigString);
+    } catch (e) {
+      this.#state = "error";
+      this.#error =
+        "Error in 'initiative.json': " +
+        (e instanceof Error ? e.message : `${e}`);
       this.#changeListeners.notify();
       return;
     }

@@ -35,6 +35,7 @@ function useStageConnection(document: SceneDocument) {
         if (data.type !== "@initiativejs/ide.ConnectToEditorRequest") return;
         data.port.postMessage({
           type: "initialize-stage",
+          projectConfig: document.projectConfig,
           sceneName: document.name,
           sceneJson: sceneDocumentToJson(document),
         } satisfies StageConnectionCommand);

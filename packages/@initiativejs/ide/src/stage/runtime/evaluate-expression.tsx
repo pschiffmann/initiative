@@ -1,10 +1,14 @@
 import {
   EnumValueExpression,
   Expression,
+  FluentMessageExpression,
   JsonLiteralExpression,
   MemberAccessExpression,
+  fluentHelpers,
 } from "#shared";
+import { FluentBundle, FluentResource } from "@fluent/bundle";
 import { Definitions } from "@initiativejs/schema";
+import * as $Object from "@pschiffmann/std/object";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { AncestorOutputs } from "./ancestor-outputs.js";
 
@@ -19,6 +23,30 @@ export function evaluateExpression(
     expr instanceof EnumValueExpression
   ) {
     return expr.value;
+  }
+  if (expr instanceof FluentMessageExpression) {
+    const locale = "en"; // TODO
+    const message = expr.messages[locale];
+    const bundle = new FluentBundle(locale);
+    bundle.addResource(
+      new FluentResource(fluentHelpers.encodeFtl("message", message)),
+    );
+    const errors: Error[] = [];
+    const result = bundle.formatPattern(
+      bundle.getMessage("message")!.value!,
+      $Object.map(expr.args, (v, expr) =>
+        evaluateExpression(expr!, definitions, debugValues, ancestorOutputs),
+      ),
+      errors,
+    );
+    if (errors.length) {
+      console.warn(
+        `Encountered errors while translating message ` +
+          `${JSON.stringify(message)}:`,
+        errors,
+      );
+    }
+    return result;
   }
   if (expr instanceof MemberAccessExpression) {
     let i = 0;

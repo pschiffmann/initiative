@@ -38,7 +38,11 @@ export function CreateSceneForm({
   const definitions = useContext(DefinitionsContext);
   async function createScene() {
     dialogController.send("close");
-    const document = new SceneDocument(sceneName, definitions);
+    const document = new SceneDocument(
+      sceneName,
+      definitions,
+      workspace.projectConfig!,
+    );
     await workspace.save(document);
     await workspace.scanFileSystem();
   }

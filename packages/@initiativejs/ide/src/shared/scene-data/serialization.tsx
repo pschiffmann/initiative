@@ -1,4 +1,5 @@
 import { Definitions, t } from "@initiativejs/schema";
+import { ProjectConfig } from "../project-config.js";
 import { ExpressionJson, ExpressionSelectorJson } from "./expression.js";
 import { NodeJson, NodeParent } from "./node-data.js";
 import { SceneDocument } from "./scene-document.js";
@@ -20,11 +21,12 @@ export interface SceneInputJson {
 
 export function sceneDocumentFromJson(
   definitions: Definitions,
+  projectConfig: ProjectConfig,
   name: string,
   sceneJson: SceneJson,
 ): { errors?: string[]; document?: SceneDocument } {
   const errors: string[] = [];
-  const document = new SceneDocument(name, definitions);
+  const document = new SceneDocument(name, definitions, projectConfig);
   if (!sceneJson.rootNode) return { document };
 
   if (!isObject(sceneJson, sceneJsonSchema, `'scene.json'`, errors)) {
@@ -167,6 +169,11 @@ const expressionJsonSchemas = {
   "enum-value": {
     type: "string",
     value: "unknown",
+  },
+  "fluent-message": {
+    type: "string",
+    messages: "object",
+    args: "object",
   },
   "scene-input": {
     type: "string",
@@ -318,6 +325,16 @@ function isExpression(
               `but got ${json.value === null ? "null" : typeof json.value}.`,
           );
           return;
+        }
+        break;
+      case "fluent-message":
+        for (const [locale, message] of Object.entries(json.messages)) {
+          if (typeof message !== "string") {
+            errors.push(`${prefix}.messages.${locale} must be a string.`);
+          }
+        }
+        for (const [variable, expression] of Object.entries(json.args)) {
+          visit(expression, `${prefix}.args.${variable}`);
         }
         break;
       case "scene-input":

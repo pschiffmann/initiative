@@ -104,6 +104,7 @@ interface LiteralsGroupProps {
 }
 
 function LiteralsGroup({ expectedType, onSelect }: LiteralsGroupProps) {
+  const { locales } = useSceneDocument().projectConfig;
   const definitions = useContext(DefinitionsContext);
   const options: ReactNode[] = [];
 
@@ -115,7 +116,7 @@ function LiteralsGroup({ expectedType, onSelect }: LiteralsGroupProps) {
       ) {
         options.push(
           <EnumValueOption
-            key={element.value}
+            key={`enum-value-${JSON.stringify(element.value)}`}
             value={element.value}
             onSelect={onSelect}
           />,
@@ -127,12 +128,29 @@ function LiteralsGroup({ expectedType, onSelect }: LiteralsGroupProps) {
     if (schema.type.isAssignableTo(expectedType)) {
       options.push(
         <JsonLiteralOption
-          key={schema.name}
+          key={`json-literal-${schema.name}`}
           schema={schema}
           onSelect={onSelect}
         />,
       );
     }
+  }
+  if (t.string().isAssignableTo(expectedType) && locales) {
+    options.push(
+      <Option
+        key="fluent-message"
+        label="Fluent message"
+        type={t.string()}
+        doc=""
+        onSelect={() =>
+          onSelect({
+            type: "fluent-message",
+            messages: {},
+            args: {},
+          })
+        }
+      />,
+    );
   }
 
   return options.length === 0 ? null : (

@@ -2,12 +2,14 @@ import {
   EnumValueExpression,
   Expression,
   ExpressionJson,
+  FluentMessageExpression,
   JsonLiteralExpression,
   MemberAccessExpression,
 } from "#shared";
 import { t } from "@initiativejs/schema";
 import { EmptyControl } from "./empty-control.js";
 import { EnumValueControl } from "./enum-value-control.js";
+import { FluentMessageControl } from "./fluent-message-control.js";
 import { MemberAccessControl } from "./member-access-control.js";
 
 export * from "./use-selected-node-ancestors.js";
@@ -49,6 +51,9 @@ export function ExpressionControl({
   }
   if (expression instanceof EnumValueExpression) {
     return <EnumValueControl expression={expression} {...props} />;
+  }
+  if (expression instanceof FluentMessageExpression) {
+    return <FluentMessageControl expression={expression} {...props} />;
   }
   if (expression instanceof MemberAccessExpression) {
     return <MemberAccessControl expression={expression} {...props} />;
