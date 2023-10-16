@@ -65,7 +65,6 @@ interface DialogContentProps {
 }
 
 function DialogContent({ expression, onChange }: DialogContentProps) {
-  console.log(expression);
   return (
     <div className={cls.element("dialog-content")}>
       <Typography

@@ -2,9 +2,10 @@ import { NodeData } from "#shared";
 import { Definitions, NodeSchema } from "@initiativejs/schema";
 import * as $Object from "@pschiffmann/std/object";
 import { ObjectMap } from "@pschiffmann/std/object-map";
-import { ComponentType, FunctionComponent } from "react";
+import { ComponentType, FunctionComponent, useContext } from "react";
 import { useNode } from "../../shared/use-scene-document.js";
 import { NodeOutputsProvider, useAncestorOutputs } from "./ancestor-outputs.js";
+import { LocaleContext } from "./context.js";
 import { ErrorComponent } from "./error-component.js";
 import { evaluateExpression } from "./evaluate-expression.js";
 import { SceneRuntime } from "./scene-runtime.js";
@@ -74,13 +75,14 @@ export function createOutputsProviderComponent(
 }
 
 function useInputs(definitions: Definitions, nodeData: NodeData) {
+  const locale = useContext(LocaleContext);
   const ancestorOutputs = useAncestorOutputs();
 
   const inputs: Record<string, any> = {};
   nodeData.forEachInput((expr, attributes, inputName, index) => {
     const value =
       expr && !expr.hasErrors
-        ? evaluateExpression(expr, definitions, null, ancestorOutputs)
+        ? evaluateExpression(expr, definitions, locale, null, ancestorOutputs)
         : undefined;
     if (index === undefined) {
       inputs[inputName] = value;

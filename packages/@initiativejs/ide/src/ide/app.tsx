@@ -7,7 +7,7 @@ import {
 import { SceneDocument, SceneDocumentProvider } from "#shared";
 import { Definitions } from "@initiativejs/schema";
 import { useRef, useState } from "react";
-import { DefinitionsContext } from "./context.js";
+import { DefinitionsContext, LocaleContext } from "./context.js";
 import { LicenseStatus } from "./tools/license-status/index.js";
 import { NodeInputs } from "./tools/node-inputs/index.js";
 import { NodeTree } from "./tools/node-tree/index.js";
@@ -23,6 +23,7 @@ export interface AppProps {
 }
 
 export function App({ definitions, formatJsFile }: AppProps) {
+  const [locale, setLocale] = useState("");
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
@@ -31,59 +32,63 @@ export function App({ definitions, formatJsFile }: AppProps) {
   return (
     <DefinitionsContext.Provider value={definitions}>
       <ColorSchemeContext.Provider value={colorScheme}>
-        <div ref={rootRef} className={cls.block()}>
-          <WorkspaceManager
-            className={cls.element("workspace-manager")}
-            formatJsFile={formatJsFile}
-            document={document}
-            onDocumentChange={(document) => {
-              setSelectedNode(null);
-              setDocument(document);
-            }}
-          />
-          {document ? (
-            <SceneDocumentProvider document={document}>
-              <NodeTree
-                className={cls.element("node-tree")}
-                document={document}
-                selectedNode={selectedNode}
-                onSelectedNodeChange={setSelectedNode}
-              />
-              <StageView
-                className={cls.element("stage-view")}
-                document={document}
-              />
-              {selectedNode ? (
-                <NodeInputs
-                  className={cls.element("node-inputs")}
+        <LocaleContext.Provider value={{ value: locale, onChange: setLocale }}>
+          <div ref={rootRef} className={cls.block()}>
+            <WorkspaceManager
+              className={cls.element("workspace-manager")}
+              formatJsFile={formatJsFile}
+              document={document}
+              onDocumentChange={(document) => {
+                setSelectedNode(null);
+                setDocument(document);
+                const locale = document?.projectConfig.locales?.[0];
+                if (locale) setLocale(locale);
+              }}
+            />
+            {document ? (
+              <SceneDocumentProvider document={document}>
+                <NodeTree
+                  className={cls.element("node-tree")}
                   document={document}
                   selectedNode={selectedNode}
+                  onSelectedNodeChange={setSelectedNode}
                 />
-              ) : (
-                <SceneInputs
-                  className={cls.element("node-inputs")}
+                <StageView
+                  className={cls.element("stage-view")}
                   document={document}
                 />
-              )}
-            </SceneDocumentProvider>
-          ) : (
-            <>
-              <EmptyTool position="node-tree" />
-              <EmptyTool position="stage-view" />
-              <EmptyTool position="node-inputs" />
-            </>
-          )}
-          <div className={cls.element("actions")}>
-            <IconButton
-              icon="dark_mode"
-              label="Toggle dark mode"
-              onPress={toggleColorScheme}
-            />
-            <IconButton icon="settings" label="Settings" disabled />
-            <IconButton icon="notifications" label="Announcements" disabled />
+                {selectedNode ? (
+                  <NodeInputs
+                    className={cls.element("node-inputs")}
+                    document={document}
+                    selectedNode={selectedNode}
+                  />
+                ) : (
+                  <SceneInputs
+                    className={cls.element("node-inputs")}
+                    document={document}
+                  />
+                )}
+              </SceneDocumentProvider>
+            ) : (
+              <>
+                <EmptyTool position="node-tree" />
+                <EmptyTool position="stage-view" />
+                <EmptyTool position="node-inputs" />
+              </>
+            )}
+            <div className={cls.element("actions")}>
+              <IconButton
+                icon="dark_mode"
+                label="Toggle dark mode"
+                onPress={toggleColorScheme}
+              />
+              <IconButton icon="settings" label="Settings" disabled />
+              <IconButton icon="notifications" label="Announcements" disabled />
+            </div>
+            <LicenseStatus className={cls.element("license-status")} />
           </div>
-          <LicenseStatus className={cls.element("license-status")} />
-        </div>
+        </LocaleContext.Provider>
       </ColorSchemeContext.Provider>
     </DefinitionsContext.Provider>
   );

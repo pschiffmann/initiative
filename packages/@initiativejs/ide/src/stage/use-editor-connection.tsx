@@ -10,6 +10,7 @@ import { SceneRuntime } from "./runtime/index.js";
 
 export function useEditorConnection(definitions: Definitions) {
   const [runtime, setRuntime] = useState<SceneRuntime>();
+  const [locale, setLocale] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -33,16 +34,23 @@ export function useEditorConnection(definitions: Definitions) {
       port2.addEventListener(
         "message",
         ({ data }: MessageEvent<StageConnectionCommand>) => {
-          if (data.type === "initialize-stage") {
-            ({ document } = sceneDocumentFromJson(
-              definitions,
-              data.projectConfig,
-              data.sceneName,
-              data.sceneJson,
-            ));
-            setRuntime(new SceneRuntime(document!));
-          } else {
-            document!.applyPatch(data);
+          switch (data.type) {
+            case "initialize-stage":
+              ({ document } = sceneDocumentFromJson(
+                definitions,
+                data.projectConfig,
+                data.sceneName,
+                data.sceneJson,
+              ));
+              setRuntime(new SceneRuntime(document!));
+              setLocale(data.projectConfig.locales?.[0] ?? "");
+              break;
+            case "set-locale":
+              setLocale(data.locale);
+              break;
+            default:
+              document!.applyPatch(data);
+              break;
           }
         },
         { signal },
@@ -56,5 +64,5 @@ export function useEditorConnection(definitions: Definitions) {
     };
   }, []);
 
-  return runtime;
+  return { runtime, locale };
 }

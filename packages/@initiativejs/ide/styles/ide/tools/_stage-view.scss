@@ -3,7 +3,11 @@
 
 .initiative-stage-view {
   display: grid;
-  grid: "main" 1fr /1fr;
+  grid:
+    "main" 1fr
+    "footer" auto
+    / 1fr;
+  gap: 8px;
   padding: 8px;
   background-color: color.role("surface-container");
   border-radius: 8px;
@@ -19,5 +23,10 @@
 
     // reset browser defaults
     border: 0;
+  }
+
+  &__locale-select {
+    grid-area: footer;
+    width: 200px;
   }
 }

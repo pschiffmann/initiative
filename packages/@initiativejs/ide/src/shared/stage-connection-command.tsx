@@ -13,6 +13,12 @@ export interface InitializeStageCommand {
   readonly sceneJson: SceneJson;
 }
 
+export interface SetLocaleCommand {
+  readonly type: "set-locale";
+  readonly locale: string;
+}
+
 export type StageConnectionCommand =
   | InitializeStageCommand
+  | SetLocaleCommand
   | SceneDocumentPatch;

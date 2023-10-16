@@ -15,6 +15,7 @@ import { AncestorOutputs } from "./ancestor-outputs.js";
 export function evaluateExpression(
   expr: Expression,
   definitions: Definitions,
+  locale: string,
   debugValues: ObjectMap<any> | null,
   ancestorOutputs: AncestorOutputs | null,
 ): any {
@@ -25,7 +26,6 @@ export function evaluateExpression(
     return expr.value;
   }
   if (expr instanceof FluentMessageExpression) {
-    const locale = "en"; // TODO
     const message = expr.messages[locale];
     const bundle = new FluentBundle(locale);
     bundle.addResource(
@@ -35,7 +35,13 @@ export function evaluateExpression(
     const result = bundle.formatPattern(
       bundle.getMessage("message")!.value!,
       $Object.map(expr.args, (v, expr) =>
-        evaluateExpression(expr!, definitions, debugValues, ancestorOutputs),
+        evaluateExpression(
+          expr!,
+          definitions,
+          locale,
+          debugValues,
+          ancestorOutputs,
+        ),
       ),
       errors,
     );
@@ -61,6 +67,7 @@ export function evaluateExpression(
               ? evaluateExpression(
                   arg,
                   definitions,
+                  locale,
                   debugValues,
                   ancestorOutputs,
                 )

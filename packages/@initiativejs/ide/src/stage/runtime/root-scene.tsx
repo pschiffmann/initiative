@@ -1,5 +1,7 @@
 import { useSceneInputs } from "#shared";
 import { ObjectMap } from "@pschiffmann/std/object-map";
+import { useContext } from "react";
+import { LocaleContext } from "./context.js";
 import { ErrorComponent } from "./error-component.js";
 import { evaluateExpression } from "./evaluate-expression.js";
 import { SceneRuntime } from "./scene-runtime.js";
@@ -11,6 +13,7 @@ export interface RootSceneProps {
 }
 
 export function RootScene({ runtime, debugValues }: RootSceneProps) {
+  const locale = useContext(LocaleContext);
   const sceneInputData = useSceneInputs(runtime.document);
   const sceneInputs = new Map<string, any>();
   const invalidSceneInputs: string[] = [];
@@ -23,6 +26,7 @@ export function RootScene({ runtime, debugValues }: RootSceneProps) {
         evaluateExpression(
           data.debugValue,
           runtime.document.definitions,
+          locale,
           debugValues,
           null,
         ),

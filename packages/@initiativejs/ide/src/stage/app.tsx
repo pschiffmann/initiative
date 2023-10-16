@@ -1,4 +1,5 @@
 import { Definitions, t } from "@initiativejs/schema";
+import { LocaleContext } from "./runtime/context.js";
 import { RootScene } from "./runtime/root-scene.js";
 import { useEditorConnection } from "./use-editor-connection.js";
 
@@ -11,9 +12,11 @@ export function Stage<D extends Definitions>({
   definitions,
   debugValues,
 }: StageProps<D>) {
-  const runtime = useEditorConnection(definitions);
+  const { runtime, locale } = useEditorConnection(definitions);
   return runtime ? (
-    <RootScene runtime={runtime} debugValues={debugValues} />
+    <LocaleContext.Provider value={locale}>
+      <RootScene runtime={runtime} debugValues={debugValues} />
+    </LocaleContext.Provider>
   ) : (
     <div>Connecting to InitiativeJS editor ...</div>
   );
