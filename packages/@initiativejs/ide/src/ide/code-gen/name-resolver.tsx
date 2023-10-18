@@ -1,6 +1,6 @@
 import * as $Map from "@pschiffmann/std/map";
 
-export class ImportNames {
+export class NameResolver {
   #namesCounter = new Map<string, number>();
 
   /**

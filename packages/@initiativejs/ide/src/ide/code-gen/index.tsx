@@ -1,5 +1,5 @@
 import { SceneDocument } from "#shared";
-import { ImportNames } from "./imports.js";
+import { NameResolver } from "./name-resolver.js";
 import { generateNodeRuntime } from "./node.js";
 import {
   generateEmptyScene,
@@ -10,7 +10,7 @@ import {
 export function generateCodeForScene(document: SceneDocument): string {
   if (!document.getRootNodeId()) return generateEmptyScene(document.name);
 
-  const importNames = new ImportNames();
+  const importNames = new NameResolver();
   const content = [
     document.sceneInputs.size === 0
       ? generateSceneWithoutSceneInputs(document)

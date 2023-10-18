@@ -12,11 +12,11 @@ import {
   getNodeOutputContextName,
   getSceneInputContextName,
 } from "./context.js";
-import { ImportNames } from "./imports.js";
+import { NameResolver } from "./name-resolver.js";
 
 export function generateNodeRuntime(
   document: SceneDocument,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
   nodeId: string,
 ): string {
   const nodeData = document.getNode(nodeId);
@@ -33,13 +33,13 @@ export function generateNodeRuntime(
   }
 
   // generateNodeAdapter
-  result += generateNodeAdapter(nodeData, definition, importNames) + "\n";
+  result += generateNodeAdapter(nodeData, definition, nameResolver) + "\n";
   //
 
   // generateNodeOutputContexts
   if (Object.keys(nodeData.schema.outputAttributes).length > 0) {
     result +=
-      generateNodeOuptputContexts(nodeData, definition, importNames) + "\n";
+      generateNodeOuptputContexts(nodeData, definition, nameResolver) + "\n";
   }
   //
 
@@ -66,8 +66,13 @@ export function generateNodeRuntime(
       continue;
     }
     result +=
-      generateSlotComponent(nodeData, definition, slotname, data, importNames) +
-      "\n";
+      generateSlotComponent(
+        nodeData,
+        definition,
+        slotname,
+        data,
+        nameResolver,
+      ) + "\n";
   }
   //
 
@@ -76,7 +81,7 @@ export function generateNodeRuntime(
     result += `${generateNodeOutputsProvider(
       nodeData,
       definition,
-      importNames,
+      nameResolver,
     )}\n`;
   }
 
@@ -86,9 +91,9 @@ export function generateNodeRuntime(
 function generateNodeAdapter(
   nodeData: NodeData,
   definition: NodeDefinition,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
 ): string {
-  const componentName = importNames.importBinding(definition);
+  const componentName = nameResolver.importBinding(definition);
   let result: string = "";
   result += `function ${nodeData.id}_Adapter() { \n`;
   result += `return ( \n`;
@@ -107,7 +112,7 @@ function generateNodeAdapter(
       if (expression === null) {
         inputResultsMap.set(inputName, "undefined");
       } else {
-        inputResultsMap.set(inputName, provideValue(expression, importNames));
+        inputResultsMap.set(inputName, provideValue(expression, nameResolver));
       }
     } else {
       if (!inputResultsMap.has(inputName)) {
@@ -120,7 +125,7 @@ function generateNodeAdapter(
       if (expression === null) {
         arraycheck.push("undefined");
       } else {
-        arraycheck.push(provideValue(expression, importNames));
+        arraycheck.push(provideValue(expression, nameResolver));
       }
     }
   });
@@ -184,18 +189,18 @@ function generateNodeAdapter(
 function generateNodeOuptputContexts(
   nodeData: NodeData,
   definition: NodeDefinition,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
 ): string {
   let result: string = "";
-  const createContext = importNames.importBinding({
+  const createContext = nameResolver.importBinding({
     moduleName: "react",
     exportName: "createContext",
   });
-  const schemaName = importNames.importType({
+  const schemaName = nameResolver.importType({
     moduleName: definition.moduleName,
     exportName: definition.exportName + "Schema",
   });
-  const outputTypes = importNames.importType({
+  const outputTypes = nameResolver.importType({
     moduleName: "@initiativejs/schema/code-gen-helpers",
     exportName: "OutputTypes",
   });
@@ -210,7 +215,7 @@ function generateNodeOuptputContexts(
 function generateNodeOutputsProvider(
   nodeData: NodeData,
   definition: NodeDefinition,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
 ): string {
   let result: string = "";
   const outputNames = Object.keys(nodeData.schema.outputAttributes);
@@ -220,11 +225,11 @@ function generateNodeOutputsProvider(
   }
   result += `children,\n`;
   // TODO
-  const schemaName = importNames.importType({
+  const schemaName = nameResolver.importType({
     moduleName: definition.moduleName,
     exportName: definition.exportName + "Schema",
   });
-  const outputsProviderProps = importNames.importType({
+  const outputsProviderProps = nameResolver.importType({
     moduleName: "@initiativejs/schema/code-gen-helpers",
     exportName: "OutputsProviderProps",
   });
@@ -242,13 +247,13 @@ function generateSlotComponent(
   definition: NodeDefinition,
   slotName: string,
   children: Array<string | null>,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
 ): string {
-  const schemaName = importNames.importType({
+  const schemaName = nameResolver.importType({
     moduleName: definition.moduleName,
     exportName: definition.exportName + "Schema",
   });
-  const slotComponentProps = importNames.importType({
+  const slotComponentProps = nameResolver.importType({
     moduleName: "@initiativejs/schema/code-gen-helpers",
     exportName: "SlotComponentProps",
   });
@@ -283,7 +288,7 @@ function generateSlotComponent(
 
 function provideValue(
   expression: Expression,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
 ): string {
   if (
     expression instanceof JsonLiteralExpression ||
@@ -292,7 +297,7 @@ function provideValue(
     return JSON.stringify(expression.value);
   }
   if (expression instanceof MemberAccessExpression) {
-    const useContext = importNames.importBinding({
+    const useContext = nameResolver.importBinding({
       moduleName: "react",
       exportName: "useContext",
     });
@@ -323,14 +328,14 @@ function provideValue(
 
       const args = expression.args
         .slice(i, (i += selector.memberType.parameters.length))
-        .map((arg) => (arg ? provideValue(arg, importNames) : "undefined"));
+        .map((arg) => (arg ? provideValue(arg, nameResolver) : "undefined"));
       switch (selector.type) {
         case "method":
           return `${target}.${selector.methodName}(${args})`;
         case "call":
           return `${target}(${args})`;
         case "extension-method": {
-          const extensionMethod = importNames.importBinding(
+          const extensionMethod = nameResolver.importBinding(
             selector.definition,
           );
           return `${extensionMethod}(${target}, ${args})`;

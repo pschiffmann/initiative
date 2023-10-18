@@ -4,7 +4,7 @@ import {
   generateContextProviderJsx,
   getSceneInputContextName,
 } from "./context.js";
-import { ImportNames } from "./imports.js";
+import { NameResolver } from "./name-resolver.js";
 import { generateType } from "./types.js";
 
 export function generateEmptyScene(name: string): string {
@@ -23,9 +23,9 @@ export function generateSceneWithoutSceneInputs(
 
 export function generateSceneWithSceneInputs(
   document: SceneDocument,
-  importNames: ImportNames,
+  nameResolver: NameResolver,
 ): string {
-  const createContext = importNames.importBinding({
+  const createContext = nameResolver.importBinding({
     moduleName: "react",
     exportName: "createContext",
   });
@@ -33,7 +33,7 @@ export function generateSceneWithSceneInputs(
   const props: string[] = [];
   for (const [name, data] of document.sceneInputs) {
     const contextName = getSceneInputContextName(name);
-    const type = generateType(data.type, importNames);
+    const type = generateType(data.type, nameResolver);
     contextObjects.push(
       `const ${contextName} = ${createContext}<${type}>(null!);`,
     );
