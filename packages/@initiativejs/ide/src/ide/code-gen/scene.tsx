@@ -1,70 +1,75 @@
 import { SceneDocument } from "#shared";
+import { dedent } from "@pschiffmann/std/dedent";
 import { capitalize } from "@pschiffmann/std/string";
-import {
-  generateContextProviderJsx,
-  getSceneInputContextName,
-} from "./context.js";
+import { generateContextProviderJsx } from "./context.js";
 import { NameResolver } from "./name-resolver.js";
 import { generateType } from "./types.js";
 
 export function generateEmptyScene(name: string): string {
-  return `export function ${sanitizeSceneName(name)}() {
-  return <div>Error: The scene is empty.</div>;
-}`;
-}
-
-export function generateSceneWithoutSceneInputs(
-  document: SceneDocument,
-): string {
-  return `export function ${sanitizeSceneName(document.name)}() {
-  return <${document.getRootNodeId()!}_Adapter />;
-}`;
+  return dedent`
+    export function ${sanitizeSceneName(name)}() {
+      return <div>Error: The scene is empty.</div>;
+    }
+    `;
 }
 
 export function generateSceneWithSceneInputs(
   document: SceneDocument,
   nameResolver: NameResolver,
 ): string {
-  const createContext = nameResolver.importBinding({
-    moduleName: "react",
-    exportName: "createContext",
-  });
-  const contextObjects: string[] = [];
-  const props: string[] = [];
-  for (const [name, data] of document.sceneInputs) {
-    const contextName = getSceneInputContextName(name);
-    const type = generateType(data.type, nameResolver);
-    contextObjects.push(
-      `const ${contextName} = ${createContext}<${type}>(null!);`,
-    );
-    props.push(`/**
- * ${data.doc.split("\n").join("\n * ")}
- */
-${name}: ${type};`);
-  }
+  const Scene = nameResolver.declareName("Scene");
+  const SceneProps = nameResolver.declareName("SceneProps");
+
+  const sceneInputs = [...document.sceneInputs];
+  const createContext =
+    sceneInputs.length !== 0 &&
+    nameResolver.importBinding({
+      moduleName: "react",
+      exportName: "createContext",
+    });
 
   const componentName = sanitizeSceneName(document.name);
-  const jsx = generateContextProviderJsx(
-    "Scene",
-    [...document.sceneInputs.keys()],
-    `<${document.getRootNodeId()!}_Adapter />`,
-  );
-  return `export {
-  Scene as ${componentName},
-  type SceneProps as ${componentName}Props,
-};
 
-${contextObjects.join("\n")}
+  return dedent`
+    export {
+      ${Scene} as ${componentName},
+      type ${SceneProps} as ${componentName}Props,
+    };
 
-interface SceneProps {
-  ${props.join("\n  ")}
-}
+    ${[...document.sceneInputs]
+      .map(([name, data]) => {
+        const Context = nameResolver.declareName(`Scene$${name}Context`);
+        const type = generateType(data.type, nameResolver);
+        return `const ${Context} = ${createContext}<${type}>(null!);`;
+      })
+      .join("\n")}
 
-function Scene({
-  ${[...document.sceneInputs.keys()].join(",\n  ")}
-}: SceneProps) {
-  return (${jsx});
-}`;
+    interface ${SceneProps} {
+      ${sceneInputs
+        .map(
+          ([name, { type, doc }]) => dedent`
+            /**
+             * ${doc.replaceAll("\n", "\n * ")}
+             */
+            ${name}: ${generateType(type, nameResolver)};
+            `,
+        )
+        .join("\n\n")}
+    }
+
+    function ${Scene}({
+      ${[...document.sceneInputs.keys()].join("\n")}
+    }: ${SceneProps}) {
+      return (
+        ${generateContextProviderJsx(
+          nameResolver,
+          "Scene",
+          [...document.sceneInputs.keys()],
+          `<${document.getRootNodeId()!}_Adapter />`,
+        )}
+      );
+    }
+    `;
 }
 
 /**

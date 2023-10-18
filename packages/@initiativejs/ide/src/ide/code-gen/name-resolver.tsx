@@ -24,6 +24,11 @@ export class NameResolver {
    */
   #importedTypes = new Map<string, Map<string, string>>();
 
+  /**
+   * Map from requested name to actual name.
+   */
+  #declarations = new Map<string, string>();
+
   #importName(
     cache: Map<string, Map<string, string>>,
     moduleName: string,
@@ -57,6 +62,16 @@ export class NameResolver {
     exportName: string;
   }): string {
     return this.#importName(this.#importedTypes, moduleName, exportName);
+  }
+
+  declareName(name: string): string {
+    return $Map.putIfAbsent(this.#declarations, name, () => {
+      const importsWithSameName = this.#namesCounter.get(name) ?? 0;
+      this.#namesCounter.set(name, importsWithSameName + 1);
+      return importsWithSameName === 0
+        ? name
+        : `${name}${importsWithSameName + 1}`;
+    });
   }
 
   generateImportStatements(): string {

@@ -236,7 +236,12 @@ function generateNodeOutputsProvider(
   result += `}: ${outputsProviderProps}<${schemaName}>`;
   result += `) {\n`;
   result += `return (\n`;
-  result += generateContextProviderJsx(nodeData.id, outputNames, "{children}");
+  result += generateContextProviderJsx(
+    nameResolver,
+    nodeData.id,
+    outputNames,
+    "{children}",
+  );
   result += `)\n`;
   result += `}`;
   return result;
@@ -272,6 +277,7 @@ function generateSlotComponent(
       result += `case ${index}:\n`;
       result += `return (\n`;
       result += `${generateContextProviderJsx(
+        nameResolver,
         nodeData.id,
         list,
         `<${children[index]}_Adapter />`,
