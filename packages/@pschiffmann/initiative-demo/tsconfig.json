@@ -5,7 +5,7 @@
     { "path": "../../@initiativejs/schema" },
     { "path": "../../@initiativejs/template-std" }
   ],
-  "include": ["initiative/**/*", "src/**/*", "initiative/scenes/*.json"],
+  "include": ["initiative/**/*", "src/**/*"],
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "tsc-build/",

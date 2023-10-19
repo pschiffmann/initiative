@@ -17,12 +17,26 @@ import {
   type StackSchema,
 } from "#initiative/nodes/index.js";
 import { type Article } from "#initiative/types.js";
+import { useLocale } from "../../locale-context.js";
+import { default as ftlUrlDe } from "./locale/de.ftl";
+import { default as ftlUrlEn } from "./locale/en.ftl";
+import {
+  FluentBundle,
+  FluentResource,
+  type FluentVariable,
+} from "@fluent/bundle";
 import {
   type OutputTypes,
   type OutputsProviderProps,
   type SlotComponentProps,
 } from "@initiativejs/schema/code-gen-helpers";
-import { createContext, useContext } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 export {
   Scene as ArticleManagement,
@@ -30,19 +44,29 @@ export {
 };
 
 const Scene$articleContext = createContext<Article>(null!);
+const Scene$usernameContext = createContext<string>(null!);
 
 interface SceneProps {
   /**
    * For testing purposes only.
    */
   article: Article;
+
+  /**
+   * Current user.
+   */
+  username: string;
 }
 
-function Scene({ article }: SceneProps) {
+function Scene({ article, username }: SceneProps) {
   return (
-    <Scene$articleContext.Provider value={article}>
-      <Translations_Adapter />
-    </Scene$articleContext.Provider>
+    <FluentBundleProvider>
+      <Scene$articleContext.Provider value={article}>
+        <Scene$usernameContext.Provider value={username}>
+          <Translations_Adapter />
+        </Scene$usernameContext.Provider>
+      </Scene$articleContext.Provider>
+    </FluentBundleProvider>
   );
 }
 
@@ -109,9 +133,9 @@ function PageLayout_Adapter() {
     <Stack
       flexDirection={"column"}
       gap={3}
-      alignSelf={[undefined, "end", undefined]}
+      alignSelf={[undefined, undefined, "end", undefined]}
       slots={{
-        child: { size: 3, Component: PageLayout_child },
+        child: { size: 4, Component: PageLayout_child },
       }}
     />
   );
@@ -122,8 +146,10 @@ function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
     case 0:
       return <PageTitle_Adapter />;
     case 1:
-      return <NewArticleDialog_Adapter />;
+      return <UserGreeting_Adapter />;
     case 2:
+      return <NewArticleDialog_Adapter />;
+    case 3:
       return <ArticlesTable_Adapter />;
     default:
       throw new Error(`Invalid index '${index}'.`);
@@ -133,8 +159,29 @@ function PageLayout_child({ index }: SlotComponentProps<StackSchema, "child">) {
 function PageTitle_Adapter() {
   return (
     <MuiTypography
-      text={useContext(Scene$articleContext).name}
+      text={translateMessage(
+        useContext(FluentBundleContext),
+        "PageTitle",
+        "text",
+        {},
+      )}
       variant={"h3"}
+    />
+  );
+}
+
+function UserGreeting_Adapter() {
+  return (
+    <MuiTypography
+      text={translateMessage(
+        useContext(FluentBundleContext),
+        "UserGreeting",
+        "text",
+        {
+          user: useContext(Scene$usernameContext),
+        },
+      )}
+      variant={"subtitle1"}
     />
   );
 }
@@ -189,7 +236,32 @@ function ArticlesTable_Adapter() {
   return (
     <MuiTable
       rows={useContext(ArticleRepository$articlesContext)}
-      header={["Id", "Name", "Price", "Action"]}
+      header={[
+        translateMessage(
+          useContext(FluentBundleContext),
+          "ArticlesTable",
+          "header-0",
+          {},
+        ),
+        translateMessage(
+          useContext(FluentBundleContext),
+          "ArticlesTable",
+          "header-1",
+          {},
+        ),
+        translateMessage(
+          useContext(FluentBundleContext),
+          "ArticlesTable",
+          "header-2",
+          {},
+        ),
+        translateMessage(
+          useContext(FluentBundleContext),
+          "ArticlesTable",
+          "header-3",
+          {},
+        ),
+      ]}
       align={[undefined, undefined, "right", undefined]}
       slots={{
         column: { size: 4, Component: ArticlesTable_column },
@@ -447,4 +519,65 @@ function UpdateArticleButton_Adapter() {
       onPress={useContext(EditArticleBloc$saveContext)}
     />
   );
+}
+
+//
+// Fluent
+//
+
+const ftlCache = new Map<string, Promise<string>>();
+
+const FluentBundleContext = createContext<FluentBundle | null>(null);
+
+function FluentBundleProvider({ children }: { children: ReactNode }) {
+  const locale = useLocale();
+  const [bundle, setBundle] = useState<FluentBundle | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    let ftlPromise = ftlCache.get(locale);
+    if (!ftlPromise) {
+      switch (locale) {
+        case "en":
+          ftlPromise = fetch(ftlUrlEn).then((r) => r.text());
+          break;
+        case "de":
+          ftlPromise = fetch(ftlUrlDe).then((r) => r.text());
+          break;
+        default:
+          throw new Error(`Unsupported locale: '${locale}'`);
+      }
+      ftlCache.set(locale, ftlPromise);
+    }
+    ftlPromise.then((source) => {
+      if (cancelled) return;
+      const bundle = new FluentBundle(locale);
+      bundle.addResource(new FluentResource(source));
+      setBundle(bundle);
+    });
+
+    return () => {
+      cancelled = true;
+      setBundle(null);
+    };
+  }, [locale]);
+
+  return (
+    <FluentBundleContext.Provider value={bundle}>
+      {children}
+    </FluentBundleContext.Provider>
+  );
+}
+
+function translateMessage(
+  bundle: FluentBundle | null,
+  nodeId: string,
+  expressionKey: string,
+  args?: Record<string, FluentVariable>,
+): string {
+  const pattern = bundle?.getMessage(nodeId)?.attributes?.[expressionKey];
+  return pattern
+    ? bundle!.formatPattern(pattern, args, [])
+    : `${nodeId}.${expressionKey}`;
 }

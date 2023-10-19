@@ -11,6 +11,7 @@ import {
   ProjectConfig,
   parseProjectConfig,
 } from "../../../shared/project-config.js";
+import { generateFtl, generateLocaleContext } from "../../code-gen/fluent.js";
 
 export type WorkspaceState =
   | "initializing"
@@ -140,6 +141,30 @@ export class Workspace {
     const tsxFileWritable = await tsxFile.createWritable();
     await tsxFileWritable.write(sceneTsx);
     await tsxFileWritable.close();
+
+    if (document.projectConfig.locales) {
+      await this.rootDirectory
+        .getFileHandle("locale-context.tsx", { create: true })
+        .then((f) => f.createWritable())
+        .then(async (w) => {
+          await w.write(generateLocaleContext(document.projectConfig.locales!));
+          await w.close();
+        });
+
+      const localeDirectory = await sceneDirectory.getDirectoryHandle(
+        "locale",
+        { create: true },
+      );
+      for (const locale of document.projectConfig.locales) {
+        await localeDirectory
+          .getFileHandle(`${locale}.ftl`, { create: true })
+          .then((f) => f.createWritable())
+          .then(async (w) => {
+            await w.write(generateFtl(document, locale));
+            await w.close();
+          });
+      }
+    }
   }
 
   async scanFileSystem() {

@@ -1,0 +1,9 @@
+PageTitle =
+  .text = Artikelverwaltung
+UserGreeting =
+  .text = Willkommen, {$user}!
+ArticlesTable =
+  .header-0 = ID
+  .header-1 = Name
+  .header-2 = Preis
+  .header-3 = Aktion

@@ -1,5 +1,7 @@
 import * as $Map from "@pschiffmann/std/map";
 
+export { NameResolver as default };
+
 export class NameResolver {
   #namesCounter = new Map<string, number>();
 
@@ -15,6 +17,9 @@ export class NameResolver {
    * The import statement
    * `import { Button as Button2 } from "#initiative/definitions.js";` gets
    * stored as `{ "#initiative/definitions.js": { "Button": "Button2" } }`.
+   *
+   * The import statement `import Button from "@mui/material/Button";` gets
+   * stored as `{ "@mui/material/Button": { "default": "Button" } }`.
    */
   #importedBindings = new Map<string, Map<string, string>>();
 
@@ -41,6 +46,25 @@ export class NameResolver {
       return importsWithSameName === 0
         ? exportName
         : `${exportName}${importsWithSameName + 1}`;
+    });
+  }
+
+  importDefault({
+    moduleName,
+    as,
+  }: {
+    moduleName: string;
+    as: string;
+  }): string {
+    const moduleImports = $Map.putIfAbsent(
+      this.#importedBindings,
+      moduleName,
+      () => new Map(),
+    );
+    return $Map.putIfAbsent(moduleImports, "default", () => {
+      const importsWithSameName = this.#namesCounter.get(as) ?? 0;
+      this.#namesCounter.set(as, importsWithSameName + 1);
+      return importsWithSameName === 0 ? as : `${as}${importsWithSameName + 1}`;
     });
   }
 

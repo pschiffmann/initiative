@@ -11,6 +11,17 @@
         "debugValueName": "article",
         "selectors": []
       }
+    },
+    "username": {
+      "type": {
+        "type": "string"
+      },
+      "doc": "Current user.",
+      "debugValue": {
+        "type": "json-literal",
+        "schemaName": "@initiativejs/std::string",
+        "value": "pschiffmann"
+      }
     }
   },
   "rootNode": "Translations",
@@ -41,33 +52,56 @@
           "schemaName": "@initiativejs/std::number",
           "value": 3
         },
-        "alignSelf::1": {
+        "alignSelf::2": {
           "type": "enum-value",
           "value": "end"
         }
       },
       "slots": {
         "child::0": "PageTitle",
-        "child::1": "NewArticleDialog",
-        "child::2": "ArticlesTable"
+        "child::1": "UserGreeting",
+        "child::2": "NewArticleDialog",
+        "child::3": "ArticlesTable"
       }
     },
     "PageTitle": {
       "type": "@pschiffmann/initiative-demo::MuiTypography",
       "inputs": {
         "text": {
-          "type": "scene-input",
-          "inputName": "article",
-          "selectors": [
-            {
-              "type": "property",
-              "propertyName": "name"
-            }
-          ]
+          "type": "fluent-message",
+          "messages": {
+            "en": "Article Management",
+            "de": "Artikelverwaltung"
+          },
+          "args": {}
         },
         "variant": {
           "type": "enum-value",
           "value": "h3"
+        }
+      },
+      "slots": {}
+    },
+    "UserGreeting": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "fluent-message",
+          "messages": {
+            "en": "Welcome, {$user}!",
+            "de": "Willkommen, {$user}!"
+          },
+          "args": {
+            "user": {
+              "type": "scene-input",
+              "inputName": "username",
+              "selectors": []
+            }
+          }
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "subtitle1"
         }
       },
       "slots": {}
@@ -96,24 +130,36 @@
           "selectors": []
         },
         "header::0": {
-          "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
-          "value": "Id"
+          "type": "fluent-message",
+          "messages": {
+            "en": "ID",
+            "de": "ID"
+          },
+          "args": {}
         },
         "header::1": {
-          "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
-          "value": "Name"
+          "type": "fluent-message",
+          "messages": {
+            "en": "Name",
+            "de": "Name"
+          },
+          "args": {}
         },
         "header::2": {
-          "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
-          "value": "Price"
+          "type": "fluent-message",
+          "messages": {
+            "en": "Price",
+            "de": "Preis"
+          },
+          "args": {}
         },
         "header::3": {
-          "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
-          "value": "Action"
+          "type": "fluent-message",
+          "messages": {
+            "en": "Action",
+            "de": "Aktion"
+          },
+          "args": {}
         },
         "align::2": {
           "type": "enum-value",

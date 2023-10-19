@@ -28,6 +28,10 @@ export function generateSceneWithSceneInputs(
       exportName: "createContext",
     });
 
+  const enableFtl = !!document.projectConfig.locales;
+  const FluentBundleProvider =
+    enableFtl && nameResolver.declareName("FluentBundleProvider");
+
   const componentName = sanitizeSceneName(document.name);
 
   return dedent`
@@ -58,15 +62,17 @@ export function generateSceneWithSceneInputs(
     }
 
     function ${Scene}({
-      ${[...document.sceneInputs.keys()].join("\n")}
+      ${[...document.sceneInputs.keys()].map((name) => `${name},`).join("\n")}
     }: ${SceneProps}) {
       return (
+        ${enableFtl ? `<${FluentBundleProvider}>` : ""}
         ${generateContextProviderJsx(
           nameResolver,
           "Scene",
           [...document.sceneInputs.keys()],
           `<${document.getRootNodeId()!}_Adapter />`,
         )}
+        ${enableFtl ? `</${FluentBundleProvider}>` : ""}
       );
     }
     `;

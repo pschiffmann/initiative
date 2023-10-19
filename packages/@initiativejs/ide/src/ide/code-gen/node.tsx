@@ -1,12 +1,14 @@
 import {
   EnumValueExpression,
   Expression,
+  FluentMessageExpression,
   JsonLiteralExpression,
   MemberAccessExpression,
   NodeData,
   SceneDocument,
 } from "#shared";
 import { NodeDefinition } from "@initiativejs/schema";
+import { dedent } from "@pschiffmann/std/dedent";
 import {
   generateContextProviderJsx,
   getNodeOutputContextName,
@@ -112,7 +114,10 @@ function generateNodeAdapter(
       if (expression === null) {
         inputResultsMap.set(inputName, "undefined");
       } else {
-        inputResultsMap.set(inputName, provideValue(expression, nameResolver));
+        inputResultsMap.set(
+          inputName,
+          provideValue(nodeData.id, inputName, expression, nameResolver),
+        );
       }
     } else {
       if (!inputResultsMap.has(inputName)) {
@@ -125,7 +130,14 @@ function generateNodeAdapter(
       if (expression === null) {
         arraycheck.push("undefined");
       } else {
-        arraycheck.push(provideValue(expression, nameResolver));
+        arraycheck.push(
+          provideValue(
+            nodeData.id,
+            `${inputName}-${index}`,
+            expression,
+            nameResolver,
+          ),
+        );
       }
     }
   });
@@ -293,6 +305,8 @@ function generateSlotComponent(
 }
 
 function provideValue(
+  nodeId: string,
+  fluentExpressionKey: string,
   expression: Expression,
   nameResolver: NameResolver,
 ): string {
@@ -301,6 +315,34 @@ function provideValue(
     expression instanceof EnumValueExpression
   ) {
     return JSON.stringify(expression.value);
+  }
+  if (expression instanceof FluentMessageExpression) {
+    const useContext = nameResolver.importBinding({
+      moduleName: "react",
+      exportName: "useContext",
+    });
+    const translateMessage = nameResolver.declareName("translateMessage");
+    const FluentBundleContext = nameResolver.declareName("FluentBundleContext");
+    return dedent`
+      ${translateMessage}(
+        ${useContext}(${FluentBundleContext}),
+        "${nodeId}",
+        "${fluentExpressionKey}",
+        {
+          ${Object.entries(expression.args)
+            .map(([argName, expr]) => {
+              const value = provideValue(
+                nodeId,
+                `${fluentExpressionKey}-${argName}`,
+                expr!,
+                nameResolver,
+              );
+              return `${JSON.stringify(argName)}: ${value},`;
+            })
+            .join("\n")}
+        }
+      )
+      `;
   }
   if (expression instanceof MemberAccessExpression) {
     const useContext = nameResolver.importBinding({
@@ -334,7 +376,16 @@ function provideValue(
 
       const args = expression.args
         .slice(i, (i += selector.memberType.parameters.length))
-        .map((arg) => (arg ? provideValue(arg, nameResolver) : "undefined"));
+        .map((arg) =>
+          arg
+            ? provideValue(
+                nodeId,
+                `${fluentExpressionKey}-${expression.parameterPrefix}${i + 1}`,
+                arg,
+                nameResolver,
+              )
+            : "undefined",
+        );
       switch (selector.type) {
         case "method":
           return `${target}.${selector.methodName}(${args})`;
