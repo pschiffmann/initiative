@@ -18,11 +18,12 @@ import { WorkspaceManager } from "./tools/workspace-manager/index.js";
 const cls = bemClasses("initiative-editor");
 
 export interface AppProps {
+  projectId: string;
   definitions: Definitions;
   formatJsFile?(source: string): string | Promise<string>;
 }
 
-export function App({ definitions, formatJsFile }: AppProps) {
+export function App({ projectId, definitions, formatJsFile }: AppProps) {
   const [locale, setLocale] = useState("");
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export function App({ definitions, formatJsFile }: AppProps) {
           <div ref={rootRef} className={cls.block()}>
             <WorkspaceManager
               className={cls.element("workspace-manager")}
+              projectId={projectId}
               formatJsFile={formatJsFile}
               document={document}
               onDocumentChange={(document) => {

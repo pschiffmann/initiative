@@ -12,6 +12,7 @@ const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
     <Editor
+      projectId="@pschiffmann/initiative-demo"
       definitions={definitions}
       formatJsFile={(source) =>
         format(source, {
