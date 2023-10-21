@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { useCallback, useState } from "react";
 import { Article } from "../../types.js";
 import { ArticleRepositorySchema } from "./article-repository.schema.js";

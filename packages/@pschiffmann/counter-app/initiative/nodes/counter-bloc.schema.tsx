@@ -1,4 +1,4 @@
-import { NodeSchema, t } from "@initiativejs/schema";
+import { NodeSchema, t } from "@initiative.dev/schema";
 
 export const CounterBlocSchema = new NodeSchema(
   "@pschiffmann/counter-app::CounterBloc",

@@ -1,4 +1,4 @@
-import { resolveDefinitions, t } from "@initiativejs/schema";
+import { resolveDefinitions, t } from "@initiative.dev/schema";
 import { article } from "./types.js";
 
 // Prevent VS Code `organize imports` command from removing this import.
@@ -8,8 +8,8 @@ const errors: string[] = [];
 export const definitions = resolveDefinitions(
   [
     [
-      "@initiativejs/template-std/json-literals",
-      await import("@initiativejs/template-std/json-literals"),
+      "@initiative.dev/lib-core/json-literals",
+      await import("@initiative.dev/lib-core/json-literals"),
     ],
     ["#initiative/nodes/index.js", await import("#initiative/nodes/index.js")],
     [

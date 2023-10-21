@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { useMemo, useState } from "react";
 import { CounterBlocSchema } from "./counter-bloc.schema.js";
 

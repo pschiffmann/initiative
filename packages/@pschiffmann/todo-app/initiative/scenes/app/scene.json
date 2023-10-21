@@ -9,7 +9,7 @@
       }
     },
     "Layout": {
-      "type": "@initiativejs/template-mui-material::FlexContainer",
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
       "inputs": {
         "backgroundColor": {
           "type": "string-literal",
@@ -43,7 +43,7 @@
       }
     },
     "Header": {
-      "type": "@initiativejs/template-mui-material::FlexContainer",
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
       "inputs": {
         "flexDirection": {
           "type": "string-literal",
@@ -73,7 +73,7 @@
       }
     },
     "EmptStateSwitch": {
-      "type": "@initiativejs/template-std::Switch",
+      "type": "@initiative.dev/lib-core::Switch",
       "inputs": {
         "showIf::1": {
           "type": "boolean-literal",
@@ -83,7 +83,7 @@
           "type": "function-call",
           "fn": {
             "type": "library-member",
-            "libraryName": "@initiativejs/template-std::Operators",
+            "libraryName": "@initiative.dev/lib-core::Operators",
             "memberName": "gt"
           },
           "args": [
@@ -91,7 +91,7 @@
               "type": "function-call",
               "fn": {
                 "type": "library-member",
-                "libraryName": "@initiativejs/template-std::Array",
+                "libraryName": "@initiative.dev/lib-core::Array",
                 "memberName": "length"
               },
               "args": [
@@ -115,7 +115,7 @@
       }
     },
     "NewTodoDialog": {
-      "type": "@initiativejs/template-mui-material::Dialog",
+      "type": "@initiative.dev/lib-mui-material::Dialog",
       "inputs": {
         "title": {
           "type": "string-literal",
@@ -128,7 +128,7 @@
       }
     },
     "Title": {
-      "type": "@initiativejs/template-mui-material::Typography",
+      "type": "@initiative.dev/lib-mui-material::Typography",
       "inputs": {
         "text": {
           "type": "string-literal",
@@ -142,13 +142,13 @@
       "slots": {}
     },
     "TodoCount": {
-      "type": "@initiativejs/template-mui-material::Typography",
+      "type": "@initiative.dev/lib-mui-material::Typography",
       "inputs": {
         "text": {
           "type": "function-call",
           "fn": {
             "type": "library-member",
-            "libraryName": "@initiativejs/template-std::String",
+            "libraryName": "@initiative.dev/lib-core::String",
             "memberName": "concat"
           },
           "args": [
@@ -160,7 +160,7 @@
               "type": "function-call",
               "fn": {
                 "type": "library-member",
-                "libraryName": "@initiativejs/template-std::Array",
+                "libraryName": "@initiative.dev/lib-core::Array",
                 "memberName": "length"
               },
               "args": [
@@ -186,7 +186,7 @@
       "slots": {}
     },
     "ToggleCompletedButton": {
-      "type": "@initiativejs/template-mui-material::IconButton",
+      "type": "@initiative.dev/lib-mui-material::IconButton",
       "inputs": {
         "color": {
           "type": "string-literal",
@@ -200,7 +200,7 @@
           "type": "function-call",
           "fn": {
             "type": "library-member",
-            "libraryName": "@initiativejs/template-std::Operators",
+            "libraryName": "@initiative.dev/lib-core::Operators",
             "memberName": "ternary"
           },
           "args": [
@@ -232,7 +232,7 @@
       "slots": {}
     },
     "TodoList": {
-      "type": "@initiativejs/template-mui-material::CheckList",
+      "type": "@initiative.dev/lib-mui-material::CheckList",
       "inputs": {
         "items": {
           "type": "node-output",
@@ -270,7 +270,7 @@
       }
     },
     "EmptyStateContainer": {
-      "type": "@initiativejs/template-mui-material::FlexContainer",
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
       "inputs": {
         "padding": {
           "type": "string-literal",
@@ -282,7 +282,7 @@
       }
     },
     "OpenNewTodoDialog": {
-      "type": "@initiativejs/template-mui-material::Button",
+      "type": "@initiative.dev/lib-mui-material::Button",
       "inputs": {
         "label": {
           "type": "string-literal",
@@ -327,7 +327,7 @@
       }
     },
     "DeleteTodo": {
-      "type": "@initiativejs/template-mui-material::IconButton",
+      "type": "@initiative.dev/lib-mui-material::IconButton",
       "inputs": {
         "label": {
           "type": "string-literal",
@@ -370,7 +370,7 @@
       "slots": {}
     },
     "EmptyStateText": {
-      "type": "@initiativejs/template-mui-material::Typography",
+      "type": "@initiative.dev/lib-mui-material::Typography",
       "inputs": {
         "text": {
           "type": "string-literal",
@@ -384,7 +384,7 @@
       "slots": {}
     },
     "NewTodoFormLayout": {
-      "type": "@initiativejs/template-mui-material::FlexContainer",
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
       "inputs": {
         "gap": {
           "type": "number-literal",
@@ -405,7 +405,7 @@
       }
     },
     "NewTodoDescription": {
-      "type": "@initiativejs/template-mui-material::TextField",
+      "type": "@initiative.dev/lib-mui-material::TextField",
       "inputs": {
         "label": {
           "type": "string-literal",
@@ -425,7 +425,7 @@
       "slots": {}
     },
     "NewTodoSubmitButton": {
-      "type": "@initiativejs/template-mui-material::Button",
+      "type": "@initiative.dev/lib-mui-material::Button",
       "inputs": {
         "label": {
           "type": "string-literal",

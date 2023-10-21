@@ -1,4 +1,4 @@
-import { NodeSchema, t } from "@initiativejs/schema";
+import { NodeSchema, t } from "@initiative.dev/schema";
 
 export const I18nSchema = new NodeSchema("@pschiffmann/initiative-demo::I18n", {
   outputs: {

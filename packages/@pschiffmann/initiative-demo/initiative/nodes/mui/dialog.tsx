@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { useMemo, useState } from "react";
 import { MuiDialogSchema } from "./dialog.schema.js";

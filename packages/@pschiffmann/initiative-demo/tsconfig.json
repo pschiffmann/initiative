@@ -1,9 +1,9 @@
 {
   "extends": "@pschiffmann/std/tsconfig-base.json",
   "references": [
-    { "path": "../../@initiativejs/ide" },
-    { "path": "../../@initiativejs/schema" },
-    { "path": "../../@initiativejs/template-std" }
+    { "path": "../../@initiative.dev/ide" },
+    { "path": "../../@initiative.dev/schema" },
+    { "path": "../../@initiative.dev/lib-core" }
   ],
   "include": ["initiative/**/*", "src/**/*"],
   "compilerOptions": {

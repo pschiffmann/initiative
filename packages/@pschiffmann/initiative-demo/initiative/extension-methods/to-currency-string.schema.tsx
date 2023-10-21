@@ -1,4 +1,4 @@
-import { ExtensionMethodSchema, t } from "@initiativejs/schema";
+import { ExtensionMethodSchema, t } from "@initiative.dev/schema";
 
 export const toCurrencyStringSchema = new ExtensionMethodSchema({
   name: "@pschiffmann/initiative-demo::toCurrencyString",

@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { Box, Stack as MuiStack } from "@mui/material";
 import { StackSchema } from "./stack.schema.js";
 

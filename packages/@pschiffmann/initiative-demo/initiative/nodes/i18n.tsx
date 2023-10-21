@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { I18nSchema } from "./i18n.schema.js";
 
 export function I18n({

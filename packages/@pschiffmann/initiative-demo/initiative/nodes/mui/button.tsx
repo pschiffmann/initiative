@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { Button } from "@mui/material";
 import { MuiButtonSchema } from "./button.schema.js";
 

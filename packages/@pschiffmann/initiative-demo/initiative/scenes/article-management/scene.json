@@ -19,7 +19,7 @@
       "doc": "Current user.",
       "debugValue": {
         "type": "json-literal",
-        "schemaName": "@initiativejs/std::string",
+        "schemaName": "@initiative.dev/std::string",
         "value": "pschiffmann"
       }
     }
@@ -49,7 +49,7 @@
         },
         "gap": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::number",
+          "schemaName": "@initiative.dev/std::number",
           "value": 3
         },
         "alignSelf::2": {
@@ -111,7 +111,7 @@
       "inputs": {
         "title": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "New Article"
         }
       },
@@ -178,7 +178,7 @@
       "inputs": {
         "label": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Add new"
         },
         "variant": {
@@ -199,7 +199,7 @@
       "inputs": {
         "text": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Under construction"
         }
       },
@@ -285,7 +285,7 @@
       "inputs": {
         "title": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Edit Article"
         }
       },
@@ -299,7 +299,7 @@
       "inputs": {
         "label": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Edit"
         },
         "onPress": {
@@ -340,7 +340,7 @@
         },
         "gap": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::number",
+          "schemaName": "@initiative.dev/std::number",
           "value": 3
         }
       },
@@ -355,7 +355,7 @@
       "inputs": {
         "label": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Name"
         },
         "value": {
@@ -378,7 +378,7 @@
       "inputs": {
         "label": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Price"
         },
         "value": {
@@ -401,7 +401,7 @@
       "inputs": {
         "label": {
           "type": "json-literal",
-          "schemaName": "@initiativejs/std::string",
+          "schemaName": "@initiative.dev/std::string",
           "value": "Save"
         },
         "onPress": {

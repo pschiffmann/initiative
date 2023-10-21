@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { TryCallSchema } from "./try-call.schema.js";
 
 export function TryCall({

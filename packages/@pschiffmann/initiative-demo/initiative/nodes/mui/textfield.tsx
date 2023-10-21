@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { TextField } from "@mui/material";
 import { MuiTextFieldSchema } from "./textfield.schema.js";
 

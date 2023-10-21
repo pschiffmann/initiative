@@ -1,9 +1,9 @@
-import { Editor } from "@initiativejs/ide";
+import { Editor } from "@initiative.dev/ide";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { definitions } from "./definitions.js";
 
-import "@initiativejs/ide/styles.css";
+import "@initiative.dev/ide/styles.css";
 
 const root = createRoot(document.querySelector("#root")!);
 root.render(

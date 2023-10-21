@@ -29,7 +29,7 @@ import {
   type OutputTypes,
   type OutputsProviderProps,
   type SlotComponentProps,
-} from "@initiativejs/schema/code-gen-helpers";
+} from "@initiative.dev/schema/code-gen-helpers";
 import {
   createContext,
   useContext,

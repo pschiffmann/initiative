@@ -1,4 +1,4 @@
-import { InferLibraryMembers, LibrarySchema, t } from "@initiativejs/schema";
+import { InferLibraryMembers, LibrarySchema, t } from "@initiative.dev/schema";
 
 export interface TodoItem {
   readonly id: string;

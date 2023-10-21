@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { useCallback, useState } from "react";
 import { TodoItem } from "../libraries/todo.schema.js";
 import { TodoRepositoryBlocSchema } from "./todo-repository-bloc.schema.js";

@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { RepeatSchema } from "./repeat.schema.js";
 
 export function Repeat({

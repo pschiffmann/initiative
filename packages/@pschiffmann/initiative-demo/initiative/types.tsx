@@ -1,4 +1,4 @@
-import { t } from "@initiativejs/schema";
+import { t } from "@initiative.dev/schema";
 
 export interface Article {
   id: number;

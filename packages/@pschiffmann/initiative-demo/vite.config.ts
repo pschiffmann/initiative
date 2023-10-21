@@ -9,7 +9,7 @@ export default defineConfig({
     hmr: false,
   },
   build: {
-    // Set to `false` to check whether imports from `@initiativejs/schema` (e.g.
+    // Set to `false` to check whether imports from `@initiative.dev/schema` (e.g.
     // `NodeSchema`) are emitted into the bundle.
     minify: false,
   },

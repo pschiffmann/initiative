@@ -1,17 +1,17 @@
-import { resolveDefinitions } from "@initiativejs/schema";
+import { resolveDefinitions } from "@initiative.dev/schema";
 
 export const [, definitions] = resolveDefinitions([
   [
-    "@initiativejs/template-mui-material/nodes",
-    await import("@initiativejs/template-mui-material/nodes"),
+    "@initiative.dev/lib-mui-material/nodes",
+    await import("@initiative.dev/lib-mui-material/nodes"),
   ],
   [
-    "@initiativejs/template-std/libraries",
-    await import("@initiativejs/template-std/libraries"),
+    "@initiative.dev/lib-core/libraries",
+    await import("@initiative.dev/lib-core/libraries"),
   ],
   [
-    "@initiativejs/template-std/nodes",
-    await import("@initiativejs/template-std/nodes"),
+    "@initiative.dev/lib-core/nodes",
+    await import("@initiative.dev/lib-core/nodes"),
   ],
   [
     "#initiative/libraries/index.js",

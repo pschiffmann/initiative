@@ -1,4 +1,4 @@
-import { Stage } from "@initiativejs/ide";
+import { Stage } from "@initiative.dev/ide";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "../src/components/theme-provider.js";

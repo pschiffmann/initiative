@@ -1,4 +1,4 @@
-import { ExtensionMethodType } from "@initiativejs/schema";
+import { ExtensionMethodType } from "@initiative.dev/schema";
 import { toCurrencyStringSchema } from "./to-currency-string.schema.js";
 
 export const toCurrencyString: ExtensionMethodType<toCurrencyStringSchema> = (

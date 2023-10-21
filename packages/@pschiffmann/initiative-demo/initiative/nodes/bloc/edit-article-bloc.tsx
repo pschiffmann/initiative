@@ -1,4 +1,4 @@
-import { NodeComponentProps } from "@initiativejs/schema";
+import { NodeComponentProps } from "@initiative.dev/schema";
 import { useState } from "react";
 import { toCurrencyString } from "../../extension-methods/to-currency-string.js";
 import { EditArticleBlocSchema } from "./edit-article-bloc.schema.js";

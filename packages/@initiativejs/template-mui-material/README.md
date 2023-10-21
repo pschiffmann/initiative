@@ -1,1 +1,0 @@
-# @initiativejs/template-mui-material

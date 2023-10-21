@@ -1,4 +1,4 @@
-import { NodeSchema, t, trimDocText } from "@initiativejs/schema";
+import { NodeSchema, t, trimDocText } from "@initiative.dev/schema";
 import { article } from "../../types.js";
 
 export const ArticleRepositorySchema = new NodeSchema(

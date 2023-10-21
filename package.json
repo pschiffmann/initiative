@@ -2,7 +2,7 @@
   "name": "initiative-monorepo",
   "private": true,
   "workspaces": [
-    "packages/@initiativejs/*",
+    "packages/@initiative.dev/*",
     "packages/@pschiffmann/*"
   ],
   "scripts": {
