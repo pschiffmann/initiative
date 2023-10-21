@@ -5,16 +5,9 @@ export function encodeFtl(id: string, message: string): string {
   const result =
     lines.length === 1
       ? [`${id} = ${message}`]
-      : [
-          `${id} =`,
-          ...lines
-            .map((l) => l.replaceAll(escapePattern, (m) => `{"${m[0]}"}`))
-            .map((l) => `  ${l}`),
-        ];
+      : [`${id} =`, ...lines.map((l) => `  ${l}`)];
   return (id.startsWith(".") ? result.map((l) => `  ${l}`) : result).join("\n");
 }
-
-const escapePattern = /(?<=^ *)[[*.]|[{}]/g;
 
 export function resolveFluentVariables(
   pattern: Pattern,
