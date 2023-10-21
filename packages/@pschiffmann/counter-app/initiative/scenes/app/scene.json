@@ -1,0 +1,98 @@
+{
+  "inputs": {},
+  "rootNode": "CounterBloc",
+  "nodes": {
+    "CounterBloc": {
+      "type": "@pschiffmann/counter-app::CounterBloc",
+      "inputs": {},
+      "slots": {
+        "child": "Layout"
+      }
+    },
+    "Layout": {
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
+      "inputs": {
+        "gap": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 1
+        },
+        "padding": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "16px"
+        }
+      },
+      "slots": {
+        "child::0": "Title",
+        "child::1": "CounterValue",
+        "child::2": "IncreaseButton"
+      }
+    },
+    "Title": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Counter App Demo"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "h4"
+        }
+      },
+      "slots": {}
+    },
+    "CounterValue": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "fluent-message",
+          "messages": {
+            "en": "You pressed the button { $counter ->\n  [one] 1 time.\n *[other] {$counter} times.\n}"
+          },
+          "args": {
+            "counter": {
+              "type": "node-output",
+              "nodeId": "CounterBloc",
+              "outputName": "counterValue",
+              "selectors": []
+            }
+          }
+        }
+      },
+      "slots": {}
+    },
+    "IncreaseButton": {
+      "type": "@initiative.dev/lib-mui-material::Button",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Increase"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "contained"
+        },
+        "color": {
+          "type": "enum-value",
+          "value": "primary"
+        },
+        "startIcon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "add"
+        },
+        "onPress": {
+          "type": "node-output",
+          "nodeId": "CounterBloc",
+          "outputName": "increaseCounter",
+          "selectors": []
+        }
+      },
+      "slots": {}
+    }
+  }
+}

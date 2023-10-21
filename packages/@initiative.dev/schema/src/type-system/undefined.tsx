@@ -13,13 +13,13 @@ class InitiativeUndefined extends Type<undefined> {
 
 const instance = new InitiativeUndefined();
 
-/**
- * @deprecated Use `t.optional()` instead.
- */
 function initiativeUndefined(): InitiativeUndefined {
   return instance;
 }
 
+/**
+ * @deprecated
+ */
 function initiativeOptional<T extends Type>(
   type: T,
 ): t.Union<readonly [T, t.Undefined]> {

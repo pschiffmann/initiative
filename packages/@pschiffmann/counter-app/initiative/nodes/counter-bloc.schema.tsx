@@ -13,8 +13,8 @@ export const CounterBlocSchema = new NodeSchema(
       resetCounter: {
         type: t.function()()(),
       },
-      counterLabel: {
-        type: t.string(),
+      counterValue: {
+        type: t.number(),
       },
     },
     slots: {

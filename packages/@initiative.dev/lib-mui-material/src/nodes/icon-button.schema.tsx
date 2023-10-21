@@ -11,27 +11,27 @@ export const IconButtonSchema = new NodeSchema(
         type: t.string(),
       },
       color: {
-        type: t.optional(
-          t.union(
-            t.string("primary"),
-            t.string("secondary"),
-            t.string("success"),
-            t.string("error"),
-            t.string("info"),
-            t.string("warning"),
-          ),
+        type: t.union(
+          t.string("primary"),
+          t.string("secondary"),
+          t.string("success"),
+          t.string("error"),
+          t.string("info"),
+          t.string("warning"),
         ),
+        optional: true,
       },
       size: {
-        type: t.optional(
-          t.union(t.string("small"), t.string("medium"), t.string("large")),
-        ),
+        type: t.union(t.string("small"), t.string("medium"), t.string("large")),
+        optional: true,
       },
       onPress: {
-        type: t.optional(t.function()()()),
+        type: t.function()()(),
+        optional: true,
       },
       disabled: {
-        type: t.optional(t.boolean()),
+        type: t.boolean(),
+        optional: true,
       },
     },
   },

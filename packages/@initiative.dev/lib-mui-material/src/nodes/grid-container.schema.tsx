@@ -8,20 +8,24 @@ const flexAlign = t.union(
 );
 
 export const FlexContainerSchema = new NodeSchema(
-  "@initiative.dev/lib-mui-material",
+  "@initiative.dev/lib-mui-material::GridContainer",
   {
     inputs: {
       flexDirection: {
-        type: t.optional(t.union(t.string("column"), t.string("row"))),
+        type: t.union(t.string("column"), t.string("row")),
+        optional: true,
       },
       alignItems: {
-        type: t.optional(flexAlign),
+        type: flexAlign,
+        optional: true,
       },
       gap: {
-        type: t.optional(t.number()),
+        type: t.number(),
+        optional: true,
       },
       padding: {
-        type: t.optional(t.string()),
+        type: t.string(),
+        optional: true,
       },
       // backgroundColor: {
       //   type: t.optional(t.string())
@@ -31,10 +35,12 @@ export const FlexContainerSchema = new NodeSchema(
       child: {
         inputs: {
           alignSelf: {
-            type: t.optional(flexAlign),
+            type: flexAlign,
+            optional: true,
           },
           margin: {
-            type: t.optional(t.string()),
+            type: t.string(),
+            optional: true,
           },
         },
       },

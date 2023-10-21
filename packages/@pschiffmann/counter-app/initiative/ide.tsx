@@ -8,6 +8,6 @@ import "@initiative.dev/ide/styles.css";
 const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
-    <Editor definitions={definitions} />
+    <Editor projectId="@pschiffmann/counter-app" definitions={definitions} />
   </StrictMode>,
 );

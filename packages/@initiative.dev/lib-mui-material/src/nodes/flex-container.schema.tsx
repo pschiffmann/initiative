@@ -13,19 +13,24 @@ export const FlexContainerSchema = new NodeSchema(
   {
     inputs: {
       flexDirection: {
-        type: t.optional(t.union(t.string("column"), t.string("row"))),
+        type: t.union(t.string("column"), t.string("row")),
+        optional: true,
       },
       alignItems: {
-        type: t.optional(flexAlign),
+        type: flexAlign,
+        optional: true,
       },
       justifyContent: {
-        type: t.optional(flexAlign),
+        type: flexAlign,
+        optional: true,
       },
       gap: {
-        type: t.optional(t.number()),
+        type: t.number(),
+        optional: true,
       },
       padding: {
-        type: t.optional(t.string()),
+        type: t.string(),
+        optional: true,
       },
       ...surfaceInputs,
     },
@@ -33,10 +38,12 @@ export const FlexContainerSchema = new NodeSchema(
       child: {
         inputs: {
           alignSelf: {
-            type: t.optional(flexAlign),
+            type: flexAlign,
+            optional: true,
           },
           margin: {
-            type: t.optional(t.string()),
+            type: t.string(),
+            optional: true,
           },
         },
       },

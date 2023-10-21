@@ -16,7 +16,7 @@ export function CounterBloc({
       increaseCounter={increaseCounter}
       decreaseCounter={decreaseCounter}
       resetCounter={resetCounter}
-      counterLabel={`Counter value: ${counter}`}
+      counterValue={counter}
     >
       <slots.child.Component />
     </OutputsProvider>

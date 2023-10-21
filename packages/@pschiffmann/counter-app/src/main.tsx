@@ -1,6 +1,6 @@
+import { App } from "#initiative/scenes/app/scene.js";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./components/app.js";
 import { ThemeProvider } from "./components/theme-provider.js";
 
 const root = createRoot(document.querySelector("#root")!);
