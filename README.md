@@ -1,9 +1,5 @@
 # InitiativeJS
 
-# Initiative.js
-
-<!-- The React framework that let's you separate your business logic, UI state, and style props, then compose everything without writing any boilerplate code. -->
-
 A React framework for professional developers to build your business logic in isolation, then compose your app UI with zero boilerplate code.
 
 **[Get started](./doc/01-installation.md)** | **[API docs](./doc/api-reference.md)**

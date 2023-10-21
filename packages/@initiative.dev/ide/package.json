@@ -1,7 +1,16 @@
 {
   "name": "@initiative.dev/ide",
   "version": "0.1.0",
-  "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pschiffmann/initiative",
+    "directory": "packages/@initiative.dev/ide"
+  },
+  "files": [
+    "dist/**",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "scripts": {
     "sass": "sass styles/main.scss dist/ide/styles.css -w"

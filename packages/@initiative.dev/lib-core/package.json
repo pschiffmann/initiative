@@ -1,7 +1,16 @@
 {
   "name": "@initiative.dev/lib-core",
   "version": "0.1.0",
-  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pschiffmann/initiative",
+    "directory": "packages/@initiative.dev/lib-core"
+  },
+  "files": [
+    "dist/**",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "exports": {
     "./nodes": "./dist/nodes/index.js",
