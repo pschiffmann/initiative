@@ -1,7 +1,7 @@
 import * as base64url from "@pschiffmann/std/base64url";
 import { algorithm, publicKeyJwk } from "./keys.js";
 
-const publicKey = await crypto.subtle.importKey(
+const publicKeyPromise = crypto.subtle.importKey(
   "jwk",
   publicKeyJwk,
   algorithm,
@@ -29,6 +29,7 @@ export async function decodeLicenseKey(
   if (parts.length !== 3) return null;
   const [header64, payload64, signature64] = parts;
   try {
+    const publicKey = await publicKeyPromise;
     const verified = await crypto.subtle.verify(
       publicKey.algorithm.name,
       publicKey,
