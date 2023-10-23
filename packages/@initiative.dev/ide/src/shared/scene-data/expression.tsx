@@ -135,6 +135,14 @@ export interface ResolveExpressionContext extends ValidateExpressionContext {
 export abstract class Expression {
   constructor(readonly hasErrors: boolean) {}
 
+  referencesNode(nodeId: string): boolean {
+    return false;
+  }
+
+  replaceNodeReferences(oldId: string, newId: string): ExpressionJson {
+    return this.toJson();
+  }
+
   abstract toJson(): ExpressionJson;
 
   static fromJson(
@@ -303,6 +311,18 @@ export class FluentMessageExpression extends Expression {
 
   readonly messages: ObjectMap<string>;
   readonly args: ObjectMap<Expression | null>;
+
+  override referencesNode(nodeId: string): boolean {
+    return Object.values(this.args).some((arg) => arg?.referencesNode(nodeId));
+  }
+
+  override replaceNodeReferences(oldId: string, newId: string): ExpressionJson {
+    const args: Record<string, ExpressionJson> = {};
+    for (const [v, expr] of Object.entries(this.args)) {
+      if (expr) args[v] = expr.replaceNodeReferences(oldId, newId);
+    }
+    return { type: "fluent-message", messages: this.messages, args };
+  }
 
   withMessage(locale: string, message: string): ExpressionJson {
     return {
@@ -476,42 +496,27 @@ export class MemberAccessExpression extends Expression {
     };
   }
 
-  replaceNodeOutput(
-    oldNodeId: string,
-    newNodeId: string,
-  ): ExpressionJson | null {
-    const containsSearch = ({
-      head,
-      selectors,
-    }: MemberAccessExpression): boolean =>
-      (head.type === "node-output" && head.nodeId === oldNodeId) ||
-      selectors.some(
-        (selector) =>
-          selector instanceof MemberAccessExpression &&
-          containsSearch(selector),
-      );
-    if (!containsSearch(this)) return null;
+  override referencesNode(nodeId: string): boolean {
+    return (
+      (this.head.type === "node-output" && this.head.nodeId === nodeId) ||
+      this.args.some((arg) => arg?.referencesNode(nodeId))
+    );
+  }
 
-    const rebuild = ({
-      head,
-      selectors,
-      args,
-    }: MemberAccessExpression): ExpressionJson => ({
-      ...head,
-      ...(head.type === "node-output" &&
-        head.nodeId === oldNodeId && {
-          nodeId: newNodeId,
+  override replaceNodeReferences(oldId: string, newId: string): ExpressionJson {
+    return {
+      ...this.head,
+      ...(this.head.type === "node-output" &&
+        this.head.nodeId === oldId && {
+          nodeId: newId,
         }),
       selectors: MemberAccessExpression.#generateSelectorJson(
-        selectors,
-        args.map((arg) =>
-          arg instanceof MemberAccessExpression
-            ? rebuild(arg)
-            : arg?.toJson() ?? null,
+        this.selectors,
+        this.args.map(
+          (arg) => arg?.replaceNodeReferences(oldId, newId) ?? null,
         ),
       ),
-    });
-    return rebuild(this);
+    };
   }
 
   override toString(variant: "complete" | "truncated" = "complete"): string {

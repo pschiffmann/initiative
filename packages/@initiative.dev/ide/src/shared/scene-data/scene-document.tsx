@@ -3,7 +3,6 @@ import { ProjectConfig } from "../project-config.js";
 import {
   Expression,
   ExpressionJson,
-  MemberAccessExpression,
   ValidateExpressionContext,
 } from "./expression.js";
 import { Listener, Listeners, Unsubscribe } from "./listeners.js";
@@ -335,15 +334,13 @@ export class SceneDocument {
     let newNode = oldNode;
     const ctx = this.#createValidateExpressionContext(oldNode);
     oldNode.forEachInput((oldExpression, { type }, inputName, index) => {
-      if (!(oldExpression instanceof MemberAccessExpression)) return;
-      const newExpression = oldExpression.replaceNodeOutput(
-        oldAncestorId,
-        newAncestorId,
-      );
-      if (!newExpression) return;
-
+      if (!oldExpression?.referencesNode(oldAncestorId)) return;
       newNode = newNode.setInput(
-        Expression.fromJson(newExpression, type, ctx),
+        Expression.fromJson(
+          oldExpression.replaceNodeReferences(oldAncestorId, newAncestorId),
+          type,
+          ctx,
+        ),
         inputName,
         index,
       );
