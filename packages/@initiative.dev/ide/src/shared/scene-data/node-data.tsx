@@ -319,7 +319,7 @@ export class NodeData {
     delete slots[`${slotName}::${childCount}`];
     for (const inputName of this.schema.getSlotAttributes(slotName)
       .inputNames) {
-      delete inputs[`${inputName}::${index}`];
+      delete inputs[`${inputName}::${childCount}`];
     }
 
     return new NodeData(
