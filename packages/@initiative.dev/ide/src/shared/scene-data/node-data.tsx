@@ -1,5 +1,6 @@
 import { InputAttributes, NodeSchema } from "@initiative.dev/schema";
 import { validateNodeId } from "@initiative.dev/schema/internals";
+import { assert } from "@pschiffmann/std/assert";
 import { Expression, ExpressionJson } from "./expression.js";
 
 /**
@@ -101,6 +102,20 @@ export class NodeData {
         );
       }
     });
+    return result;
+  }
+
+  forEachIndexInCollectionInput<R>(
+    inputName: string,
+    callback: (expression: Expression | null, index: number) => R,
+  ): R[] {
+    const slot = this.schema.getInputAttributes(inputName).slot;
+    assert(!!slot, `Input '${inputName}' is not a collection input.`);
+
+    const result: R[] = [];
+    for (let i = 0; i < this.collectionSlotSizes[slot!]; i++) {
+      result.push(callback(this.inputs[`${inputName}::${i}`] ?? null, i));
+    }
     return result;
   }
 

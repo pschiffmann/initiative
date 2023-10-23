@@ -4,8 +4,6 @@ import {
   TimelinePublicBloc,
   type TimelinePublicBlocSchema,
 } from "#initiative/nodes/index.js";
-import { useLocale } from "../../locale-context.js";
-import { default as ftlUrlEn } from "./locale/en.ftl";
 import {
   FluentBundle,
   FluentResource,
@@ -34,6 +32,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useLocale } from "../../locale-context.js";
+import ftlUrlEn from "./locale/en.ftl";
 
 export {
   Scene as TestTimelinePublic,
@@ -66,13 +66,8 @@ function Header_Adapter() {
     <FlexContainer
       flexDirection={"row"}
       alignItems={"center"}
-      justifyContent={undefined}
       gap={0.5}
       padding={"8px"}
-      backgroundColor={undefined}
-      elevation={undefined}
-      outlined={undefined}
-      borderRadius={undefined}
       alignSelf={[undefined, undefined]}
       margin={[undefined, undefined]}
       slots={{
@@ -99,7 +94,6 @@ function Tabs_Adapter() {
   return (
     <Tabs
       variant={"fullWidth"}
-      iconPosition={undefined}
       label={["Posts", "Hashtags", "People", "News"]}
       icon={[undefined, undefined, undefined, undefined]}
       disabled={[undefined, true, true, true]}
@@ -130,65 +124,43 @@ function HeaderIcon_Adapter() {
 }
 
 function HeaderTitle_Adapter() {
-  return (
-    <Typography
-      text={"Explore"}
-      variant={"h6"}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
-    />
-  );
-}
-
-function TimelinePublicBloc1_Adapter() {
-  return (
-    <TimelinePublicBloc
-      slots={{
-        child: { Component: Status_Adapter },
-      }}
-    />
-  );
+  return <Typography text={"Explore"} variant={"h6"} />;
 }
 
 const TimelinePublicBloc1$statusContext = createContext<
   OutputTypes<TimelinePublicBlocSchema>["status"]
 >(null!);
 
-function HashtagsPlaceholder_Adapter() {
+function TimelinePublicBloc1_Adapter() {
   return (
-    <Typography
-      text={"Placeholder"}
-      variant={undefined}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
+    <TimelinePublicBloc
+      slots={{
+        child: { Component: TimelinePublicBloc1_child },
+      }}
     />
   );
+}
+
+function TimelinePublicBloc1_child({
+  status,
+}: SlotComponentProps<TimelinePublicBlocSchema, "child">) {
+  return (
+    <TimelinePublicBloc1$statusContext.Provider value={status}>
+      <Status_Adapter />
+    </TimelinePublicBloc1$statusContext.Provider>
+  );
+}
+
+function HashtagsPlaceholder_Adapter() {
+  return <Typography text={"Placeholder"} />;
 }
 
 function PeoplePlaceholder_Adapter() {
-  return (
-    <Typography
-      text={"Placeholder"}
-      variant={undefined}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
-    />
-  );
+  return <Typography text={"Placeholder"} />;
 }
 
 function NewsPlaceholder_Adapter() {
-  return (
-    <Typography
-      text={"Placeholder"}
-      variant={undefined}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
-    />
-  );
+  return <Typography text={"Placeholder"} />;
 }
 
 function Status_Adapter() {
@@ -197,14 +169,9 @@ function Status_Adapter() {
       gridTemplate={
         '"avatar name time" auto\n"avatar handle ." auto\n"text text text" auto\n"actions actions actions" auto\n/ auto 1fr auto'
       }
-      justifyItems={undefined}
-      alignItems={undefined}
       gap={0}
       padding={"8px"}
-      backgroundColor={undefined}
-      elevation={undefined}
       outlined={true}
-      borderRadius={undefined}
       gridArea={["avatar", "name", "handle", "time", "actions", "text"]}
       justifySelf={[
         undefined,
@@ -263,8 +230,6 @@ function Avatar_Adapter() {
     <Avatar
       src={useContext(TimelinePublicBloc1$statusContext).account.avatar}
       alt={useContext(TimelinePublicBloc1$statusContext).account.username}
-      variant={undefined}
-      size={undefined}
     />
   );
 }
@@ -274,9 +239,6 @@ function Name_Adapter() {
     <Typography
       text={useContext(TimelinePublicBloc1$statusContext).account.display_name}
       variant={"subtitle1"}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
     />
   );
 }
@@ -294,9 +256,7 @@ function Handle_Adapter() {
         },
       )}
       variant={"body2"}
-      noWrap={undefined}
       color={"text.secondary"}
-      component={undefined}
     />
   );
 }
@@ -305,10 +265,6 @@ function Time_Adapter() {
   return (
     <Typography
       text={useContext(TimelinePublicBloc1$statusContext).created_at}
-      variant={undefined}
-      noWrap={undefined}
-      color={undefined}
-      component={undefined}
     />
   );
 }
@@ -317,14 +273,7 @@ function Actions_Adapter() {
   return (
     <FlexContainer
       flexDirection={"row"}
-      alignItems={undefined}
       justifyContent={"space-between"}
-      gap={undefined}
-      padding={undefined}
-      backgroundColor={undefined}
-      elevation={undefined}
-      outlined={undefined}
-      borderRadius={undefined}
       alignSelf={[undefined, undefined, undefined, undefined, undefined]}
       margin={[undefined, undefined, undefined, undefined, undefined]}
       slots={{
@@ -362,68 +311,23 @@ function Content_Adapter() {
 }
 
 function ReplyButton_Adapter() {
-  return (
-    <IconButton
-      label={"Reply"}
-      icon={"reply"}
-      color={undefined}
-      size={"small"}
-      onPress={undefined}
-      disabled={undefined}
-    />
-  );
+  return <IconButton label={"Reply"} icon={"reply"} size={"small"} />;
 }
 
 function BoostButton_Adapter() {
-  return (
-    <IconButton
-      label={"Boost"}
-      icon={"repeat"}
-      color={undefined}
-      size={"small"}
-      onPress={undefined}
-      disabled={undefined}
-    />
-  );
+  return <IconButton label={"Boost"} icon={"repeat"} size={"small"} />;
 }
 
 function FavoriteButton_Adapter() {
-  return (
-    <IconButton
-      label={"Favorite"}
-      icon={"star"}
-      color={undefined}
-      size={"small"}
-      onPress={undefined}
-      disabled={undefined}
-    />
-  );
+  return <IconButton label={"Favorite"} icon={"star"} size={"small"} />;
 }
 
 function BookmarkButton_Adapter() {
-  return (
-    <IconButton
-      label={"Bookmark"}
-      icon={"bookmark"}
-      color={undefined}
-      size={"small"}
-      onPress={undefined}
-      disabled={undefined}
-    />
-  );
+  return <IconButton label={"Bookmark"} icon={"bookmark"} size={"small"} />;
 }
 
 function MoreButton_Adapter() {
-  return (
-    <IconButton
-      label={"More"}
-      icon={"more_horiz"}
-      color={undefined}
-      size={"small"}
-      onPress={undefined}
-      disabled={undefined}
-    />
-  );
+  return <IconButton label={"More"} icon={"more_horiz"} size={"small"} />;
 }
 
 //

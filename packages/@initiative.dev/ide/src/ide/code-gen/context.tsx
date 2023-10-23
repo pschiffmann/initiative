@@ -19,7 +19,9 @@ export function generateContextProviderJsx(
   children: string,
 ): string {
   return outputNames.toReversed().reduce((children, outputName) => {
-    const Context = nameResolver.declareName(`${nodeId}$${outputName}Context`);
+    const Context = nameResolver.declareName(
+      getNodeOutputContextName(nodeId, outputName),
+    );
     return dedent`
       <${Context}.Provider value={${outputName}}>
         ${children}

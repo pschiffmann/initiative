@@ -24,74 +24,33 @@ export function generateNodeRuntime(
   const nodeData = document.getNode(nodeId);
   const definition = document.definitions.getNode(nodeData.type);
 
-  let result = "";
-
-  if (nodeData.errors) {
-    // TODO: Generate Error component
-    const ReactElement = nameResolver.importType({
-      moduleName: "react",
-      exportName: "ReactElement",
-    });
-    result += `function ${nodeData.id}_Adapter(): ${ReactElement} {\n`;
-    result += `throw new Error("Node: ${nodeData.id} contains errors!");\n`;
-    result += `}\n`;
-    return result;
-  }
-
-  // generateNodeAdapter
-  result += generateNodeAdapter(nodeData, definition, nameResolver) + "\n";
-  //
-
-  // generateNodeOutputContexts
-  if (Object.keys(nodeData.schema.outputAttributes).length > 0) {
-    result +=
-      generateNodeOuptputContexts(nodeData, definition, nameResolver) + "\n";
-  }
-  //
-
-  // generateSlotComponent
-  const slotsResultsMap: Map<string, string | Array<string | null>> = new Map();
-  nodeData.forEachSlot((childId, slotName, index) => {
-    // calls for node PageLayout:
-    // call 1: childId == "PageTitle", slotName == "child", index == 0
-    // call 2: childId == "NewArticleDialog", slotName == "child", index == 1
-    // call 3: childId == "ArticlesTable", slotName == "child", index == 2
-    if (index === undefined) {
-      slotsResultsMap.set(slotName, childId!);
-    } else {
-      let arraycheck = slotsResultsMap.get(slotName);
-      if (!Array.isArray(arraycheck)) {
-        slotsResultsMap.set(slotName, (arraycheck = new Array()));
-      }
-      // TODO
-      arraycheck.push(childId);
+  const result = [
+    generateNodeOutputContexts(nodeData, definition, nameResolver),
+    generateNodeAdapter(nodeData, definition, nameResolver),
+  ];
+  nodeData.schema.forEachSlot((slotName, { outputNames, isCollectionSlot }) => {
+    if (isCollectionSlot) {
+      result.push(
+        generateCollectionSlotComponent(
+          nodeData,
+          definition,
+          slotName,
+          nameResolver,
+        ),
+      );
+    } else if (outputNames.length !== 0) {
+      result.push(
+        generateSlotComponent(nodeData, definition, slotName, nameResolver),
+      );
     }
   });
-  for (const [slotname, data] of slotsResultsMap) {
-    if (!Array.isArray(data)) {
-      continue;
-    }
-    result +=
-      generateSlotComponent(
-        nodeData,
-        definition,
-        slotname,
-        data,
-        nameResolver,
-      ) + "\n";
-  }
-  //
-
-  // generateNodeOutputsProvider
   if (nodeData.schema.hasRegularOutputs()) {
-    result += `${generateNodeOutputsProvider(
-      nodeData,
-      definition,
-      nameResolver,
-    )}\n`;
+    result.push(
+      generateNodeOutputsProvider(nodeData, definition, nameResolver),
+    );
   }
 
-  return result;
+  return result.join("\n\n");
 }
 
 function generateNodeAdapter(
@@ -99,120 +58,116 @@ function generateNodeAdapter(
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
-  const componentName = nameResolver.importBinding(definition);
-  let result: string = "";
-  result += `function ${nodeData.id}_Adapter() { \n`;
-  result += `return ( \n`;
-  result += `<${componentName} \n`;
+  if (nodeData.errors) {
+    const ReactElement = nameResolver.importType({
+      moduleName: "react",
+      exportName: "ReactElement",
+    });
+    return dedent`
+      function ${nodeData.id}_Adapter(): ${ReactElement} {
+        throw new Error("Node: ${nodeData.id} contains errors!");
+      }
+      `;
+  }
 
-  // inputs
-  const inputResultsMap: Map<string, string | Array<string>> = new Map();
+  const Component = nameResolver.importBinding(definition);
+  const Adapter = nameResolver.declareName(`${nodeData.id}_Adapter`);
+
+  const props: string[] = [];
+
+  // Regular inputs
   nodeData.forEachInput((expression, attributes, inputName, index) => {
-    // calls for node PageLayout:
-    // call 1: expression == { ... }, inputName == "flexDirection", index == undefined
-    // call 2: expression == { ... }, inputName == "gap", index == undefined
-    // call 3: expression == null, inputName == "alignSelf", index == 0
-    // call 4: expression == { ... }, inputName == "alignSelf", index == 1
-    // call 5: expression == null, inputName == "alignSelf", index == 2
-    if (index === undefined) {
-      if (expression === null) {
-        inputResultsMap.set(inputName, "undefined");
-      } else {
-        inputResultsMap.set(
-          inputName,
-          provideValue(nodeData.id, inputName, expression, nameResolver),
-        );
-      }
-    } else {
-      if (!inputResultsMap.has(inputName)) {
-        inputResultsMap.set(inputName, new Array());
-      }
-      const arraycheck = inputResultsMap.get(inputName);
-      if (!Array.isArray(arraycheck)) {
-        throw new Error("No Array after Array allocation");
-      }
-      if (expression === null) {
-        arraycheck.push("undefined");
-      } else {
-        arraycheck.push(
-          provideValue(
-            nodeData.id,
-            `${inputName}-${index}`,
-            expression,
-            nameResolver,
-          ),
-        );
-      }
-    }
+    if (!expression || index !== undefined) return;
+    props.push(
+      `${inputName}={${generateExpression(
+        nodeData.id,
+        inputName,
+        expression,
+        nameResolver,
+      )}}`,
+    );
   });
-  for (const [input, data] of inputResultsMap) {
-    result += `${input}={`;
-    if (Array.isArray(data)) {
-      result += `[${data.join(", ")}]`;
-    } else {
-      result += `${data}`;
-    }
-    result += `}\n`;
+
+  // Collection inputs
+  nodeData.schema.forEachInput((inputName, { slot }) => {
+    if (!slot) return;
+    const expressions = nodeData.forEachIndexInCollectionInput(
+      inputName,
+      (expression, index) =>
+        expression
+          ? generateExpression(
+              nodeData.id,
+              `${inputName}-${index + 1}`,
+              expression,
+              nameResolver,
+            )
+          : "undefined",
+    );
+    props.push(`${inputName}={[${expressions.join(", ")}]}`);
+  });
+
+  // OutputsProvider
+  if (nodeData.schema.hasRegularOutputs()) {
+    const OutputsProvider = nameResolver.declareName(
+      `${nodeData.id}_OutputsProvider`,
+    );
+    props.push(`OutputsProvider={${OutputsProvider}}`);
   }
 
   // slots
-  const slotsResultsMap: Map<string, string | Array<string | null>> = new Map();
-  nodeData.forEachSlot((childId, slotName, index) => {
-    // calls for node PageLayout:
-    // call 1: childId == "PageTitle", slotName == "child", index == 0
-    // call 2: childId == "NewArticleDialog", slotName == "child", index == 1
-    // call 3: childId == "ArticlesTable", slotName == "child", index == 2
-    if (index === undefined) {
-      slotsResultsMap.set(slotName, childId!);
-    } else {
-      if (!slotsResultsMap.has(slotName)) {
-        slotsResultsMap.set(slotName, new Array());
-      }
-      const arraycheck = slotsResultsMap.get(slotName);
-      if (!Array.isArray(arraycheck)) {
-        throw new Error("No Array after Array allocation");
-      }
-      arraycheck.push(childId);
-      // TODO done?
-    }
-  });
-  if (slotsResultsMap.size > 0) {
-    result += `slots={{\n`;
-    for (const [slotName, data] of slotsResultsMap) {
-      result += `${slotName}: { `;
-      if (!Array.isArray(data)) {
-        result += `Component: ${data}_Adapter },\n`;
-        continue;
-      }
-      if (data[0] !== null) {
-        result += `size: ${data.length}, Component: ${nodeData.id}_${slotName} },\n`;
-      } else {
-        result += `size: 0, Component: ${nodeData.id}_${slotName} }, \n`;
-      }
-    }
-    result += `}}\n`;
+  if (nodeData.schema.hasSlots()) {
+    const values = nodeData.schema.forEachSlot(
+      (slotName, { outputNames, isCollectionSlot }) => {
+        let value: string;
+        if (isCollectionSlot) {
+          const size = nodeData.collectionSlotSizes[slotName];
+          const Component = nameResolver.declareName(
+            `${nodeData.id}_${slotName}`,
+          );
+          value = `{ size: ${size}, Component: ${Component} }`;
+        } else if (outputNames.length !== 0) {
+          const Component = nameResolver.declareName(
+            `${nodeData.id}_${slotName}`,
+          );
+          value = `{ Component: ${Component} }`;
+        } else {
+          const childId = nodeData.slots[slotName];
+          const Component = nameResolver.declareName(`${childId}_Adapter`);
+          value = `{ Component: ${Component} }`;
+        }
+        return `${slotName}: ${value},`;
+      },
+    );
+    props.push(dedent`
+      slots={{
+        ${values.join("\n")}
+      }}
+      `);
   }
 
-  if (nodeData.schema.hasRegularOutputs()) {
-    result += `OutputsProvider={${nodeData.id}_OutputsProvider}\n`;
-  }
-  //
-
-  result += `/>\n);\n}\n`;
-  return result;
+  return dedent`
+    function ${Adapter}() {
+      return (
+        <${Component}
+          ${props.join("\n")}
+        />
+      );
+    }
+    `;
 }
 
-function generateNodeOuptputContexts(
+function generateNodeOutputContexts(
   nodeData: NodeData,
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
-  let result: string = "";
+  if (Object.keys(nodeData.schema.outputAttributes).length === 0) return "";
+
   const createContext = nameResolver.importBinding({
     moduleName: "react",
     exportName: "createContext",
   });
-  const schemaName = nameResolver.importType({
+  const NodeSchema = nameResolver.importType({
     moduleName: definition.moduleName,
     exportName: definition.exportName + "Schema",
   });
@@ -220,12 +175,13 @@ function generateNodeOuptputContexts(
     moduleName: "@initiative.dev/schema/code-gen-helpers",
     exportName: "OutputTypes",
   });
-  for (const output of Object.keys(nodeData.schema.outputAttributes)) {
-    const contextName = getNodeOutputContextName(nodeData.id, output);
-    result += `const ${contextName} = ${createContext}<`;
-    result += `${outputTypes}<${schemaName}>["${output}"]>(null!);\n`;
-  }
-  return result;
+  return nodeData.schema
+    .forEachOutput((outputName) => {
+      const contextName = getNodeOutputContextName(nodeData.id, outputName);
+      const contextType = `${outputTypes}<${NodeSchema}>["${outputName}"]`;
+      return `const ${contextName} = ${createContext}<${contextType}>(null!);`;
+    })
+    .join("\n");
 }
 
 function generateNodeOutputsProvider(
@@ -233,82 +189,123 @@ function generateNodeOutputsProvider(
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
-  let result: string = "";
-  const outputNames = Object.keys(nodeData.schema.outputAttributes);
-  result += `function ${nodeData.id}_OutputsProvider({\n`;
-  for (const output of outputNames) {
-    result += `${output},\n`;
-  }
-  result += `children,\n`;
-  // TODO
-  const schemaName = nameResolver.importType({
+  const NodeSchema = nameResolver.importType({
     moduleName: definition.moduleName,
     exportName: definition.exportName + "Schema",
   });
-  const outputsProviderProps = nameResolver.importType({
+  const OutputsProviderProps = nameResolver.importType({
     moduleName: "@initiative.dev/schema/code-gen-helpers",
     exportName: "OutputsProviderProps",
   });
-  result += `}: ${outputsProviderProps}<${schemaName}>`;
-  result += `) {\n`;
-  result += `return (\n`;
-  result += generateContextProviderJsx(
-    nameResolver,
-    nodeData.id,
-    outputNames,
-    "{children}",
+  const OutputsProvider = nameResolver.declareName(
+    `${nodeData.id}_OutputsProvider`,
   );
-  result += `)\n`;
-  result += `}`;
-  return result;
+
+  const outputNames: string[] = [];
+  nodeData.schema.forEachOutput((outputName, { slot }) => {
+    if (!slot) outputNames.push(outputName);
+  });
+
+  return dedent`
+    function ${OutputsProvider}({
+      ${outputNames.map((n) => `${n},`).join("\n")}
+      children,
+    }: ${OutputsProviderProps}<${NodeSchema}>) {
+      return (
+        ${generateContextProviderJsx(
+          nameResolver,
+          nodeData.id,
+          outputNames,
+          "{children}",
+        )}
+      );
+    }
+    `;
 }
 
 function generateSlotComponent(
   nodeData: NodeData,
   definition: NodeDefinition,
   slotName: string,
-  children: Array<string | null>,
   nameResolver: NameResolver,
 ): string {
-  const schemaName = nameResolver.importType({
+  const SlotComponent = nameResolver.declareName(`${nodeData.id}_${slotName}`);
+  const NodeSchema = nameResolver.importType({
     moduleName: definition.moduleName,
     exportName: definition.exportName + "Schema",
   });
-  const slotComponentProps = nameResolver.importType({
+  const SlotComponentProps = nameResolver.importType({
     moduleName: "@initiative.dev/schema/code-gen-helpers",
     exportName: "SlotComponentProps",
   });
-  let result: string = ``;
-  result += `function ${nodeData.id}_${slotName}({ `;
-  const list: Array<string> = Object.keys(nodeData.schema.outputAttributes);
-  for (const prop of list) {
-    result += `${prop}, `;
-  }
-  // TODO done?
-  result += `index `;
-  result += `}: ${slotComponentProps}<${schemaName}, "${slotName}">) {\n`;
-  result += `switch (index) {\n`;
-  if (children[0] !== null) {
-    for (let index = 0; index < children.length; index++) {
-      result += `case ${index}:\n`;
-      result += `return (\n`;
-      result += `${generateContextProviderJsx(
-        nameResolver,
-        nodeData.id,
-        list,
-        `<${children[index]}_Adapter />`,
-      )}`;
-      result += `);\n`;
+  const ChildAdapter = nameResolver.declareName(
+    `${nodeData.slots[slotName]}_Adapter`,
+  );
+
+  const outputNames = nodeData.schema.slotAttributes[slotName].outputNames;
+
+  return dedent`
+    function ${SlotComponent}({
+      ${outputNames.map((n) => `${n},`).join("\n")}
+    }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">) {
+      return (
+        ${generateContextProviderJsx(
+          nameResolver,
+          nodeData.id,
+          outputNames,
+          `<${ChildAdapter} />`,
+        )}
+      );
     }
-  }
-  result += `default:\n`;
-  result += `throw new Error(\`Invalid index '\${index}'.\`)\n`;
-  result += `}\n`;
-  result += `}`;
-  return result;
+    `;
 }
 
-function provideValue(
+function generateCollectionSlotComponent(
+  nodeData: NodeData,
+  definition: NodeDefinition,
+  slotName: string,
+  nameResolver: NameResolver,
+): string {
+  const SlotComponent = nameResolver.declareName(`${nodeData.id}_${slotName}`);
+  const NodeSchema = nameResolver.importType({
+    moduleName: definition.moduleName,
+    exportName: definition.exportName + "Schema",
+  });
+  const SlotComponentProps = nameResolver.importType({
+    moduleName: "@initiative.dev/schema/code-gen-helpers",
+    exportName: "SlotComponentProps",
+  });
+
+  const outputNames = nodeData.schema.slotAttributes[slotName].outputNames;
+
+  return dedent`
+    function ${SlotComponent}({
+      ${outputNames.map((n) => `${n},`).join("\n")}
+      index,
+    }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">) {
+      switch(index) {
+        ${nodeData
+          .forEachChildInSlot(slotName, (childId, index) => {
+            const ChildAdapter = nameResolver.declareName(`${childId}_Adapter`);
+            return dedent`
+              case ${index}:
+                return (${generateContextProviderJsx(
+                  nameResolver,
+                  nodeData.id,
+                  outputNames,
+                  `<${ChildAdapter} />`,
+                )});
+              `;
+          })
+          .join("\n")}
+        default:
+          throw new Error(\`Invalid index '\${index}'.\`);
+      }
+    }
+    `;
+}
+
+function generateExpression(
   nodeId: string,
   fluentExpressionKey: string,
   expression: Expression,
@@ -335,13 +332,13 @@ function provideValue(
         {
           ${Object.entries(expression.args)
             .map(([argName, expr]) => {
-              const value = provideValue(
+              const value = generateExpression(
                 nodeId,
                 `${fluentExpressionKey}-${argName}`,
                 expr!,
                 nameResolver,
               );
-              return `${JSON.stringify(argName)}: ${value},`;
+              return `"${argName}": ${value},`;
             })
             .join("\n")}
         }
@@ -382,7 +379,7 @@ function provideValue(
         .slice(i, (i += selector.memberType.parameters.length))
         .map((arg) =>
           arg
-            ? provideValue(
+            ? generateExpression(
                 nodeId,
                 `${fluentExpressionKey}-${expression.parameterPrefix}${i + 1}`,
                 arg,
