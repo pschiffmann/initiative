@@ -8,6 +8,8 @@ export * from "./checkbox-control.js";
 export * from "./checkbox-control.schema.js";
 export * from "./dialog.js";
 export * from "./dialog.schema.js";
+export * from "./divider.js";
+export * from "./divider.schema.js";
 export * from "./flex-container.js";
 export * from "./flex-container.schema.js";
 export * from "./grid-container.js";

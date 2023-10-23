@@ -11,6 +11,7 @@ import {
 } from "@fluent/bundle";
 import {
   Avatar,
+  Divider,
   FlexContainer,
   GridContainer,
   Icon,
@@ -167,13 +168,21 @@ function Status_Adapter() {
   return (
     <GridContainer
       gridTemplate={
-        '"avatar name time" auto\n"avatar handle ." auto\n"text text text" auto\n"actions actions actions" auto\n/ auto 1fr auto'
+        '"avatar name time" auto\n"avatar handle ." auto\n"text text text" auto\n"actions actions actions" auto\n"divider divider divider" auto\n/ auto 1fr auto'
       }
       gap={0}
-      padding={"8px"}
-      outlined={true}
-      gridArea={["avatar", "name", "handle", "time", "actions", "text"]}
+      padding={"8px 8px 0 8px"}
+      gridArea={[
+        "avatar",
+        "name",
+        "handle",
+        "time",
+        "actions",
+        "text",
+        "divider",
+      ]}
       justifySelf={[
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -188,17 +197,19 @@ function Status_Adapter() {
         undefined,
         undefined,
         undefined,
+        undefined,
       ]}
       margin={[
+        "0 8px 0 0",
         undefined,
         undefined,
         undefined,
         undefined,
         undefined,
-        undefined,
+        "8px -8px 0 -8px",
       ]}
       slots={{
-        child: { size: 6, Component: Status_child },
+        child: { size: 7, Component: Status_child },
       }}
     />
   );
@@ -220,6 +231,8 @@ function Status_child({
       return <Actions_Adapter />;
     case 5:
       return <Content_Adapter />;
+    case 6:
+      return <Divider_Adapter />;
     default:
       throw new Error(`Invalid index '${index}'.`);
   }
@@ -309,6 +322,10 @@ function Content_Adapter() {
       content={useContext(TimelinePublicBloc$statusContext).content}
     />
   );
+}
+
+function Divider_Adapter() {
+  return <Divider />;
 }
 
 function ReplyButton_Adapter() {

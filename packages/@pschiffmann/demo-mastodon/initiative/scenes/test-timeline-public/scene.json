@@ -159,7 +159,7 @@
         "gridTemplate": {
           "type": "json-literal",
           "schemaName": "@initiative.dev/std::text",
-          "value": "\"avatar name time\" auto\n\"avatar handle .\" auto\n\"text text text\" auto\n\"actions actions actions\" auto\n/ auto 1fr auto"
+          "value": "\"avatar name time\" auto\n\"avatar handle .\" auto\n\"text text text\" auto\n\"actions actions actions\" auto\n\"divider divider divider\" auto\n/ auto 1fr auto"
         },
         "gap": {
           "type": "json-literal",
@@ -169,12 +169,7 @@
         "padding": {
           "type": "json-literal",
           "schemaName": "@initiative.dev/std::string",
-          "value": "8px"
-        },
-        "outlined": {
-          "type": "json-literal",
-          "schemaName": "@initiative.dev/std::boolean",
-          "value": true
+          "value": "8px 8px 0 8px"
         },
         "gridArea::0": {
           "type": "json-literal",
@@ -206,9 +201,24 @@
           "schemaName": "@initiative.dev/std::string",
           "value": "text"
         },
+        "gridArea::6": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "divider"
+        },
         "alignSelf::0": {
           "type": "enum-value",
           "value": "center"
+        },
+        "margin::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "0 8px 0 0"
+        },
+        "margin::6": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px -8px 0 -8px"
         }
       },
       "slots": {
@@ -217,7 +227,8 @@
         "child::2": "Handle",
         "child::3": "Time",
         "child::4": "Actions",
-        "child::5": "Content"
+        "child::5": "Content",
+        "child::6": "Divider"
       }
     },
     "Avatar": {
@@ -374,6 +385,11 @@
           ]
         }
       },
+      "slots": {}
+    },
+    "Divider": {
+      "type": "@initiative.dev/lib-mui-material::Divider",
+      "inputs": {},
       "slots": {}
     },
     "ReplyButton": {
