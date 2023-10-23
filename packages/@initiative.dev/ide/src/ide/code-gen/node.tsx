@@ -28,7 +28,11 @@ export function generateNodeRuntime(
 
   if (nodeData.errors) {
     // TODO: Generate Error component
-    result += `function ${nodeData.id}() {\n`;
+    const ReactElement = nameResolver.importType({
+      moduleName: "react",
+      exportName: "ReactElement",
+    });
+    result += `function ${nodeData.id}_Adapter(): ${ReactElement} {\n`;
     result += `throw new Error("Node: ${nodeData.id} contains errors!");\n`;
     result += `}\n`;
     return result;
