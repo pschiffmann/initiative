@@ -105,11 +105,21 @@ export class NameResolver {
         ...this.#importedTypes.keys(),
       ]),
     ]
-      .sort()
+      .sort((a, b) => {
+        if (a.startsWith("#") && !b.startsWith("#")) return -1;
+        if (b.startsWith("#") && !a.startsWith("#")) return 1;
+        if (a.startsWith("./") && !b.startsWith("./")) return 1;
+        if (b.startsWith("./") && !a.startsWith("./")) return -1;
+        if (a.startsWith("../") && !b.startsWith("../")) return 1;
+        if (b.startsWith("../") && !a.startsWith("../")) return -1;
+
+        return a.localeCompare(b);
+      })
       .map((moduleName) => {
-        const bindingImports = [
-          ...(this.#importedBindings.get(moduleName) ?? []),
-        ]
+        const importedBindings = this.#importedBindings.get(moduleName);
+        const defaultImport = importedBindings?.get("default");
+        const bindingImports = [...(importedBindings ?? [])]
+          .filter(([exportName]) => exportName !== "default")
           .map(([exportName, alias]) =>
             exportName === alias ? exportName : `${exportName} as ${alias}`,
           )
@@ -122,7 +132,11 @@ export class NameResolver {
           )
           .sort();
         const imports = [...bindingImports, ...typeImports].join(", ");
-        return `import { ${imports} } from "${moduleName}";`;
+        return defaultImport && !!imports
+          ? `import ${defaultImport}, { ${imports} } from "${moduleName}";`
+          : defaultImport
+          ? `import ${defaultImport} from "${moduleName}";`
+          : `import { ${imports} } from "${moduleName}";`;
       })
       .join("\n");
   }
