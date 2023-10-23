@@ -107,7 +107,7 @@ function Tabs_Adapter() {
 function Tabs_tab({ index }: SlotComponentProps<TabsSchema, "tab">) {
   switch (index) {
     case 0:
-      return <TimelinePublicBloc1_Adapter />;
+      return <TimelinePublicBloc_Adapter />;
     case 1:
       return <HashtagsPlaceholder_Adapter />;
     case 2:
@@ -127,27 +127,27 @@ function HeaderTitle_Adapter() {
   return <Typography text={"Explore"} variant={"h6"} />;
 }
 
-const TimelinePublicBloc1$statusContext = createContext<
+const TimelinePublicBloc$statusContext = createContext<
   OutputTypes<TimelinePublicBlocSchema>["status"]
 >(null!);
 
-function TimelinePublicBloc1_Adapter() {
+function TimelinePublicBloc_Adapter() {
   return (
     <TimelinePublicBloc
       slots={{
-        child: { Component: TimelinePublicBloc1_child },
+        child: { Component: TimelinePublicBloc_child },
       }}
     />
   );
 }
 
-function TimelinePublicBloc1_child({
+function TimelinePublicBloc_child({
   status,
 }: SlotComponentProps<TimelinePublicBlocSchema, "child">) {
   return (
-    <TimelinePublicBloc1$statusContext.Provider value={status}>
+    <TimelinePublicBloc$statusContext.Provider value={status}>
       <Status_Adapter />
-    </TimelinePublicBloc1$statusContext.Provider>
+    </TimelinePublicBloc$statusContext.Provider>
   );
 }
 
@@ -228,8 +228,9 @@ function Status_child({
 function Avatar_Adapter() {
   return (
     <Avatar
-      src={useContext(TimelinePublicBloc1$statusContext).account.avatar}
-      alt={useContext(TimelinePublicBloc1$statusContext).account.username}
+      src={useContext(TimelinePublicBloc$statusContext).account.avatar}
+      alt={useContext(TimelinePublicBloc$statusContext).account.username}
+      variant={"rounded"}
     />
   );
 }
@@ -237,7 +238,7 @@ function Avatar_Adapter() {
 function Name_Adapter() {
   return (
     <Typography
-      text={useContext(TimelinePublicBloc1$statusContext).account.display_name}
+      text={useContext(TimelinePublicBloc$statusContext).account.display_name}
       variant={"subtitle1"}
     />
   );
@@ -251,7 +252,7 @@ function Handle_Adapter() {
         "Handle",
         "text",
         {
-          username: useContext(TimelinePublicBloc1$statusContext).account
+          username: useContext(TimelinePublicBloc$statusContext).account
             .username,
         },
       )}
@@ -264,7 +265,7 @@ function Handle_Adapter() {
 function Time_Adapter() {
   return (
     <Typography
-      text={useContext(TimelinePublicBloc1$statusContext).created_at}
+      text={useContext(TimelinePublicBloc$statusContext).created_at}
     />
   );
 }
@@ -305,7 +306,7 @@ function Actions_child({
 function Content_Adapter() {
   return (
     <StatusContent
-      content={useContext(TimelinePublicBloc1$statusContext).content}
+      content={useContext(TimelinePublicBloc$statusContext).content}
     />
   );
 }

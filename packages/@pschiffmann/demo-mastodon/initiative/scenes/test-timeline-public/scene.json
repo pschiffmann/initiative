@@ -81,7 +81,7 @@
         }
       },
       "slots": {
-        "tab::0": "TimelinePublicBloc1",
+        "tab::0": "TimelinePublicBloc",
         "tab::1": "HashtagsPlaceholder",
         "tab::2": "PeoplePlaceholder",
         "tab::3": "NewsPlaceholder"
@@ -113,7 +113,7 @@
       },
       "slots": {}
     },
-    "TimelinePublicBloc1": {
+    "TimelinePublicBloc": {
       "type": "@pschiffmann/demo-mastodon::TimelinePublicBloc",
       "inputs": {},
       "slots": {
@@ -225,7 +225,7 @@
       "inputs": {
         "src": {
           "type": "node-output",
-          "nodeId": "TimelinePublicBloc1",
+          "nodeId": "TimelinePublicBloc",
           "outputName": "status",
           "selectors": [
             {
@@ -240,7 +240,7 @@
         },
         "alt": {
           "type": "node-output",
-          "nodeId": "TimelinePublicBloc1",
+          "nodeId": "TimelinePublicBloc",
           "outputName": "status",
           "selectors": [
             {
@@ -252,6 +252,10 @@
               "propertyName": "username"
             }
           ]
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "rounded"
         }
       },
       "slots": {}
@@ -261,7 +265,7 @@
       "inputs": {
         "text": {
           "type": "node-output",
-          "nodeId": "TimelinePublicBloc1",
+          "nodeId": "TimelinePublicBloc",
           "outputName": "status",
           "selectors": [
             {
@@ -292,7 +296,7 @@
           "args": {
             "username": {
               "type": "node-output",
-              "nodeId": "TimelinePublicBloc1",
+              "nodeId": "TimelinePublicBloc",
               "outputName": "status",
               "selectors": [
                 {
@@ -323,7 +327,7 @@
       "inputs": {
         "text": {
           "type": "node-output",
-          "nodeId": "TimelinePublicBloc1",
+          "nodeId": "TimelinePublicBloc",
           "outputName": "status",
           "selectors": [
             {
@@ -360,7 +364,7 @@
       "inputs": {
         "content": {
           "type": "node-output",
-          "nodeId": "TimelinePublicBloc1",
+          "nodeId": "TimelinePublicBloc",
           "outputName": "status",
           "selectors": [
             {
