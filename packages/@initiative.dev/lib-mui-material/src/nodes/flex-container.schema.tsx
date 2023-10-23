@@ -21,7 +21,15 @@ export const FlexContainerSchema = new NodeSchema(
         optional: true,
       },
       justifyContent: {
-        type: flexAlign,
+        type: t.union(
+          t.string("start"),
+          t.string("center"),
+          t.string("end"),
+          t.string("stretch"),
+          t.string("space-around"),
+          t.string("space-between"),
+          t.string("space-evenly"),
+        ),
         optional: true,
       },
       gap: {

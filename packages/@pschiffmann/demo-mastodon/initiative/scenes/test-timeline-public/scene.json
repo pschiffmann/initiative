@@ -1,0 +1,476 @@
+{
+  "inputs": {},
+  "rootNode": "StatusContainer",
+  "nodes": {
+    "StatusContainer": {
+      "type": "@pschiffmann/demo-mastodon::StatusContainer",
+      "inputs": {},
+      "slots": {
+        "child": "Tabs",
+        "header": "Header"
+      }
+    },
+    "Header": {
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "enum-value",
+          "value": "row"
+        },
+        "alignItems": {
+          "type": "enum-value",
+          "value": "center"
+        },
+        "gap": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 0.5
+        },
+        "padding": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px"
+        }
+      },
+      "slots": {
+        "child::0": "HeaderIcon",
+        "child::1": "HeaderTitle"
+      }
+    },
+    "Tabs": {
+      "type": "@initiative.dev/lib-mui-material::Tabs",
+      "inputs": {
+        "variant": {
+          "type": "enum-value",
+          "value": "fullWidth"
+        },
+        "label::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Posts"
+        },
+        "label::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Hashtags"
+        },
+        "label::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "People"
+        },
+        "label::3": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "News"
+        },
+        "disabled::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::boolean",
+          "value": true
+        },
+        "disabled::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::boolean",
+          "value": true
+        },
+        "disabled::3": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::boolean",
+          "value": true
+        }
+      },
+      "slots": {
+        "tab::0": "TimelinePublicBloc1",
+        "tab::1": "HashtagsPlaceholder",
+        "tab::2": "PeoplePlaceholder",
+        "tab::3": "NewsPlaceholder"
+      }
+    },
+    "HeaderIcon": {
+      "type": "@initiative.dev/lib-mui-material::Icon",
+      "inputs": {
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "tag"
+        }
+      },
+      "slots": {}
+    },
+    "HeaderTitle": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Explore"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "h6"
+        }
+      },
+      "slots": {}
+    },
+    "TimelinePublicBloc1": {
+      "type": "@pschiffmann/demo-mastodon::TimelinePublicBloc",
+      "inputs": {},
+      "slots": {
+        "child": "Status"
+      }
+    },
+    "HashtagsPlaceholder": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Placeholder"
+        }
+      },
+      "slots": {}
+    },
+    "PeoplePlaceholder": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Placeholder"
+        }
+      },
+      "slots": {}
+    },
+    "NewsPlaceholder": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Placeholder"
+        }
+      },
+      "slots": {}
+    },
+    "Status": {
+      "type": "@initiative.dev/lib-mui-material::GridContainer",
+      "inputs": {
+        "gridTemplate": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::text",
+          "value": "\"avatar name time\" auto\n\"avatar handle .\" auto\n\"text text text\" auto\n\"actions actions actions\" auto\n/ auto 1fr auto"
+        },
+        "gap": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 0
+        },
+        "padding": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px"
+        },
+        "outlined": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::boolean",
+          "value": true
+        },
+        "gridArea::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "avatar"
+        },
+        "gridArea::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "name"
+        },
+        "gridArea::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "handle"
+        },
+        "gridArea::3": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "time"
+        },
+        "gridArea::4": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "actions"
+        },
+        "gridArea::5": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "text"
+        },
+        "alignSelf::0": {
+          "type": "enum-value",
+          "value": "center"
+        }
+      },
+      "slots": {
+        "child::0": "Avatar",
+        "child::1": "Name",
+        "child::2": "Handle",
+        "child::3": "Time",
+        "child::4": "Actions",
+        "child::5": "Content"
+      }
+    },
+    "Avatar": {
+      "type": "@initiative.dev/lib-mui-material::Avatar",
+      "inputs": {
+        "src": {
+          "type": "node-output",
+          "nodeId": "TimelinePublicBloc1",
+          "outputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "account"
+            },
+            {
+              "type": "property",
+              "propertyName": "avatar"
+            }
+          ]
+        },
+        "alt": {
+          "type": "node-output",
+          "nodeId": "TimelinePublicBloc1",
+          "outputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "account"
+            },
+            {
+              "type": "property",
+              "propertyName": "username"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "Name": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "TimelinePublicBloc1",
+          "outputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "account"
+            },
+            {
+              "type": "property",
+              "propertyName": "display_name"
+            }
+          ]
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "subtitle1"
+        }
+      },
+      "slots": {}
+    },
+    "Handle": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "fluent-message",
+          "messages": {
+            "en": "@{$username}"
+          },
+          "args": {
+            "username": {
+              "type": "node-output",
+              "nodeId": "TimelinePublicBloc1",
+              "outputName": "status",
+              "selectors": [
+                {
+                  "type": "property",
+                  "propertyName": "account"
+                },
+                {
+                  "type": "property",
+                  "propertyName": "username"
+                }
+              ]
+            }
+          }
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "body2"
+        },
+        "color": {
+          "type": "enum-value",
+          "value": "text.secondary"
+        }
+      },
+      "slots": {}
+    },
+    "Time": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "TimelinePublicBloc1",
+          "outputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "created_at"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "Actions": {
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "enum-value",
+          "value": "row"
+        },
+        "justifyContent": {
+          "type": "enum-value",
+          "value": "space-between"
+        }
+      },
+      "slots": {
+        "child::0": "ReplyButton",
+        "child::1": "BoostButton",
+        "child::2": "FavoriteButton",
+        "child::3": "BookmarkButton",
+        "child::4": "MoreButton"
+      }
+    },
+    "Content": {
+      "type": "@pschiffmann/demo-mastodon::StatusContent",
+      "inputs": {
+        "content": {
+          "type": "node-output",
+          "nodeId": "TimelinePublicBloc1",
+          "outputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "content"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "ReplyButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Reply"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "reply"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "BoostButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Boost"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "repeat"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "FavoriteButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Favorite"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "star"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "BookmarkButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Bookmark"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "bookmark"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "MoreButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "More"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "more_horiz"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    }
+  }
+}

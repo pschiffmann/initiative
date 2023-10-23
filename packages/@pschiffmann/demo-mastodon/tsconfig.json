@@ -1,0 +1,16 @@
+{
+  "extends": "@pschiffmann/std/tsconfig-base.json",
+  "references": [
+    { "path": "../../@initiative.dev/ide" },
+    { "path": "../../@initiative.dev/lib-core" },
+    { "path": "../../@initiative.dev/lib-mui-material" }
+  ],
+  "include": ["initiative/**/*", "src/**/*"],
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "tsc-build/",
+    "tsBuildInfoFile": "tsc-build/.tsbuildinfo",
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  }
+}

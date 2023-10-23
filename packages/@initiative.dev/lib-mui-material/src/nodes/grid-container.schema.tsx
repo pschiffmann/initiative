@@ -1,22 +1,26 @@
 import { NodeSchema, t } from "@initiative.dev/schema";
+import { surfaceInputs } from "./shared-inputs.js";
 
-const flexAlign = t.union(
+const placeItem = t.union(
   t.string("start"),
   t.string("center"),
   t.string("end"),
   t.string("stretch"),
 );
 
-export const FlexContainerSchema = new NodeSchema(
+export const GridContainerSchema = new NodeSchema(
   "@initiative.dev/lib-mui-material::GridContainer",
   {
     inputs: {
-      flexDirection: {
-        type: t.union(t.string("column"), t.string("row")),
+      gridTemplate: {
+        type: t.string(),
+      },
+      justifyItems: {
+        type: placeItem,
         optional: true,
       },
       alignItems: {
-        type: flexAlign,
+        type: placeItem,
         optional: true,
       },
       gap: {
@@ -27,15 +31,20 @@ export const FlexContainerSchema = new NodeSchema(
         type: t.string(),
         optional: true,
       },
-      // backgroundColor: {
-      //   type: t.optional(t.string())
-      // }
+      ...surfaceInputs,
     },
     slots: {
       child: {
         inputs: {
+          gridArea: {
+            type: t.string(),
+          },
+          justifySelf: {
+            type: placeItem,
+            optional: true,
+          },
           alignSelf: {
-            type: flexAlign,
+            type: placeItem,
             optional: true,
           },
           margin: {
@@ -48,4 +57,4 @@ export const FlexContainerSchema = new NodeSchema(
   },
 );
 
-export type FlexContainerSchema = typeof FlexContainerSchema;
+export type GridContainerSchema = typeof GridContainerSchema;
