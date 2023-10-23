@@ -202,7 +202,7 @@ function Status_Adapter() {
       margin={[
         "0 8px 0 0",
         undefined,
-        undefined,
+        "-4px 0 0 0",
         undefined,
         undefined,
         undefined,

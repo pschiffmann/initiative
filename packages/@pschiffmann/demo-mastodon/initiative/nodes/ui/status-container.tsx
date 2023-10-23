@@ -24,12 +24,13 @@ const Root = styled("div")(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
 }));
 
-const Header = styled("div")(({ theme }) => ({
+const Header = styled("div")(({ theme: { palette, shape } }) => ({
   position: "sticky",
   top: 8,
   zIndex: 1,
   height: 48,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: palette.background.paper,
+  borderRadius: `${shape.borderRadius}px ${shape.borderRadius}px 0 0`,
 }));
 
 const Content = styled("div")(({ theme }) => ({

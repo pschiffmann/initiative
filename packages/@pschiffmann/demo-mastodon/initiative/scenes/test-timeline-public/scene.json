@@ -215,6 +215,11 @@
           "schemaName": "@initiative.dev/std::string",
           "value": "0 8px 0 0"
         },
+        "margin::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "-4px 0 0 0"
+        },
         "margin::6": {
           "type": "json-literal",
           "schemaName": "@initiative.dev/std::string",
