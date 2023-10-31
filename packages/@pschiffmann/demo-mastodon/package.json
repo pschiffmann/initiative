@@ -17,8 +17,10 @@
     "@initiative.dev/ide": "^0.1.2",
     "@initiative.dev/lib-core": "^0.1.0",
     "@initiative.dev/lib-mui-material": "^0.1.0",
+    "@initiative.dev/lib-router": "^0.1.0",
     "@initiative.dev/schema": "^0.1.0",
     "@mui/material": "^5.13.2",
+    "history": "^5.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

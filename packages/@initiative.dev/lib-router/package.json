@@ -1,11 +1,11 @@
 {
-  "name": "@initiative.dev/lib-mui-material",
+  "name": "@initiative.dev/lib-router",
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/pschiffmann/initiative",
-    "directory": "packages/@initiative.dev/lib-mui-material"
+    "directory": "packages/@initiative.dev/lib-router"
   },
   "files": [
     "dist/**",
@@ -13,22 +13,18 @@
   ],
   "type": "module",
   "exports": {
+    ".": "./dist/index.js",
     "./nodes": "./dist/nodes/index.js"
   },
   "sideEffects": false,
   "dependencies": {
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.0",
-    "@mui/material": "^5.14.0",
+    "@initiative.dev/schema": "^0.1.0",
+    "@pschiffmann/std": "^0.3.7",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "history": "^5.3.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.7",
     "@types/react-dom": "^18.2.4"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

@@ -1,0 +1,180 @@
+{
+  "inputs": {},
+  "rootNode": "Layout",
+  "nodes": {
+    "Layout": {
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "enum-value",
+          "value": "column"
+        }
+      },
+      "slots": {
+        "child::0": "LoginLink",
+        "child::1": "ExploreLink",
+        "child::2": "Router"
+      }
+    },
+    "LoginLink": {
+      "type": "@initiative.dev/lib-router::NavLink",
+      "inputs": {
+        "content": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Explore"
+        },
+        "path": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "explore"
+        }
+      },
+      "slots": {}
+    },
+    "ExploreLink": {
+      "type": "@initiative.dev/lib-router::NavLink",
+      "inputs": {
+        "content": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Login"
+        },
+        "path": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "login"
+        }
+      },
+      "slots": {}
+    },
+    "Router": {
+      "type": "@initiative.dev/lib-router::Router",
+      "inputs": {
+        "path::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "login"
+        },
+        "path::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": ""
+        },
+        "path::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "explore"
+        }
+      },
+      "slots": {
+        "route::0": "LoginContainer",
+        "route::1": "DefaultRedirect",
+        "route::2": "Explore"
+      }
+    },
+    "LoginContainer": {
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "enum-value",
+          "value": "column"
+        },
+        "gap": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 1
+        },
+        "padding": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px"
+        },
+        "outlined": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::boolean",
+          "value": true
+        },
+        "borderRadius": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 1
+        }
+      },
+      "slots": {
+        "child::0": "Title",
+        "child::1": "LoginButton",
+        "child::2": "RegisterButton"
+      }
+    },
+    "DefaultRedirect": {
+      "type": "@initiative.dev/lib-router::Navigate",
+      "inputs": {
+        "path": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "/login"
+        }
+      },
+      "slots": {}
+    },
+    "Explore": {
+      "type": "@pschiffmann/demo-mastodon::ExploreSceneImport",
+      "inputs": {},
+      "slots": {}
+    },
+    "Title": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Welcome to Mastodon!"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "h3"
+        }
+      },
+      "slots": {}
+    },
+    "LoginButton": {
+      "type": "@initiative.dev/lib-mui-material::Button",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Login"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "outlined"
+        },
+        "color": {
+          "type": "enum-value",
+          "value": "primary"
+        }
+      },
+      "slots": {}
+    },
+    "RegisterButton": {
+      "type": "@initiative.dev/lib-mui-material::Button",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Register"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "contained"
+        },
+        "color": {
+          "type": "enum-value",
+          "value": "primary"
+        }
+      },
+      "slots": {}
+    }
+  }
+}

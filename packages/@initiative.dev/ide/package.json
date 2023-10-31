@@ -31,7 +31,7 @@
     "@initiative.dev/react-command": "^0.1.0",
     "@initiative.dev/schema": "^0.1.0",
     "@material/material-color-utilities": "^0.2.6",
-    "@pschiffmann/std": "^0.3.6",
+    "@pschiffmann/std": "^0.3.7",
     "idb-keyval": "^6.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

@@ -3,7 +3,8 @@
   "references": [
     { "path": "../../@initiative.dev/ide" },
     { "path": "../../@initiative.dev/lib-core" },
-    { "path": "../../@initiative.dev/lib-mui-material" }
+    { "path": "../../@initiative.dev/lib-mui-material" },
+    { "path": "../../@initiative.dev/lib-router" }
   ],
   "include": ["initiative/**/*", "src/**/*"],
   "compilerOptions": {
