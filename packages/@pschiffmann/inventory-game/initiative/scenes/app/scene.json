@@ -1,0 +1,390 @@
+{
+  "inputs": {},
+  "rootNode": "SimulationBloc",
+  "nodes": {
+    "SimulationBloc": {
+      "type": "@pschiffmann/inventory-game::SimulationBloc",
+      "inputs": {},
+      "slots": {
+        "child": "Layout"
+      }
+    },
+    "Layout": {
+      "type": "@initiative.dev/lib-mui-material::GridContainer",
+      "inputs": {
+        "gridTemplate": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::text",
+          "value": "\"profile-card inventory\" 120px\n\"inventory-gold inventory\" 40px\n\"inventory-free-slots inventory\" 40px\n\"event-log event-log\" calc(100vh - 240px)\n/ 40% 1fr"
+        },
+        "gap": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 2
+        },
+        "gridArea::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "profile-card"
+        },
+        "gridArea::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "event-log"
+        },
+        "gridArea::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "inventory"
+        },
+        "gridArea::3": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "inventory-gold"
+        },
+        "gridArea::4": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "inventory-free-slots"
+        }
+      },
+      "slots": {
+        "child::0": "HeroProfileCard",
+        "child::1": "EventLog",
+        "child::2": "Inventory",
+        "child::3": "InventoryGold",
+        "child::4": "InventoryFreeSlots"
+      }
+    },
+    "HeroProfileCard": {
+      "type": "@initiative.dev/lib-mui-material::GridContainer",
+      "inputs": {
+        "gridTemplate": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::text",
+          "value": "\"avatar name\" 1fr\n\"avatar location\" 1fr\n/ auto 1fr"
+        },
+        "alignItems": {
+          "type": "enum-value",
+          "value": "center"
+        },
+        "outlined": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::boolean",
+          "value": true
+        },
+        "borderRadius": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 2
+        },
+        "gridArea::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "avatar"
+        },
+        "gridArea::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "name"
+        },
+        "gridArea::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "location"
+        },
+        "margin::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "0 8px"
+        },
+        "margin::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "0 8px 0 0"
+        }
+      },
+      "slots": {
+        "child::0": "Avatar",
+        "child::1": "HeroName",
+        "child::2": "HeroLocation"
+      }
+    },
+    "EventLog": {
+      "type": "@initiative.dev/inventory-game::ReadonlyTextArea",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Event Log"
+        },
+        "value": {
+          "type": "node-output",
+          "nodeId": "SimulationBloc",
+          "outputName": "heroes",
+          "selectors": [
+            {
+              "type": "method",
+              "methodName": "at",
+              "args": [
+                {
+                  "type": "json-literal",
+                  "schemaName": "@initiative.dev/std::number",
+                  "value": 0
+                }
+              ]
+            },
+            {
+              "type": "property",
+              "propertyName": "adventureState"
+            },
+            {
+              "type": "property",
+              "propertyName": "eventLog"
+            },
+            {
+              "type": "method",
+              "methodName": "join",
+              "args": [
+                {
+                  "type": "fluent-message",
+                  "messages": {
+                    "en": "{\"\\u000A\"}"
+                  },
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "Inventory": {
+      "type": "@initiative.dev/inventory-game::InventoryList",
+      "inputs": {
+        "items": {
+          "type": "node-output",
+          "nodeId": "SimulationBloc",
+          "outputName": "heroes",
+          "selectors": [
+            {
+              "type": "method",
+              "methodName": "at",
+              "args": [
+                {
+                  "type": "json-literal",
+                  "schemaName": "@initiative.dev/std::number",
+                  "value": 0
+                }
+              ]
+            },
+            {
+              "type": "property",
+              "propertyName": "inventory"
+            },
+            {
+              "type": "property",
+              "propertyName": "stacks"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "InventoryGold": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "fluent-message",
+          "messages": {
+            "en": "Gold: {$gold}"
+          },
+          "args": {
+            "gold": {
+              "type": "node-output",
+              "nodeId": "SimulationBloc",
+              "outputName": "heroes",
+              "selectors": [
+                {
+                  "type": "method",
+                  "methodName": "at",
+                  "args": [
+                    {
+                      "type": "json-literal",
+                      "schemaName": "@initiative.dev/std::number",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "type": "property",
+                  "propertyName": "inventory"
+                },
+                {
+                  "type": "property",
+                  "propertyName": "gold"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "slots": {}
+    },
+    "InventoryFreeSlots": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "fluent-message",
+          "messages": {
+            "en": "Inventory slots: {$used} / {$total} used"
+          },
+          "args": {
+            "total": {
+              "type": "node-output",
+              "nodeId": "SimulationBloc",
+              "outputName": "heroes",
+              "selectors": [
+                {
+                  "type": "method",
+                  "methodName": "at",
+                  "args": [
+                    {
+                      "type": "json-literal",
+                      "schemaName": "@initiative.dev/std::number",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "type": "property",
+                  "propertyName": "inventory"
+                },
+                {
+                  "type": "property",
+                  "propertyName": "slots"
+                }
+              ]
+            },
+            "used": {
+              "type": "node-output",
+              "nodeId": "SimulationBloc",
+              "outputName": "heroes",
+              "selectors": [
+                {
+                  "type": "method",
+                  "methodName": "at",
+                  "args": [
+                    {
+                      "type": "json-literal",
+                      "schemaName": "@initiative.dev/std::number",
+                      "value": 0
+                    }
+                  ]
+                },
+                {
+                  "type": "property",
+                  "propertyName": "inventory"
+                },
+                {
+                  "type": "property",
+                  "propertyName": "stacks"
+                },
+                {
+                  "type": "property",
+                  "propertyName": "length"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "slots": {}
+    },
+    "Avatar": {
+      "type": "@initiative.dev/lib-mui-material::Avatar",
+      "inputs": {
+        "src": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "placeholder"
+        },
+        "alt": {
+          "type": "node-output",
+          "nodeId": "SimulationBloc",
+          "outputName": "heroes",
+          "selectors": [
+            {
+              "type": "method",
+              "methodName": "at",
+              "args": [
+                {
+                  "type": "json-literal",
+                  "schemaName": "@initiative.dev/std::number",
+                  "value": 0
+                }
+              ]
+            },
+            {
+              "type": "property",
+              "propertyName": "name"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "HeroName": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "node-output",
+          "nodeId": "SimulationBloc",
+          "outputName": "heroes",
+          "selectors": [
+            {
+              "type": "method",
+              "methodName": "at",
+              "args": [
+                {
+                  "type": "json-literal",
+                  "schemaName": "@initiative.dev/std::number",
+                  "value": 0
+                }
+              ]
+            },
+            {
+              "type": "property",
+              "propertyName": "name"
+            }
+          ]
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "body1"
+        }
+      },
+      "slots": {}
+    },
+    "HeroLocation": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "in town"
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "subtitle2"
+        },
+        "color": {
+          "type": "enum-value",
+          "value": "text.secondary"
+        }
+      },
+      "slots": {}
+    }
+  }
+}
