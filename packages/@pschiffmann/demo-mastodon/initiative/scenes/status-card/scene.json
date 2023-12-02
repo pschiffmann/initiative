@@ -1,0 +1,357 @@
+{
+  "inputs": {
+    "status": {
+      "type": {
+        "type": "entity",
+        "name": "@pschiffmann/demo-mastodon::Status"
+      },
+      "doc": "",
+      "debugValue": {
+        "type": "debug-value",
+        "debugValueName": "status",
+        "selectors": []
+      }
+    }
+  },
+  "rootNode": "Status",
+  "nodes": {
+    "Status": {
+      "type": "@initiative.dev/lib-mui-material::GridContainer",
+      "inputs": {
+        "gridTemplate": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::text",
+          "value": "\"avatar name time\" auto\n\"avatar handle .\" auto\n\"text text text\" auto\n\"actions actions actions\" auto\n\"divider divider divider\" auto\n/ auto 1fr auto"
+        },
+        "gap": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::number",
+          "value": 0
+        },
+        "padding": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px 8px 0 8px"
+        },
+        "gridArea::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "avatar"
+        },
+        "gridArea::1": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "name"
+        },
+        "gridArea::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "handle"
+        },
+        "gridArea::3": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "time"
+        },
+        "gridArea::4": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "actions"
+        },
+        "gridArea::5": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "text"
+        },
+        "gridArea::6": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "divider"
+        },
+        "alignSelf::0": {
+          "type": "enum-value",
+          "value": "center"
+        },
+        "margin::0": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "0 8px 0 0"
+        },
+        "margin::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "-4px 0 0 0"
+        },
+        "margin::6": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px -8px 0 -8px"
+        }
+      },
+      "slots": {
+        "child::0": "Avatar",
+        "child::1": "Name",
+        "child::2": "Handle",
+        "child::3": "Time",
+        "child::4": "Actions",
+        "child::5": "Content",
+        "child::6": "Divider"
+      }
+    },
+    "Avatar": {
+      "type": "@initiative.dev/lib-mui-material::Avatar",
+      "inputs": {
+        "src": {
+          "type": "scene-input",
+          "inputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "account"
+            },
+            {
+              "type": "property",
+              "propertyName": "avatar"
+            }
+          ]
+        },
+        "alt": {
+          "type": "scene-input",
+          "inputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "account"
+            },
+            {
+              "type": "property",
+              "propertyName": "username"
+            }
+          ]
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "rounded"
+        }
+      },
+      "slots": {}
+    },
+    "Name": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "scene-input",
+          "inputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "account"
+            },
+            {
+              "type": "property",
+              "propertyName": "display_name"
+            }
+          ]
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "subtitle1"
+        }
+      },
+      "slots": {}
+    },
+    "Handle": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "fluent-message",
+          "messages": {
+            "en": "@{$username}"
+          },
+          "args": {
+            "username": {
+              "type": "scene-input",
+              "inputName": "status",
+              "selectors": [
+                {
+                  "type": "property",
+                  "propertyName": "account"
+                },
+                {
+                  "type": "property",
+                  "propertyName": "username"
+                }
+              ]
+            }
+          }
+        },
+        "variant": {
+          "type": "enum-value",
+          "value": "body2"
+        },
+        "color": {
+          "type": "enum-value",
+          "value": "text.secondary"
+        }
+      },
+      "slots": {}
+    },
+    "Time": {
+      "type": "@initiative.dev/lib-mui-material::Typography",
+      "inputs": {
+        "text": {
+          "type": "scene-input",
+          "inputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "created_at"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "Actions": {
+      "type": "@initiative.dev/lib-mui-material::FlexContainer",
+      "inputs": {
+        "flexDirection": {
+          "type": "enum-value",
+          "value": "row"
+        },
+        "justifyContent": {
+          "type": "enum-value",
+          "value": "space-between"
+        }
+      },
+      "slots": {
+        "child::0": "ReplyButton",
+        "child::1": "BoostButton",
+        "child::2": "FavoriteButton",
+        "child::3": "BookmarkButton",
+        "child::4": "MoreButton"
+      }
+    },
+    "Content": {
+      "type": "@pschiffmann/demo-mastodon::StatusContent",
+      "inputs": {
+        "content": {
+          "type": "scene-input",
+          "inputName": "status",
+          "selectors": [
+            {
+              "type": "property",
+              "propertyName": "content"
+            }
+          ]
+        }
+      },
+      "slots": {}
+    },
+    "Divider": {
+      "type": "@initiative.dev/lib-mui-material::Divider",
+      "inputs": {},
+      "slots": {}
+    },
+    "ReplyButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Reply"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "reply"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "BoostButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Boost"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "repeat"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "FavoriteButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Favorite"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "star"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "BookmarkButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Bookmark"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "bookmark"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    },
+    "MoreButton": {
+      "type": "@initiative.dev/lib-mui-material::IconButton",
+      "inputs": {
+        "label": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "More"
+        },
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "more_horiz"
+        },
+        "size": {
+          "type": "enum-value",
+          "value": "small"
+        }
+      },
+      "slots": {}
+    }
+  }
+}

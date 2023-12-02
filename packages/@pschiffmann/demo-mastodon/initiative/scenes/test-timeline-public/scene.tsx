@@ -1,6 +1,6 @@
 import {
+  StatusCard,
   StatusContainer,
-  StatusContent,
   TimelinePublicBloc,
   type TimelinePublicBlocSchema,
 } from "#initiative/nodes/index.js";
@@ -10,16 +10,11 @@ import {
   type FluentVariable,
 } from "@fluent/bundle";
 import {
-  Avatar,
-  Divider,
   FlexContainer,
-  GridContainer,
   Icon,
-  IconButton,
   Tabs,
   Typography,
   type FlexContainerSchema,
-  type GridContainerSchema,
   type TabsSchema,
 } from "@initiative.dev/lib-mui-material/nodes";
 import {
@@ -165,187 +160,7 @@ function NewsPlaceholder_Adapter() {
 }
 
 function Status_Adapter() {
-  return (
-    <GridContainer
-      gridTemplate={
-        '"avatar name time" auto\n"avatar handle ." auto\n"text text text" auto\n"actions actions actions" auto\n"divider divider divider" auto\n/ auto 1fr auto'
-      }
-      gap={0}
-      padding={"8px 8px 0 8px"}
-      gridArea={[
-        "avatar",
-        "name",
-        "handle",
-        "time",
-        "actions",
-        "text",
-        "divider",
-      ]}
-      justifySelf={[
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      ]}
-      alignSelf={[
-        "center",
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-      ]}
-      margin={[
-        "0 8px 0 0",
-        undefined,
-        "-4px 0 0 0",
-        undefined,
-        undefined,
-        undefined,
-        "8px -8px 0 -8px",
-      ]}
-      slots={{
-        child: { size: 7, Component: Status_child },
-      }}
-    />
-  );
-}
-
-function Status_child({
-  index,
-}: SlotComponentProps<GridContainerSchema, "child">) {
-  switch (index) {
-    case 0:
-      return <Avatar_Adapter />;
-    case 1:
-      return <Name_Adapter />;
-    case 2:
-      return <Handle_Adapter />;
-    case 3:
-      return <Time_Adapter />;
-    case 4:
-      return <Actions_Adapter />;
-    case 5:
-      return <Content_Adapter />;
-    case 6:
-      return <Divider_Adapter />;
-    default:
-      throw new Error(`Invalid index '${index}'.`);
-  }
-}
-
-function Avatar_Adapter() {
-  return (
-    <Avatar
-      src={useContext(TimelinePublicBloc$statusContext).account.avatar}
-      alt={useContext(TimelinePublicBloc$statusContext).account.username}
-      variant={"rounded"}
-    />
-  );
-}
-
-function Name_Adapter() {
-  return (
-    <Typography
-      text={useContext(TimelinePublicBloc$statusContext).account.display_name}
-      variant={"subtitle1"}
-    />
-  );
-}
-
-function Handle_Adapter() {
-  return (
-    <Typography
-      text={translateMessage(
-        useContext(FluentBundleContext),
-        "Handle",
-        "text",
-        {
-          username: useContext(TimelinePublicBloc$statusContext).account
-            .username,
-        },
-      )}
-      variant={"body2"}
-      color={"text.secondary"}
-    />
-  );
-}
-
-function Time_Adapter() {
-  return (
-    <Typography
-      text={useContext(TimelinePublicBloc$statusContext).created_at}
-    />
-  );
-}
-
-function Actions_Adapter() {
-  return (
-    <FlexContainer
-      flexDirection={"row"}
-      justifyContent={"space-between"}
-      alignSelf={[undefined, undefined, undefined, undefined, undefined]}
-      margin={[undefined, undefined, undefined, undefined, undefined]}
-      slots={{
-        child: { size: 5, Component: Actions_child },
-      }}
-    />
-  );
-}
-
-function Actions_child({
-  index,
-}: SlotComponentProps<FlexContainerSchema, "child">) {
-  switch (index) {
-    case 0:
-      return <ReplyButton_Adapter />;
-    case 1:
-      return <BoostButton_Adapter />;
-    case 2:
-      return <FavoriteButton_Adapter />;
-    case 3:
-      return <BookmarkButton_Adapter />;
-    case 4:
-      return <MoreButton_Adapter />;
-    default:
-      throw new Error(`Invalid index '${index}'.`);
-  }
-}
-
-function Content_Adapter() {
-  return (
-    <StatusContent
-      content={useContext(TimelinePublicBloc$statusContext).content}
-    />
-  );
-}
-
-function Divider_Adapter() {
-  return <Divider />;
-}
-
-function ReplyButton_Adapter() {
-  return <IconButton label={"Reply"} icon={"reply"} size={"small"} />;
-}
-
-function BoostButton_Adapter() {
-  return <IconButton label={"Boost"} icon={"repeat"} size={"small"} />;
-}
-
-function FavoriteButton_Adapter() {
-  return <IconButton label={"Favorite"} icon={"star"} size={"small"} />;
-}
-
-function BookmarkButton_Adapter() {
-  return <IconButton label={"Bookmark"} icon={"bookmark"} size={"small"} />;
-}
-
-function MoreButton_Adapter() {
-  return <IconButton label={"More"} icon={"more_horiz"} size={"small"} />;
+  return <StatusCard status={useContext(TimelinePublicBloc$statusContext)} />;
 }
 
 //

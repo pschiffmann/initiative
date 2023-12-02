@@ -4,6 +4,7 @@ import { createBrowserHistory } from "history";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "../src/components/theme-provider.js";
+import { status } from "./debug-values/status.js";
 import { definitions } from "./definitions.js";
 
 const history = createBrowserHistory();
@@ -14,7 +15,7 @@ root.render(
   <StrictMode>
     <ThemeProvider>
       <HistoryNavigationProvider history={history}>
-        <Stage definitions={definitions} debugValues={{}} />
+        <Stage definitions={definitions} debugValues={{ status }} />
       </HistoryNavigationProvider>
     </ThemeProvider>
   </StrictMode>,

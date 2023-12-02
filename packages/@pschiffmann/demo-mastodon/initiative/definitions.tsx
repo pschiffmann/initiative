@@ -1,4 +1,7 @@
-import { resolveDefinitions } from "@initiative.dev/schema";
+import { resolveDefinitions, t } from "@initiative.dev/schema";
+import { status } from "./types/index.js";
+
+t;
 
 const errors: string[] = [];
 export const definitions = resolveDefinitions(
@@ -21,7 +24,11 @@ export const definitions = resolveDefinitions(
     ],
     ["#initiative/nodes/index.js", await import("#initiative/nodes/index.js")],
   ],
-  {},
+  {
+    status: {
+      type: status(),
+    },
+  },
   errors,
 );
 if (errors.length) {
