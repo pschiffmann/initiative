@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.3 - 2023-12-25
+
+- Adapter components in generated `scene.tsx` files are wrapped with React `memo()`.
+
 ## 0.1.2 – 2023-10-22
 
 - Remove top-level await from license validation.
