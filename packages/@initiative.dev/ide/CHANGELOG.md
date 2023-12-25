@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.1.4 - 2023-12-25
+
+- Fix error that prevented code gen for slot nodes.
+- Fix off-by-one error in generated `.ftl` files.
+
 ## 0.1.3 - 2023-12-25
 
 - Adapter components in generated `scene.tsx` files are wrapped with React `memo()`.
