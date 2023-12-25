@@ -70,6 +70,10 @@ function generateNodeAdapter(
       `;
   }
 
+  const memo = nameResolver.importBinding({
+    moduleName: "react",
+    exportName: "memo",
+  });
   const Component = nameResolver.importBinding(definition);
   const Adapter = nameResolver.declareName(`${nodeData.id}_Adapter`);
 
@@ -146,13 +150,13 @@ function generateNodeAdapter(
   }
 
   return dedent`
-    function ${Adapter}() {
+    const ${Adapter} = ${memo}(function ${Adapter}() {
       return (
         <${Component}
           ${props.join("\n")}
         />
       );
-    }
+    });
     `;
 }
 
