@@ -293,12 +293,13 @@ function generateCollectionSlotComponent(
             const ChildAdapter = nameResolver.declareName(`${childId}_Adapter`);
             return dedent`
               case ${index}:
-                return (${generateContextProviderJsx(
-                  nameResolver,
-                  nodeData.id,
-                  outputNames,
-                  `<${ChildAdapter} />`,
-                )});
+                return (
+                  ${generateContextProviderJsx(
+                    nameResolver,
+                    nodeData.id,
+                    outputNames,
+                    `<${ChildAdapter} />`,
+                  )});
               `;
           })
           .join("\n")}
