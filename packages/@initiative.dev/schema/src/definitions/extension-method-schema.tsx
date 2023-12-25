@@ -1,4 +1,5 @@
 import * as t from "../type-system/index.js";
+import { validateExtensionMethodName } from "../validate-names.js";
 
 export interface ExtensionMethodSchemaInit<
   Self = unknown,
@@ -26,6 +27,7 @@ export class ExtensionMethodSchema<
       ReturnType
     >,
   ) {
+    validateExtensionMethodName(init.name);
     this.name = init.name;
     this.self = init.self;
     this.type = init.type;

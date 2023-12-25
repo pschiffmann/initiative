@@ -134,6 +134,29 @@ export function validateLibraryExportName(
   }
 }
 
+export function validateExtensionMethodName(name: string): void {
+  const parts = name.split("::");
+  if (parts.length !== 2) {
+    throw new Error(
+      `Invalid ExtensionMethodSchema name '${name}': must match the pattern ` +
+        `'<package-name>::<extension-method-name>'.`,
+    );
+  }
+  const [packageName, schemaName] = parts;
+  if (!validate(packageName).validForNewPackages) {
+    throw new Error(
+      `Invalid ExtensionMethodSchema name '${name}': prefix must be an npm ` +
+        `package name.`,
+    );
+  }
+  if (!schemaName.match(memberPattern)) {
+    throw new Error(
+      `Invalid ExtensionMethodSchema name '${name}': suffix must start with ` +
+        `an uppercase letter, and contain only alphanumeric characters.`,
+    );
+  }
+}
+
 const sceneNamePattern = /^[A-Za-z][\w-]*$/;
 const namespacePattern = /^[A-Z][A-Za-z0-9]*$/;
 const memberPattern = /^[a-z][A-Za-z0-9]*$/;
