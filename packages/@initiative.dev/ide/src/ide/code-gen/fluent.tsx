@@ -186,7 +186,7 @@ export function generateFtl(document: SceneDocument, locale: string): string {
         if (expression)
           visit(
             expression,
-            index === undefined ? inputName : `${inputName}-${index}`,
+            index === undefined ? inputName : `${inputName}-${index + 1}`,
           );
       });
   }
