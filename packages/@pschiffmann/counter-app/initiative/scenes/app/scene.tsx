@@ -41,6 +41,68 @@ function Scene({}: SceneProps) {
   );
 }
 
+const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter() {
+  return (
+    <Button
+      label={"Increase"}
+      variant={"contained"}
+      color={"primary"}
+      startIcon={"add"}
+      onPress={useContext(CounterBloc$increaseCounterContext)}
+    />
+  );
+});
+
+const CounterValue_Adapter = memo(function CounterValue_Adapter() {
+  return (
+    <Typography
+      text={translateMessage(
+        useContext(FluentBundleContext),
+        "CounterValue",
+        "text",
+        {
+          counter: useContext(CounterBloc$counterValueContext),
+        },
+      )}
+    />
+  );
+});
+
+const Title_Adapter = memo(function Title_Adapter() {
+  return <Typography text={"Counter App Demo"} variant={"h4"} />;
+});
+
+const Layout_Adapter = memo(function Layout_Adapter() {
+  return (
+    <FlexContainer
+      gap={1}
+      padding={"16px"}
+      alignSelf={[undefined, undefined, undefined]}
+      margin={[undefined, undefined, undefined]}
+      slots={Layout$slots}
+    />
+  );
+});
+
+const Layout$slots = {
+  child: { size: 3, Component: Layout_child },
+};
+
+function Layout_child({
+  index,
+}: SlotComponentProps<FlexContainerSchema, "child">) {
+  switch (index) {
+    case 0:
+      return <Title_Adapter />;
+    case 1:
+      return <CounterValue_Adapter />;
+    case 2:
+      return <IncreaseButton_Adapter />;
+    default:
+      throw new Error(`Invalid index '${index}'.`);
+  }
+}
+
 const CounterBloc$increaseCounterContext = createContext<
   OutputTypes<CounterBlocSchema>["increaseCounter"]
 >(null!);
@@ -58,12 +120,14 @@ const CounterBloc_Adapter = memo(function CounterBloc_Adapter() {
   return (
     <CounterBloc
       OutputsProvider={CounterBloc_OutputsProvider}
-      slots={{
-        child: { Component: Layout_Adapter },
-      }}
+      slots={CounterBloc$slots}
     />
   );
 });
+
+const CounterBloc$slots = {
+  child: { Component: Layout_Adapter },
+};
 
 function CounterBloc_OutputsProvider({
   increaseCounter,
@@ -84,66 +148,6 @@ function CounterBloc_OutputsProvider({
     </CounterBloc$increaseCounterContext.Provider>
   );
 }
-
-const Layout_Adapter = memo(function Layout_Adapter() {
-  return (
-    <FlexContainer
-      gap={1}
-      padding={"16px"}
-      alignSelf={[undefined, undefined, undefined]}
-      margin={[undefined, undefined, undefined]}
-      slots={{
-        child: { size: 3, Component: Layout_child },
-      }}
-    />
-  );
-});
-
-function Layout_child({
-  index,
-}: SlotComponentProps<FlexContainerSchema, "child">) {
-  switch (index) {
-    case 0:
-      return <Title_Adapter />;
-    case 1:
-      return <CounterValue_Adapter />;
-    case 2:
-      return <IncreaseButton_Adapter />;
-    default:
-      throw new Error(`Invalid index '${index}'.`);
-  }
-}
-
-const Title_Adapter = memo(function Title_Adapter() {
-  return <Typography text={"Counter App Demo"} variant={"h4"} />;
-});
-
-const CounterValue_Adapter = memo(function CounterValue_Adapter() {
-  return (
-    <Typography
-      text={translateMessage(
-        useContext(FluentBundleContext),
-        "CounterValue",
-        "text",
-        {
-          counter: useContext(CounterBloc$counterValueContext),
-        },
-      )}
-    />
-  );
-});
-
-const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter() {
-  return (
-    <Button
-      label={"Increase"}
-      variant={"contained"}
-      color={"primary"}
-      startIcon={"add"}
-      onPress={useContext(CounterBloc$increaseCounterContext)}
-    />
-  );
-});
 
 //
 // Fluent

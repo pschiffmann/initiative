@@ -28,6 +28,9 @@ export function generateNodeRuntime(
     generateNodeOutputContexts(nodeData, definition, nameResolver),
     generateNodeAdapter(nodeData, definition, nameResolver),
   ];
+  if (nodeData.schema.hasSlots()) {
+    result.push(generateSlotsLiteral(nodeData, definition, nameResolver));
+  }
   nodeData.schema.forEachSlot((slotName, { outputNames, isCollectionSlot }) => {
     if (isCollectionSlot) {
       result.push(
@@ -58,13 +61,15 @@ function generateNodeAdapter(
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
+  const Adapter = nameResolver.declareName(`${nodeData.id}_Adapter`);
+
   if (nodeData.errors) {
     const ReactElement = nameResolver.importType({
       moduleName: "react",
       exportName: "ReactElement",
     });
     return dedent`
-      function ${nodeData.id}_Adapter(): ${ReactElement} {
+      function ${Adapter}(): ${ReactElement} {
         throw new Error("Node: ${nodeData.id} contains errors!");
       }
       `;
@@ -75,7 +80,6 @@ function generateNodeAdapter(
     exportName: "memo",
   });
   const Component = nameResolver.importBinding(definition);
-  const Adapter = nameResolver.declareName(`${nodeData.id}_Adapter`);
 
   const props: string[] = [];
 
@@ -120,33 +124,8 @@ function generateNodeAdapter(
 
   // slots
   if (nodeData.schema.hasSlots()) {
-    const values = nodeData.schema.forEachSlot(
-      (slotName, { outputNames, isCollectionSlot }) => {
-        let value: string;
-        if (isCollectionSlot) {
-          const size = nodeData.collectionSlotSizes[slotName];
-          const Component = nameResolver.declareName(
-            `${nodeData.id}_${slotName}`,
-          );
-          value = `{ size: ${size}, Component: ${Component} }`;
-        } else if (outputNames.length !== 0) {
-          const Component = nameResolver.declareName(
-            `${nodeData.id}_${slotName}`,
-          );
-          value = `{ Component: ${Component} }`;
-        } else {
-          const childId = nodeData.slots[slotName];
-          const Component = nameResolver.declareName(`${childId}_Adapter`);
-          value = `{ Component: ${Component} }`;
-        }
-        return `${slotName}: ${value},`;
-      },
-    );
-    props.push(dedent`
-      slots={{
-        ${values.join("\n")}
-      }}
-      `);
+    const slots = nameResolver.declareName(`${nodeData.id}$slots`);
+    props.push(`slots={${slots}}`);
   }
 
   return dedent`
@@ -181,7 +160,11 @@ function generateNodeOutputContexts(
   });
   return nodeData.schema
     .forEachOutput((outputName) => {
-      const contextName = getNodeOutputContextName(nodeData.id, outputName);
+      const contextName = getNodeOutputContextName(
+        nameResolver,
+        nodeData.id,
+        outputName,
+      );
       const contextType = `${outputTypes}<${NodeSchema}>["${outputName}"]`;
       return `const ${contextName} = ${createContext}<${contextType}>(null!);`;
     })
@@ -224,6 +207,42 @@ function generateNodeOutputsProvider(
         )}
       );
     }
+    `;
+}
+
+function generateSlotsLiteral(
+  nodeData: NodeData,
+  definition: NodeDefinition,
+  nameResolver: NameResolver,
+): string {
+  const values = nodeData.schema.forEachSlot(
+    (slotName, { outputNames, isCollectionSlot }) => {
+      let value: string;
+      if (isCollectionSlot) {
+        const size = nodeData.collectionSlotSizes[slotName];
+        const Component = nameResolver.declareName(
+          `${nodeData.id}_${slotName}`,
+        );
+        value = `{ size: ${size}, Component: ${Component} }`;
+      } else if (outputNames.length !== 0) {
+        const Component = nameResolver.declareName(
+          `${nodeData.id}_${slotName}`,
+        );
+        value = `{ Component: ${Component} }`;
+      } else {
+        const childId = nodeData.slots[slotName];
+        const Component = nameResolver.declareName(`${childId}_Adapter`);
+        value = `{ Component: ${Component} }`;
+      }
+      return `${slotName}: ${value},`;
+    },
+  );
+
+  const slots = nameResolver.declareName(`${nodeData.id}$slots`);
+  return dedent`
+    const ${slots} = {
+      ${values.join("\n")}
+    };
     `;
 }
 
@@ -364,6 +383,7 @@ function generateExpression(
       }
       case "node-output": {
         const contextName = getNodeOutputContextName(
+          nameResolver,
           expression.head.nodeId,
           expression.head.outputName,
         );

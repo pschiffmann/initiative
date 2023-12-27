@@ -6,10 +6,11 @@ export function getSceneInputContextName(sceneInput: string): string {
 }
 
 export function getNodeOutputContextName(
+  nameResolver: NameResolver,
   nodeId: string,
   outputName: string,
 ): string {
-  return `${nodeId}$${outputName}Context`;
+  return nameResolver.declareName(`${nodeId}$${outputName}Context`);
 }
 
 export function generateContextProviderJsx(
@@ -19,9 +20,7 @@ export function generateContextProviderJsx(
   children: string,
 ): string {
   return outputNames.toReversed().reduce((children, outputName) => {
-    const Context = nameResolver.declareName(
-      getNodeOutputContextName(nodeId, outputName),
-    );
+    const Context = getNodeOutputContextName(nameResolver, nodeId, outputName);
     return dedent`
       <${Context}.Provider value={${outputName}}>
         ${children}

@@ -12,6 +12,7 @@ export function generateCodeForScene(document: SceneDocument): string {
     generateSceneWithSceneInputs(document, nameResolver),
     ...document
       .keys()
+      .reverse()
       .map((nodeId) => generateNodeRuntime(document, nameResolver, nodeId)),
     document.projectConfig.locales
       ? generateFtlSceneSupport(document.projectConfig.locales, nameResolver)

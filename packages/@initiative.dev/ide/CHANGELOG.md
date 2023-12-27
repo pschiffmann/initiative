@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.5 - 2023-12-27
+
+- Extract `slots` object literal into top-level variables, to so they no longer break memoization.
+
 ## 0.1.4 - 2023-12-25
 
 - Fix error that prevented code gen for slot nodes.
