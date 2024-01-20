@@ -13,6 +13,7 @@ import {
   Typography,
   type FlexContainerSchema,
 } from "@initiative.dev/lib-mui-material/nodes";
+import { type StyleProps } from "@initiative.dev/schema";
 import {
   type OutputTypes,
   type OutputsProviderProps,
@@ -31,19 +32,23 @@ import ftlUrlEn from "./locale/en.ftl";
 
 export { Scene as App, type SceneProps as AppProps };
 
-interface SceneProps {}
+interface SceneProps extends StyleProps {}
 
-function Scene({}: SceneProps) {
+function Scene({ className, style }: SceneProps) {
   return (
     <FluentBundleProvider>
-      <CounterBloc_Adapter />
+      <CounterBloc_Adapter className={className} style={style} />
     </FluentBundleProvider>
   );
 }
 
-const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter() {
+const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter({
+  className,
+  style,
+}: StyleProps) {
   return (
     <Button
+      className={className}
       label={"Increase"}
       variant={"contained"}
       color={"primary"}
@@ -53,9 +58,13 @@ const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter() {
   );
 });
 
-const CounterValue_Adapter = memo(function CounterValue_Adapter() {
+const CounterValue_Adapter = memo(function CounterValue_Adapter({
+  className,
+  style,
+}: StyleProps) {
   return (
     <Typography
+      className={className}
       text={translateMessage(
         useContext(FluentBundleContext),
         "CounterValue",
@@ -68,16 +77,29 @@ const CounterValue_Adapter = memo(function CounterValue_Adapter() {
   );
 });
 
-const Title_Adapter = memo(function Title_Adapter() {
-  return <Typography text={"Counter App Demo"} variant={"h4"} />;
+const Title_Adapter = memo(function Title_Adapter({
+  className,
+  style,
+}: StyleProps) {
+  return (
+    <Typography
+      className={className}
+      text={"Counter App Demo"}
+      variant={"h4"}
+    />
+  );
 });
 
-const Layout_Adapter = memo(function Layout_Adapter() {
+const Layout_Adapter = memo(function Layout_Adapter({
+  className,
+  style,
+}: StyleProps) {
   return (
     <FlexContainer
+      className={className}
       gap={1}
       padding={"16px"}
-      alignSelf={[undefined, undefined, undefined]}
+      alignSelf={[undefined, undefined, "start"]}
       margin={[undefined, undefined, undefined]}
       slots={Layout$slots}
     />
@@ -89,15 +111,17 @@ const Layout$slots = {
 };
 
 function Layout_child({
+  className,
+  style,
   index,
 }: SlotComponentProps<FlexContainerSchema, "child">) {
   switch (index) {
     case 0:
-      return <Title_Adapter />;
+      return <Title_Adapter className={className} style={style} />;
     case 1:
-      return <CounterValue_Adapter />;
+      return <CounterValue_Adapter className={className} style={style} />;
     case 2:
-      return <IncreaseButton_Adapter />;
+      return <IncreaseButton_Adapter className={className} style={style} />;
     default:
       throw new Error(`Invalid index '${index}'.`);
   }
@@ -116,9 +140,13 @@ const CounterBloc$counterValueContext = createContext<
   OutputTypes<CounterBlocSchema>["counterValue"]
 >(null!);
 
-const CounterBloc_Adapter = memo(function CounterBloc_Adapter() {
+const CounterBloc_Adapter = memo(function CounterBloc_Adapter({
+  className,
+  style,
+}: StyleProps) {
   return (
     <CounterBloc
+      className={className}
       OutputsProvider={CounterBloc_OutputsProvider}
       slots={CounterBloc$slots}
     />

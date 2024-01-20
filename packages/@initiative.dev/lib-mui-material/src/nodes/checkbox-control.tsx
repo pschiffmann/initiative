@@ -3,9 +3,9 @@ import { Checkbox, FormControlLabel } from "@mui/material";
 import { CheckboxControlSchema } from "./checkbox-control.schema.js";
 
 export function CheckboxControl({
-  label,
   checked,
   onChange,
+  ...props
 }: NodeComponentProps<CheckboxControlSchema>) {
   return (
     <FormControlLabel
@@ -15,7 +15,7 @@ export function CheckboxControl({
           onChange={(e, checked) => onChange(checked)}
         />
       }
-      label={label}
+      {...props}
     />
   );
 }

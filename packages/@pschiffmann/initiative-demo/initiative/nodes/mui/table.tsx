@@ -13,10 +13,11 @@ export function MuiTable({
   header,
   align,
   slots,
+  ...props
 }: NodeComponentProps<MuiTableSchema>) {
   const columns = new Array(slots.column.size).fill(0);
   return (
-    <Table>
+    <Table {...props}>
       <TableHead>
         <TableRow>
           {columns.map((_, i) => (

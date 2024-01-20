@@ -62,6 +62,10 @@ function generateNodeAdapter(
   nameResolver: NameResolver,
 ): string {
   const Adapter = nameResolver.declareName(`${nodeData.id}_Adapter`);
+  const StyleProps = nameResolver.importType({
+    moduleName: "@initiative.dev/schema",
+    exportName: "StyleProps",
+  });
 
   if (nodeData.errors) {
     const ReactElement = nameResolver.importType({
@@ -69,7 +73,7 @@ function generateNodeAdapter(
       exportName: "ReactElement",
     });
     return dedent`
-      function ${Adapter}(): ${ReactElement} {
+      function ${Adapter}({}: ${StyleProps}): ${ReactElement} {
         throw new Error("Node: ${nodeData.id} contains errors!");
       }
       `;
@@ -129,9 +133,14 @@ function generateNodeAdapter(
   }
 
   return dedent`
-    const ${Adapter} = ${memo}(function ${Adapter}() {
+    const ${Adapter} = ${memo}(function ${Adapter}({
+      className,
+      style,
+    }: ${StyleProps}) {
       return (
         <${Component}
+          className={className}
+          style={style}
           ${props.join("\n")}
         />
       );
@@ -269,6 +278,8 @@ function generateSlotComponent(
 
   return dedent`
     function ${SlotComponent}({
+      className,
+      style,
       ${outputNames.map((n) => `${n},`).join("\n")}
     }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">) {
       return (
@@ -276,7 +287,7 @@ function generateSlotComponent(
           nameResolver,
           nodeData.id,
           outputNames,
-          `<${ChildAdapter} />`,
+          `<${ChildAdapter} className={className} style={style} />`,
         )}
       );
     }
@@ -303,8 +314,10 @@ function generateCollectionSlotComponent(
 
   return dedent`
     function ${SlotComponent}({
-      ${outputNames.map((n) => `${n},`).join("\n")}
+      className,
+      style,
       index,
+      ${outputNames.map((n) => `${n},`).join("\n")}
     }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">) {
       switch(index) {
         ${nodeData
@@ -317,7 +330,7 @@ function generateCollectionSlotComponent(
                     nameResolver,
                     nodeData.id,
                     outputNames,
-                    `<${ChildAdapter} />`,
+                    `<${ChildAdapter} className={className} style={style} />`,
                   )});
               `;
           })

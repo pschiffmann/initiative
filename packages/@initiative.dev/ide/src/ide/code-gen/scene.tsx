@@ -1,14 +1,29 @@
-import { SceneDocument } from "#shared";
 import { dedent } from "@pschiffmann/std/dedent";
 import { capitalize } from "@pschiffmann/std/string";
+
+import { SceneDocument } from "#shared";
 import { generateContextProviderJsx } from "./context.js";
 import { NameResolver } from "./name-resolver.js";
 import { generateType } from "./types.js";
 
-export function generateEmptyScene(name: string): string {
+export function generateEmptyScene(
+  name: string,
+  nameResolver: NameResolver,
+): string {
+  const StyleProps = nameResolver.importType({
+    moduleName: "@initiative.dev/schema",
+    exportName: "StyleProps",
+  });
   return dedent`
-    export function ${sanitizeSceneName(name)}() {
-      return <div>Error: The scene is empty.</div>;
+    export function ${sanitizeSceneName(name)}({
+      className,
+      style,
+    }: ${StyleProps}) {
+      return (
+        <div className={className} style={style}>
+          Error: The scene is empty.
+        </div>
+      );
     }
     `;
 }
@@ -19,6 +34,10 @@ export function generateSceneWithSceneInputs(
 ): string {
   const Scene = nameResolver.declareName("Scene");
   const SceneProps = nameResolver.declareName("SceneProps");
+  const StyleProps = nameResolver.importType({
+    moduleName: "@initiative.dev/schema",
+    exportName: "StyleProps",
+  });
 
   const sceneInputs = [...document.sceneInputs];
   const createContext =
@@ -48,7 +67,7 @@ export function generateSceneWithSceneInputs(
       })
       .join("\n")}
 
-    interface ${SceneProps} {
+    interface ${SceneProps} extends ${StyleProps} {
       ${sceneInputs
         .map(
           ([name, { type, doc }]) => dedent`
@@ -62,6 +81,8 @@ export function generateSceneWithSceneInputs(
     }
 
     function ${Scene}({
+      className,
+      style,
       ${[...document.sceneInputs.keys()].map((name) => `${name},`).join("\n")}
     }: ${SceneProps}) {
       return (
@@ -70,7 +91,12 @@ export function generateSceneWithSceneInputs(
           nameResolver,
           "Scene",
           [...document.sceneInputs.keys()],
-          `<${document.getRootNodeId()!}_Adapter />`,
+          dedent`
+            <${document.getRootNodeId()!}_Adapter
+              className={className}
+              style={style}
+            />
+            `,
         )}
         ${enableFtl ? `</${FluentBundleProvider}>` : ""}
       );

@@ -5,6 +5,7 @@ import { TimelinePublicBlocSchema } from "./timeline-public-bloc.schema.js";
 
 export function TimelinePublicBloc({
   slots,
+  ...props
 }: NodeComponentProps<TimelinePublicBlocSchema>) {
   const [statuses, setStatuses] = useState<Status[]>([]);
 
@@ -22,7 +23,7 @@ export function TimelinePublicBloc({
   return (
     <>
       {statuses.map((status) => (
-        <slots.child.Component key={status.id} status={status} />
+        <slots.child.Component key={status.id} status={status} {...props} />
       ))}
     </>
   );

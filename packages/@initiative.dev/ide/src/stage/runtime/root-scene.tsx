@@ -1,4 +1,5 @@
 import { useSceneInputs } from "#shared";
+import { StyleProps } from "@initiative.dev/schema";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { useContext } from "react";
 import { LocaleContext } from "./context.js";
@@ -7,12 +8,17 @@ import { evaluateExpression } from "./evaluate-expression.js";
 import { SceneRuntime } from "./scene-runtime.js";
 import { Scene } from "./scene.js";
 
-export interface RootSceneProps {
+export interface RootSceneProps extends StyleProps {
   runtime: SceneRuntime;
   debugValues: ObjectMap<any>;
 }
 
-export function RootScene({ runtime, debugValues }: RootSceneProps) {
+export function RootScene({
+  runtime,
+  debugValues,
+  className,
+  style,
+}: RootSceneProps) {
   const locale = useContext(LocaleContext);
   const sceneInputData = useSceneInputs(runtime.document);
   const sceneInputs = new Map<string, any>();
@@ -37,6 +43,8 @@ export function RootScene({ runtime, debugValues }: RootSceneProps) {
   if (invalidSceneInputs.length) {
     return (
       <ErrorComponent
+        className={className}
+        style={style}
         title={`Error in scene '${runtime.document.name}':`}
         details={invalidSceneInputs.map(
           (inputName) => `Scene input '${inputName}' has invalid debug value.`,
@@ -45,5 +53,12 @@ export function RootScene({ runtime, debugValues }: RootSceneProps) {
     );
   }
 
-  return <Scene runtime={runtime} sceneInputs={sceneInputs} />;
+  return (
+    <Scene
+      className={className}
+      style={style}
+      runtime={runtime}
+      sceneInputs={sceneInputs}
+    />
+  );
 }

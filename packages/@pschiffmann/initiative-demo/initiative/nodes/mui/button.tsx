@@ -8,9 +8,16 @@ export function MuiButton({
   color,
   size,
   onPress,
+  ...props
 }: NodeComponentProps<MuiButtonSchema>) {
   return (
-    <Button variant={variant} color={color} size={size} onClick={onPress}>
+    <Button
+      variant={variant}
+      color={color}
+      size={size}
+      onClick={onPress}
+      {...props}
+    >
       {label}
     </Button>
   );

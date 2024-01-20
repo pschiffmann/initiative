@@ -7,6 +7,7 @@ export function MuiDialog({
   title,
   slots,
   OutputsProvider,
+  ...props
 }: NodeComponentProps<MuiDialogSchema>) {
   const [isOpen, setIsOpen] = useState(false);
   const { open, close, toggle } = useMemo(
@@ -25,7 +26,13 @@ export function MuiDialog({
   );
 
   return (
-    <OutputsProvider isOpen={isOpen} open={open} close={close} toggle={toggle}>
+    <OutputsProvider
+      isOpen={isOpen}
+      open={open}
+      close={close}
+      toggle={toggle}
+      {...props}
+    >
       <slots.trigger.Component />
       <Dialog open={isOpen} onClose={close}>
         <DialogTitle>{title}</DialogTitle>

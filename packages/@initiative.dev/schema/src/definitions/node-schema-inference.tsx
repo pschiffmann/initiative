@@ -1,8 +1,13 @@
 import { ObjectMap } from "@pschiffmann/std/object-map";
-import { ComponentType, PropsWithChildren } from "react";
+import { CSSProperties, ComponentType, PropsWithChildren } from "react";
 import { Flatten } from "../type-helpers/index.js";
 import * as t from "../type-system/index.js";
 import { InputInit, NodeSchema, OutputInit, SlotInit } from "./node-schema.js";
+
+export interface StyleProps {
+  readonly className?: string;
+  readonly style?: CSSProperties;
+}
 
 /**
  * Infers the `props` type for a node component from a `NodeSchema`.
@@ -19,11 +24,16 @@ import { InputInit, NodeSchema, OutputInit, SlotInit } from "./node-schema.js";
  */
 export type NodeComponentProps<nodeSchema extends NodeSchema> =
   nodeSchema extends NodeSchema<infer I, infer O, infer S>
-    ? RegularInputTypes<I> &
+    ? StyleProps &
+        RegularInputTypes<I> &
         CollectionInputTypes<S> &
         (keyof S extends never
           ? {}
           : {
+              // TODO: Instead of generating a single `<SlotComponent index={...}>`,
+              // we can generate an array of components for collection slots.
+              // This way, we also don't need the extra `.size` and `.Component`
+              // props.
               readonly slots: {
                 readonly [slotName in keyof S &
                   string]: (S[slotName]["inputs"] extends {}
@@ -54,7 +64,8 @@ export type SlotComponentProps<
   slotName extends string,
 > = nodeSchema extends NodeSchema<any, any, infer S>
   ? slotName extends keyof S
-    ? (S[slotName]["inputs"] extends {} ? { readonly index: number } : {}) &
+    ? StyleProps &
+        (S[slotName]["inputs"] extends {} ? { readonly index: number } : {}) &
         (S[slotName]["outputs"] extends {}
           ? RegularOutputTypes<S[slotName]["outputs"]>
           : {})

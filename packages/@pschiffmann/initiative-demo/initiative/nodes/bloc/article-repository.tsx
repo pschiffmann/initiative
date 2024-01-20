@@ -6,6 +6,7 @@ import { ArticleRepositorySchema } from "./article-repository.schema.js";
 export function ArticleRepository({
   slots,
   OutputsProvider,
+  ...props
 }: NodeComponentProps<ArticleRepositorySchema>) {
   const [articles, setArticles] = useState(createArticles);
 
@@ -21,7 +22,7 @@ export function ArticleRepository({
 
   return (
     <OutputsProvider articles={articles} updateArticle={updateArticle}>
-      <slots.child.Component />
+      <slots.child.Component {...props} />
     </OutputsProvider>
   );
 }

@@ -9,6 +9,7 @@ export function Router({
   path,
   slots,
   OutputsProvider,
+  ...props
 }: NodeComponentProps<RouterSchema>) {
   const { base, pathname, navigate } = useContext(NavigationContext);
   const resolve = useCallback((to: string) => resolvePath(base, to), [base]);
@@ -25,7 +26,7 @@ export function Router({
       navigate={navigate}
       resolve={resolve}
     >
-      <slots.route.Component index={routeIndex} />
+      <slots.route.Component index={routeIndex} {...props} />
     </OutputsProvider>
   );
 }

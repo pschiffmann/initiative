@@ -1,4 +1,5 @@
 import { SceneDocument } from "#shared";
+import { StyleProps } from "@initiative.dev/schema";
 import * as $Map from "@pschiffmann/std/map";
 import { ComponentType } from "react";
 import { createNodeAdapterComponent } from "./node-adapter.js";
@@ -12,9 +13,9 @@ export class SceneRuntime {
     });
   }
 
-  #adapterComponents = new Map<string, ComponentType>();
+  #adapterComponents = new Map<string, ComponentType<StyleProps>>();
 
-  getAdapterComponent(nodeId: string): ComponentType {
+  getAdapterComponent(nodeId: string): ComponentType<StyleProps> {
     return $Map.putIfAbsent(this.#adapterComponents, nodeId, () =>
       createNodeAdapterComponent(this, nodeId),
     );

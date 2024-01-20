@@ -6,6 +6,7 @@ export function MuiTextField({
   label,
   value,
   onChange,
+  ...props
 }: NodeComponentProps<MuiTextFieldSchema>) {
   return (
     <TextField
@@ -13,6 +14,7 @@ export function MuiTextField({
       label={label}
       value={value}
       onChange={(e) => onChange(e.currentTarget.value)}
+      {...props}
     />
   );
 }

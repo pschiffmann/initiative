@@ -1,6 +1,6 @@
 {
   "name": "@initiative.dev/lib-core",
-  "version": "0.1.0",
+  "version": "0.1.6",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@initiative.dev/ide": "^0.1.0",
+    "@initiative.dev/ide": "^0.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

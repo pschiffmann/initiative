@@ -4,7 +4,11 @@ import { NavigationContext } from "../navigation-provider.js";
 import { resolvePath } from "../resolve-path.js";
 import { NavLinkSchema } from "./nav-link.schema.js";
 
-export function NavLink({ content, path }: NodeComponentProps<NavLinkSchema>) {
+export function NavLink({
+  content,
+  path,
+  ...props
+}: NodeComponentProps<NavLinkSchema>) {
   const { base, navigate } = useContext(NavigationContext);
 
   return (
@@ -23,6 +27,7 @@ export function NavLink({ content, path }: NodeComponentProps<NavLinkSchema>) {
         e.preventDefault();
         navigate(path);
       }}
+      {...props}
     >
       {content}
     </a>

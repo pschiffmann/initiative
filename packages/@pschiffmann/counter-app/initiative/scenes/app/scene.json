@@ -21,6 +21,10 @@
           "type": "json-literal",
           "schemaName": "@initiative.dev/std::string",
           "value": "16px"
+        },
+        "alignSelf::2": {
+          "type": "enum-value",
+          "value": "start"
         }
       },
       "slots": {

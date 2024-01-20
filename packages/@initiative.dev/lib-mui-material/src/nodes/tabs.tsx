@@ -4,12 +4,12 @@ import { useState } from "react";
 import { TabsSchema } from "./tabs.schema.js";
 
 export function Tabs({
-  variant,
   iconPosition,
   label,
   icon,
   disabled,
   slots,
+  ...props
 }: NodeComponentProps<TabsSchema>) {
   const [active, setActive] = useState(0);
 
@@ -18,7 +18,7 @@ export function Tabs({
       <MuiTabs
         value={active}
         onChange={(_, active) => setActive(active)}
-        variant={variant}
+        {...props}
       >
         {label.map((label, i) => (
           <Tab

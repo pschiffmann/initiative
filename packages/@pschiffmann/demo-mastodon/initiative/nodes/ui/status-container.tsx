@@ -4,9 +4,10 @@ import { StatusContainerSchema } from "./status-container.schema.js";
 
 export function StatusContainer({
   slots,
+  ...props
 }: NodeComponentProps<StatusContainerSchema>) {
   return (
-    <Root>
+    <Root {...props}>
       <Header>
         <slots.header.Component />
       </Header>
@@ -20,7 +21,6 @@ export function StatusContainer({
 const Root = styled("div")(({ theme }) => ({
   isolation: "isolate",
   width: 600,
-  margin: `${theme.spacing(1)} auto`,
   borderRadius: theme.shape.borderRadius,
 }));
 

@@ -5,6 +5,11 @@ import { MuiTypographySchema } from "./typography.schema.js";
 export function MuiTypography({
   text,
   variant,
+  ...props
 }: NodeComponentProps<MuiTypographySchema>) {
-  return <Typography variant={variant}>{text}</Typography>;
+  return (
+    <Typography variant={variant} {...props}>
+      {text}
+    </Typography>
+  );
 }

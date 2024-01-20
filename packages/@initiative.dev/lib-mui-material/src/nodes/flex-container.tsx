@@ -1,8 +1,10 @@
 import { NodeComponentProps } from "@initiative.dev/schema";
-import { Box, Stack } from "@mui/material";
+import { Stack } from "@mui/material";
 import { FlexContainerSchema } from "./flex-container.schema.js";
 
 export function FlexContainer({
+  className,
+  style,
   flexDirection,
   alignItems,
   justifyContent,
@@ -18,6 +20,7 @@ export function FlexContainer({
 }: NodeComponentProps<FlexContainerSchema>) {
   return (
     <Stack
+      className={className}
       sx={(theme) => ({
         flexDirection,
         alignItems,
@@ -28,12 +31,21 @@ export function FlexContainer({
         boxShadow: elevation,
         border: outlined ? `1px solid ${theme.palette.divider}` : undefined,
         borderRadius,
+        ...style,
+
+        ...Object.fromEntries(
+          margin.map((margin, i) => [
+            `& > .child-${i + 1}`,
+            {
+              margin,
+              alignSelf: alignSelf[i],
+            },
+          ]),
+        ),
       })}
     >
-      {alignSelf.map((alignSelf, i) => (
-        <Box sx={{ alignSelf, margin: margin[i] }} key={i}>
-          <slots.child.Component index={i} />
-        </Box>
+      {alignSelf.map((_, i) => (
+        <slots.child.Component key={i} index={i} className={`child-${i + 1}`} />
       ))}
     </Stack>
   );

@@ -7,9 +7,10 @@ export function Stack({
   gap,
   alignSelf,
   slots,
+  ...props
 }: NodeComponentProps<StackSchema>) {
   return (
-    <MuiStack flexDirection={flexDirection} gap={gap}>
+    <MuiStack flexDirection={flexDirection} gap={gap} {...props}>
       {alignSelf.map((alignSelf, i) => (
         <Box key={i} alignSelf={alignSelf}>
           <slots.child.Component index={i} />

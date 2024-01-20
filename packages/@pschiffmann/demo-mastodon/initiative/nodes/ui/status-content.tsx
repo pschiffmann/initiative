@@ -4,8 +4,13 @@ import { StatusContentSchema } from "./status-content.schema.js";
 
 export function StatusContent({
   content,
+  ...props
 }: NodeComponentProps<StatusContentSchema>) {
   return (
-    <Typography component="div" dangerouslySetInnerHTML={{ __html: content }} />
+    <Typography
+      component="div"
+      dangerouslySetInnerHTML={{ __html: content }}
+      {...props}
+    />
   );
 }

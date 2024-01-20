@@ -1,8 +1,9 @@
-import { NodeData } from "#shared";
-import { Definitions, NodeSchema } from "@initiative.dev/schema";
+import { Definitions, NodeSchema, StyleProps } from "@initiative.dev/schema";
 import * as $Object from "@pschiffmann/std/object";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, FunctionComponent, useContext } from "react";
+
+import { NodeData } from "#shared";
 import { useNode } from "../../shared/use-scene-document.js";
 import { NodeOutputsProvider, useAncestorOutputs } from "./ancestor-outputs.js";
 import { LocaleContext } from "./context.js";
@@ -11,6 +12,7 @@ import { evaluateExpression } from "./evaluate-expression.js";
 import { SceneRuntime } from "./scene-runtime.js";
 import {
   CollectionSlotComponentProps,
+  SlotComponentProps,
   SlotComponents,
   createSlotComponents,
 } from "./slot-component.js";
@@ -29,12 +31,14 @@ export function createNodeAdapterComponent(
     : undefined;
   const NodeImpl = document.definitions.getNode(nodeData.type).component;
 
-  const result: FunctionComponent<any> = () => {
+  const result: FunctionComponent<StyleProps> = ({ className, style }) => {
     const nodeData = useNode(document, nodeId);
     const inputs = useInputs(document.definitions, nodeData);
     const slots = slotComponents && useSlotsPropValue(slotComponents, nodeData);
     return nodeData.errors ? (
       <ErrorComponent
+        className={className}
+        style={style}
         title={`Error in node '${nodeId}':`}
         details={[
           ...[...nodeData.errors.invalidInputs].map(
@@ -46,9 +50,15 @@ export function createNodeAdapterComponent(
         ]}
       />
     ) : OutputsProvider ? (
-      <NodeImpl OutputsProvider={OutputsProvider} slots={slots} {...inputs} />
+      <NodeImpl
+        className={className}
+        style={style}
+        OutputsProvider={OutputsProvider}
+        slots={slots}
+        {...inputs}
+      />
     ) : (
-      <NodeImpl slots={slots} {...inputs} />
+      <NodeImpl className={className} style={style} slots={slots} {...inputs} />
     );
   };
   result.displayName = `${nodeId}_Adapter`;
@@ -99,7 +109,7 @@ interface SlotPropValue {
   readonly [slotName: string]: {
     readonly size?: number;
     readonly Component:
-      | ComponentType<ObjectMap<any>>
+      | ComponentType<SlotComponentProps>
       | ComponentType<CollectionSlotComponentProps>;
   };
 }

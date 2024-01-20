@@ -5,9 +5,11 @@ import { generateNodeRuntime } from "./node.js";
 import { generateEmptyScene, generateSceneWithSceneInputs } from "./scene.js";
 
 export function generateCodeForScene(document: SceneDocument): string {
-  if (!document.getRootNodeId()) return generateEmptyScene(document.name);
-
   const nameResolver = new NameResolver();
+  if (!document.getRootNodeId()) {
+    return generateEmptyScene(document.name, nameResolver);
+  }
+
   const content = [
     generateSceneWithSceneInputs(document, nameResolver),
     ...document

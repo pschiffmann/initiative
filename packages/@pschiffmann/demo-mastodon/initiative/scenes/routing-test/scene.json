@@ -8,15 +8,24 @@
         "flexDirection": {
           "type": "enum-value",
           "value": "column"
+        },
+        "alignSelf::2": {
+          "type": "enum-value",
+          "value": "start"
+        },
+        "margin::2": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "8px auto"
         }
       },
       "slots": {
-        "child::0": "LoginLink",
-        "child::1": "ExploreLink",
+        "child::0": "ExploreLink",
+        "child::1": "LoginLink",
         "child::2": "Router"
       }
     },
-    "LoginLink": {
+    "ExploreLink": {
       "type": "@initiative.dev/lib-router::NavLink",
       "inputs": {
         "content": {
@@ -32,7 +41,7 @@
       },
       "slots": {}
     },
-    "ExploreLink": {
+    "LoginLink": {
       "type": "@initiative.dev/lib-router::NavLink",
       "inputs": {
         "content": {

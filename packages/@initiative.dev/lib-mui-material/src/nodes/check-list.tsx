@@ -18,12 +18,13 @@ export function CheckList({
   checked,
   onCheckedChange,
   slots,
+  ...props
 }: NodeComponentProps<CheckListSchema>) {
   const labelIdPrefix = useId();
   const checkedSet = new Set(checked);
 
   return (
-    <List>
+    <List {...props}>
       {items.map((item) => {
         const key = getItemKey(item);
         const labelId = `${labelIdPrefix}-${key}`;

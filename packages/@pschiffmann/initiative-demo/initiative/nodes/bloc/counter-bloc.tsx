@@ -5,6 +5,7 @@ import { CounterBlocSchema } from "./counter-bloc.schema.js";
 export function CounterBloc({
   slots,
   OutputsProvider,
+  ...props
 }: NodeComponentProps<CounterBlocSchema>) {
   const [n, setN] = useState(0);
 
@@ -25,7 +26,7 @@ export function CounterBloc({
 
   return (
     <OutputsProvider label={`count: ${n}`} {...actions}>
-      <slots.child.Component />
+      <slots.child.Component {...props} />
     </OutputsProvider>
   );
 }

@@ -8,6 +8,7 @@ export function EditArticleBloc({
   updateArticle,
   slots,
   OutputsProvider,
+  ...props
 }: NodeComponentProps<EditArticleBlocSchema>) {
   const [name, setName] = useState(article.name);
   const [price, setPrice] = useState(toCurrencyString(article.price));
@@ -34,7 +35,7 @@ export function EditArticleBloc({
       updatePrice={setPrice}
       save={save}
     >
-      <slots.child.Component />
+      <slots.child.Component {...props} />
     </OutputsProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { useNode } from "#shared";
-import { NodeSchema } from "@initiative.dev/schema";
+import { NodeSchema, StyleProps } from "@initiative.dev/schema";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, FunctionComponent } from "react";
 import { NodeOutputsProvider } from "./ancestor-outputs.js";
@@ -7,11 +7,13 @@ import { SceneRuntime } from "./scene-runtime.js";
 
 export interface SlotComponents {
   readonly [slotName: string]:
-    | ComponentType<ObjectMap<any>>
+    | ComponentType<SlotComponentProps>
     | ComponentType<CollectionSlotComponentProps>;
 }
 
-export interface CollectionSlotComponentProps extends ObjectMap<any> {
+export interface SlotComponentProps extends StyleProps, ObjectMap<any> {}
+
+export interface CollectionSlotComponentProps extends SlotComponentProps {
   readonly index: number;
 }
 
@@ -37,6 +39,8 @@ function createCollectionSlotComponent(
   slotName: string,
 ) {
   const result: FunctionComponent<CollectionSlotComponentProps> = ({
+    className,
+    style,
     index,
     ...outputs
   }) => {
@@ -55,7 +59,7 @@ function createCollectionSlotComponent(
         slotName={slotName}
         outputs={outputs}
       >
-        <ChildAdapter />
+        <ChildAdapter className={className} style={style} />
       </NodeOutputsProvider>
     );
   };
@@ -70,7 +74,11 @@ function createSlotComponent(
   nodeId: string,
   slotName: string,
 ) {
-  const result: FunctionComponent<ObjectMap<any>> = (outputs) => {
+  const result: FunctionComponent<SlotComponentProps> = ({
+    className,
+    style,
+    ...outputs
+  }) => {
     const nodeData = useNode(runtime.document, nodeId);
     const ChildAdapter = runtime.getAdapterComponent(nodeData.slots[slotName]);
     return (
@@ -80,7 +88,7 @@ function createSlotComponent(
         slotName={slotName}
         outputs={outputs}
       >
-        <ChildAdapter />
+        <ChildAdapter className={className} style={style} />
       </NodeOutputsProvider>
     );
   };
