@@ -6,7 +6,7 @@ import { Expression, ExpressionJson } from "./expression.js";
 /**
  * Node serialization format.
  */
-export interface NodeJson {
+export interface ComponentNodeJson {
   readonly type: string;
 
   /**
@@ -28,17 +28,17 @@ export interface NodeParent {
   readonly index?: number;
 }
 
-export interface NodeErrors {
+export interface ComponentNodeErrors {
   readonly invalidInputs: ReadonlySet<string>;
   readonly missingSlots: ReadonlySet<string>;
 }
 
-export class NodeData {
+export class ComponentNodeData {
   private constructor(
     readonly schema: NodeSchema,
     readonly id: string,
     readonly inputs: { readonly [inputName: string]: Expression },
-    readonly slots: NodeJson["slots"],
+    readonly slots: ComponentNodeJson["slots"],
     readonly collectionSlotSizes: { readonly [slotName: string]: number },
     readonly parent: NodeParent | null,
   ) {
@@ -64,7 +64,7 @@ export class NodeData {
     return this.schema.name;
   }
 
-  readonly errors: NodeErrors | null;
+  readonly errors: ComponentNodeErrors | null;
 
   /**
    * Calls `callback` for each input defined in the node schema.
@@ -170,7 +170,7 @@ export class NodeData {
     expression: Expression | null,
     inputName: string,
     index?: number,
-  ): NodeData {
+  ): ComponentNodeData {
     let inputKey: string;
     const { slot } = this.schema.getInputAttributes(inputName);
     if (slot) {
@@ -194,7 +194,7 @@ export class NodeData {
       delete inputs[inputKey];
     }
 
-    return new NodeData(
+    return new ComponentNodeData(
       this.schema,
       this.id,
       inputs,
@@ -208,7 +208,7 @@ export class NodeData {
     childId: string,
     slotName: string,
     index = this.collectionSlotSizes[slotName],
-  ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
+  ): [self: ComponentNodeData, movedChildren: Record<string, NodeParent>] {
     if (!this.schema.getSlotAttributes(slotName).isCollectionSlot) {
       const self = this.#addRegularChild(childId, slotName);
       return [self, { [childId]: { nodeId: this.id, slotName } }];
@@ -223,11 +223,11 @@ export class NodeData {
     }
   }
 
-  #addRegularChild(childId: string, slotName: string): NodeData {
+  #addRegularChild(childId: string, slotName: string): ComponentNodeData {
     if (this.slots[slotName]) {
       throw new Error(`Slot '${slotName}' is not empty.`);
     }
-    return new NodeData(
+    return new ComponentNodeData(
       this.schema,
       this.id,
       this.inputs,
@@ -241,7 +241,7 @@ export class NodeData {
     childId: string,
     slotName: string,
     index: number,
-  ): NodeData {
+  ): ComponentNodeData {
     const childCount = this.collectionSlotSizes[slotName];
     if (!Number.isInteger(index) || index < 0 || index > childCount) {
       throw new Error(`Invalid index '${index}' for slot '${slotName}'.`);
@@ -263,7 +263,7 @@ export class NodeData {
     }
     slots[`${slotName}::${index}`] = childId;
 
-    return new NodeData(
+    return new ComponentNodeData(
       this.schema,
       this.id,
       inputs,
@@ -276,7 +276,7 @@ export class NodeData {
   removeChild(
     slotName: string,
     index?: number,
-  ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
+  ): [self: ComponentNodeData, movedChildren: Record<string, NodeParent>] {
     if (!this.schema.getSlotAttributes(slotName).isCollectionSlot) {
       const self = this.#removeRegularChild(slotName);
       return [self, {}];
@@ -291,12 +291,12 @@ export class NodeData {
     }
   }
 
-  #removeRegularChild(slotName: string): NodeData {
+  #removeRegularChild(slotName: string): ComponentNodeData {
     if (!this.slots[slotName]) {
       throw new Error(`Slot '${slotName}' is empty.`);
     }
     const { [slotName]: _, ...slots } = this.slots;
-    return new NodeData(
+    return new ComponentNodeData(
       this.schema,
       this.id,
       this.inputs,
@@ -306,7 +306,7 @@ export class NodeData {
     );
   }
 
-  #removeCollectionChild(slotName: string, index?: number): NodeData {
+  #removeCollectionChild(slotName: string, index?: number): ComponentNodeData {
     const childCount = this.collectionSlotSizes[slotName];
     if (
       typeof index !== "number" ||
@@ -337,7 +337,7 @@ export class NodeData {
       delete inputs[`${inputName}::${childCount}`];
     }
 
-    return new NodeData(
+    return new ComponentNodeData(
       this.schema,
       this.id,
       inputs,
@@ -347,12 +347,16 @@ export class NodeData {
     );
   }
 
-  renameChild(childId: string, slotName: string, index?: number): NodeData {
+  renameChild(
+    childId: string,
+    slotName: string,
+    index?: number,
+  ): ComponentNodeData {
     const slotKey = this.schema.getSlotAttributes(slotName).isCollectionSlot
       ? `${slotName}::${index}`
       : slotName;
     if (!this.slots[slotKey]) throw new Error(`Slot '${slotKey}' is empty.`);
-    return new NodeData(
+    return new ComponentNodeData(
       this.schema,
       this.id,
       this.inputs,
@@ -370,9 +374,9 @@ export class NodeData {
 
   rename(
     id: string,
-  ): [self: NodeData, movedChildren: Record<string, NodeParent>] {
+  ): [self: ComponentNodeData, movedChildren: Record<string, NodeParent>] {
     validateNodeId(id);
-    const self = new NodeData(
+    const self = new ComponentNodeData(
       this.schema,
       id,
       this.inputs,
@@ -388,8 +392,8 @@ export class NodeData {
     return [self, movedChildren];
   }
 
-  move(parent: NodeParent): NodeData {
-    return new NodeData(
+  move(parent: NodeParent): ComponentNodeData {
+    return new ComponentNodeData(
       this.schema,
       this.id,
       this.inputs,
@@ -399,7 +403,7 @@ export class NodeData {
     );
   }
 
-  toJson(): NodeJson {
+  toJson(): ComponentNodeJson {
     const inputs: Record<string, ExpressionJson> = {};
     this.forEachInput((expression, attributes, inputName, index) => {
       if (!expression) return;
@@ -414,12 +418,19 @@ export class NodeData {
     schema: NodeSchema,
     id: string,
     parent: NodeParent | null,
-  ): NodeData {
+  ): ComponentNodeData {
     validateNodeId(id);
     const collectionSlotSizes: { [slotName: string]: number } = {};
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
       if (isCollectionSlot) collectionSlotSizes[slotName] = 0;
     });
-    return new NodeData(schema, id, {}, {}, collectionSlotSizes, parent);
+    return new ComponentNodeData(
+      schema,
+      id,
+      {},
+      {},
+      collectionSlotSizes,
+      parent,
+    );
   }
 }

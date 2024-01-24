@@ -1,9 +1,9 @@
 @use "expression-controls";
 @use "tool-frame";
 
+@use "component-node-configurator";
 @use "data-flow-inspector";
 @use "license-status";
-@use "node-inputs";
 @use "node-tree";
 @use "scene-inputs";
 @use "stage-view";

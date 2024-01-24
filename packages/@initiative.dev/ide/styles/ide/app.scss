@@ -7,9 +7,9 @@
 
   display: grid;
   grid:
-    "workspace-manager  stage-view     node-inputs   " auto
-    "node-tree          stage-view     node-inputs   " minmax(0, 1fr)
-    "actions            license-status license-status" auto
+    "workspace-manager  stage-view     node-configurator" auto
+    "node-tree          stage-view     node-configurator" minmax(0, 1fr)
+    "actions            license-status license-status   " auto
     / 300px minmax(0, 1fr) 300px;
   gap: 8px;
   padding: 8px;
@@ -25,8 +25,8 @@
   &__stage-view {
     grid-area: stage-view;
   }
-  &__node-inputs {
-    grid-area: node-inputs;
+  &__node-configurator {
+    grid-area: node-configurator;
   }
   &__actions {
     grid-area: actions;
@@ -52,8 +52,8 @@
     &--stage-view {
       grid-area: stage-view;
     }
-    &--node-inputs {
-      grid-area: node-inputs;
+    &--node-configurator {
+      grid-area: node-configurator;
     }
   }
 }

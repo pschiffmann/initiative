@@ -1,10 +1,10 @@
 import {
+  ComponentNodeData,
   EnumValueExpression,
   Expression,
   FluentMessageExpression,
   JsonLiteralExpression,
   MemberAccessExpression,
-  NodeData,
   SceneDocument,
 } from "#shared";
 import { NodeDefinition } from "@initiative.dev/schema";
@@ -16,7 +16,7 @@ import {
 } from "./context.js";
 import { NameResolver } from "./name-resolver.js";
 
-export function generateNodeRuntime(
+export function generateComponentNodeRuntime(
   document: SceneDocument,
   nameResolver: NameResolver,
   nodeId: string,
@@ -25,8 +25,8 @@ export function generateNodeRuntime(
   const definition = document.definitions.getNode(nodeData.type);
 
   const result = [
-    generateNodeOutputContexts(nodeData, definition, nameResolver),
-    generateNodeAdapter(nodeData, definition, nameResolver),
+    generateOutputContexts(nodeData, definition, nameResolver),
+    generateAdapter(nodeData, definition, nameResolver),
   ];
   if (nodeData.schema.hasSlots()) {
     result.push(generateSlotsLiteral(nodeData, definition, nameResolver));
@@ -48,16 +48,14 @@ export function generateNodeRuntime(
     }
   });
   if (nodeData.schema.hasRegularOutputs()) {
-    result.push(
-      generateNodeOutputsProvider(nodeData, definition, nameResolver),
-    );
+    result.push(generateOutputsProvider(nodeData, definition, nameResolver));
   }
 
   return result.join("\n\n");
 }
 
-function generateNodeAdapter(
-  nodeData: NodeData,
+function generateAdapter(
+  nodeData: ComponentNodeData,
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
@@ -148,8 +146,8 @@ function generateNodeAdapter(
     `;
 }
 
-function generateNodeOutputContexts(
-  nodeData: NodeData,
+function generateOutputContexts(
+  nodeData: ComponentNodeData,
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
@@ -180,8 +178,8 @@ function generateNodeOutputContexts(
     .join("\n");
 }
 
-function generateNodeOutputsProvider(
-  nodeData: NodeData,
+function generateOutputsProvider(
+  nodeData: ComponentNodeData,
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
@@ -220,7 +218,7 @@ function generateNodeOutputsProvider(
 }
 
 function generateSlotsLiteral(
-  nodeData: NodeData,
+  nodeData: ComponentNodeData,
   definition: NodeDefinition,
   nameResolver: NameResolver,
 ): string {
@@ -256,7 +254,7 @@ function generateSlotsLiteral(
 }
 
 function generateSlotComponent(
-  nodeData: NodeData,
+  nodeData: ComponentNodeData,
   definition: NodeDefinition,
   slotName: string,
   nameResolver: NameResolver,
@@ -295,7 +293,7 @@ function generateSlotComponent(
 }
 
 function generateCollectionSlotComponent(
-  nodeData: NodeData,
+  nodeData: ComponentNodeData,
   definition: NodeDefinition,
   slotName: string,
   nameResolver: NameResolver,

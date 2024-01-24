@@ -4,22 +4,22 @@ import { Fragment } from "react";
 import {
   ExpressionControl,
   SelectedNodeAncestorsProvider,
-} from "../../expression-controls/index.js";
-import { ToolFrame } from "../tool-frame.js";
+} from "../expression-controls/index.js";
+import { ToolFrame } from "./tool-frame.js";
 
-const cls = bemClasses("initiative-node-inputs");
+const cls = bemClasses("initiative-component-node-configurator");
 
-export interface NodeInputsProps {
+export interface ComponentNodeConfiguratorProps {
   document: SceneDocument;
   selectedNode: string | null;
   className?: string;
 }
 
-export function NodeInputs({
+export function ComponentNodeConfigurator({
   document,
   selectedNode,
   className,
-}: NodeInputsProps) {
+}: ComponentNodeConfiguratorProps) {
   return (
     <ToolFrame className={cls.block(className)} title="Node Properties">
       {selectedNode ? (
@@ -45,7 +45,7 @@ function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
     index?: number,
   ) {
     document.applyPatch({
-      type: "set-node-input",
+      type: "set-component-node-input",
       nodeId: nodeData.id,
       expression,
       inputName,

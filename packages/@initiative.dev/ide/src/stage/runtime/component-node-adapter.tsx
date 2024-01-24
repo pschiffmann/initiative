@@ -3,7 +3,7 @@ import * as $Object from "@pschiffmann/std/object";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, FunctionComponent, useContext } from "react";
 
-import { NodeData } from "#shared";
+import { ComponentNodeData } from "#shared";
 import { useNode } from "../../shared/use-scene-document.js";
 import { NodeOutputsProvider, useAncestorOutputs } from "./ancestor-outputs.js";
 import { LocaleContext } from "./context.js";
@@ -17,7 +17,7 @@ import {
   createSlotComponents,
 } from "./slot-component.js";
 
-export function createNodeAdapterComponent(
+export function createComponentNodeAdapterComponent(
   runtime: SceneRuntime,
   nodeId: string,
 ) {
@@ -84,7 +84,7 @@ export function createOutputsProviderComponent(
   return result;
 }
 
-function useInputs(definitions: Definitions, nodeData: NodeData) {
+function useInputs(definitions: Definitions, nodeData: ComponentNodeData) {
   const locale = useContext(LocaleContext);
   const ancestorOutputs = useAncestorOutputs();
 
@@ -116,7 +116,7 @@ interface SlotPropValue {
 
 function useSlotsPropValue(
   slotComponents: SlotComponents,
-  nodeData: NodeData,
+  nodeData: ComponentNodeData,
 ): SlotPropValue {
   return $Object.map(slotComponents, (slotName, Component) => ({
     size: nodeData.collectionSlotSizes[slotName],

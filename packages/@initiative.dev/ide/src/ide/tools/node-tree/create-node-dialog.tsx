@@ -57,7 +57,7 @@ export function CreateNodeDialog({
 
   function createNode() {
     document.applyPatch({
-      type: "create-node",
+      type: "create-component-node",
       nodeType: nodeType!.name,
       parent: parentId ? { nodeId: parentId, slotName } : undefined,
       nodeId: nodeId || undefined,

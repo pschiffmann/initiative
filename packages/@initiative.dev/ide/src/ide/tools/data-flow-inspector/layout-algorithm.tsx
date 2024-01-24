@@ -1,7 +1,7 @@
 import {
+  ComponentNodeData,
   Expression,
   MemberAccessExpression,
-  NodeData,
   SceneDocument,
 } from "#shared";
 import { NodeSchema } from "@initiative.dev/schema";
@@ -91,7 +91,7 @@ function calculateLayout(document: SceneDocument): Layout {
    * @returns chain length value needed to sort nodes
    */
   function unzip(nodeID: string, nodeparent: string, column: number): number {
-    const data: NodeData = document.getNode(nodeID)!;
+    const data: ComponentNodeData = document.getNode(nodeID)!;
     const schema: NodeSchema = data.schema;
     const childIDs = Object.values(data!.slots);
     const chainraw: [number, number] = [0, childIDs.length];
@@ -673,7 +673,7 @@ function calculateLayout(document: SceneDocument): Layout {
 }
 
 function calculateInnerDimensions(
-  data: NodeData,
+  data: ComponentNodeData,
 ): Pick<NodeBoxPosition, "height" | "inputOffsets" | "outputOffsets"> {
   const inputOffsets: Record<string, number> = {};
   const outputOffsets: Record<string, number> = {};

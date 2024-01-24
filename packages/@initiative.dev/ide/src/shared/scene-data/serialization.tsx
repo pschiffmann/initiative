@@ -1,7 +1,7 @@
 import { Definitions, t } from "@initiative.dev/schema";
 import { ProjectConfig } from "../project-config.js";
 import { ExpressionJson, ExpressionSelectorJson } from "./expression.js";
-import { NodeJson, NodeParent } from "./node-data.js";
+import { ComponentNodeJson, NodeParent } from "./node-data.js";
 import { SceneDocument } from "./scene-document.js";
 
 /**
@@ -10,7 +10,7 @@ import { SceneDocument } from "./scene-document.js";
 export interface SceneJson {
   readonly rootNode: string | null;
   readonly inputs: { readonly [inputName: string]: SceneInputJson };
-  readonly nodes: { readonly [nodeId: string]: NodeJson };
+  readonly nodes: { readonly [nodeId: string]: ComponentNodeJson };
 }
 
 export interface SceneInputJson {
@@ -62,7 +62,7 @@ export function sceneDocumentFromJson(
     }
     try {
       document.applyPatch({
-        type: "create-node",
+        type: "create-component-node",
         nodeType: nodeJson.type,
         parent,
         nodeId,
@@ -90,7 +90,7 @@ export function sceneDocumentFromJson(
       }
       try {
         document.applyPatch({
-          type: "set-node-input",
+          type: "set-component-node-input",
           nodeId,
           inputName,
           index,
@@ -125,7 +125,7 @@ export function sceneDocumentToJson(document: SceneDocument): SceneJson {
 
   const rootNode = document.getRootNodeId();
 
-  const nodes: { [nodeId: string]: NodeJson } = {};
+  const nodes: { [nodeId: string]: ComponentNodeJson } = {};
   const queue = rootNode ? [rootNode] : [];
   for (const nodeId of queue) {
     const node = document.getNode(nodeId);

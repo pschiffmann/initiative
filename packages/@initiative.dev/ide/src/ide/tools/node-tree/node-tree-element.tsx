@@ -5,7 +5,7 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { NodeData, SceneDocument, useNode } from "#shared";
+import { ComponentNodeData, SceneDocument, useNode } from "#shared";
 import { CommandController } from "@initiative.dev/react-command";
 import {
   TonalPalette,
@@ -37,7 +37,7 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
   onSelectedNodeChange,
   nodeId,
 }: NodeTreeElementProps) {
-  const nodeData: NodeData = useNode(document, nodeId);
+  const nodeData: ComponentNodeData = useNode(document, nodeId);
   const nodeEditor = nodeData.schema.editor;
   const colorScheme = useContext(ColorSchemeContext);
   const style = useMemo(() => {

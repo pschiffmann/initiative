@@ -4,7 +4,7 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { NodeData } from "#shared";
+import { ComponentNodeData } from "#shared";
 import {
   TonalPalette,
   argbFromHex,
@@ -23,7 +23,7 @@ declare module "csstype" {
 const cls = bemClasses("initiative-data-flow-inspector-node-box");
 
 export interface NodeBoxProps {
-  data: NodeData;
+  data: ComponentNodeData;
   focus: string | null;
   positioning: NodeBoxPosition;
 }

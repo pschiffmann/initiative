@@ -6,15 +6,15 @@ import {
   ValidateExpressionContext,
 } from "./expression.js";
 import { Listener, Listeners, Unsubscribe } from "./listeners.js";
-import { NodeData, NodeParent } from "./node-data.js";
+import { ComponentNodeData, NodeParent } from "./node-data.js";
 import { SceneInputJson } from "./serialization.js";
 
 export type SceneDocumentPatch =
   | SetSceneInputPatch
-  | CreateNodePatch
+  | CreateComponentNodePatch
   | DeleteNodePatch
   | RenameNodePatch
-  | SetNodeInputPatch;
+  | SetComponentNodeInputPatch;
 
 export interface SetSceneInputPatch {
   readonly type: "set-scene-input";
@@ -22,8 +22,8 @@ export interface SetSceneInputPatch {
   readonly inputJson: SceneInputJson | null;
 }
 
-export interface CreateNodePatch {
-  readonly type: "create-node";
+export interface CreateComponentNodePatch {
+  readonly type: "create-component-node";
   readonly nodeType: string;
   readonly parent?: Omit<NodeParent, "index">;
   readonly nodeId?: string;
@@ -40,8 +40,8 @@ export interface RenameNodePatch {
   readonly newId: string;
 }
 
-export interface SetNodeInputPatch {
-  readonly type: "set-node-input";
+export interface SetComponentNodeInputPatch {
+  readonly type: "set-component-node-input";
   readonly nodeId: string;
   readonly expression: ExpressionJson | null;
   readonly inputName: string;
@@ -74,7 +74,7 @@ export class SceneDocument {
 
   #sceneInputs: ReadonlyMap<string, SceneInputData> = new Map();
   #rootNodeId: string | null = null;
-  #nodes = new Map<string, NodeData>();
+  #nodes = new Map<string, ComponentNodeData>();
   #version = 0;
 
   get sceneInputs(): ReadonlyMap<string, SceneInputData> {
@@ -96,7 +96,7 @@ export class SceneDocument {
   /**
    * Throws an error if `nodeId` cannot be found.
    */
-  getNode(nodeId: string): NodeData {
+  getNode(nodeId: string): ComponentNodeData {
     const result = this.#nodes.get(nodeId);
     if (result) return result;
     throw new Error(`Node '${nodeId}' not found.`);
@@ -136,7 +136,7 @@ export class SceneDocument {
   #generateNodeId(schema: NodeSchema): string {
     const [, prefix] = schema.name.split("::");
     for (let i = 1; ; i++) {
-      const nodeId = `${prefix}${i}`;
+      const nodeId = `${prefix}${i !== 1 ? i : ""}`;
       if (!this.#nodes.has(nodeId)) return nodeId;
     }
   }
@@ -146,21 +146,21 @@ export class SceneDocument {
       case "set-scene-input":
         this.#setSceneInput(patch);
         break;
-      case "create-node":
+      case "create-component-node":
         patch.parent
-          ? this.#createNode(patch, patch.parent)
-          : this.#createRootNode(patch);
+          ? this.#createComponentNode(patch, patch.parent)
+          : this.#createRootComponentNode(patch);
         break;
       case "delete-node":
         patch.nodeId === this.#rootNodeId
-          ? this.#deleteRootNode()
-          : this.#deleteNode(patch);
+          ? this.#deleteRootComponentNode()
+          : this.#deleteComponentNode(patch);
         break;
       case "rename-node":
-        this.#renameNode(patch);
+        this.#renameComponentNode(patch);
         break;
-      case "set-node-input":
-        this.#setNodeInput(patch);
+      case "set-component-node-input":
+        this.#setComponentNodeInput(patch);
         break;
     }
     this.#version++;
@@ -215,21 +215,24 @@ export class SceneDocument {
     this.#changeListeners.notify({ sceneInputs: [inputName] });
   }
 
-  #createRootNode({ nodeType, nodeId }: CreateNodePatch): void {
+  #createRootComponentNode({
+    nodeType,
+    nodeId,
+  }: CreateComponentNodePatch): void {
     if (this.#rootNodeId !== null) {
       throw new Error("SceneDocument is not empty.");
     }
     const { schema } = this.definitions.getNode(nodeType);
     nodeId ??= this.#generateNodeId(schema);
 
-    this.#nodes.set(nodeId, NodeData.empty(schema, nodeId, null));
+    this.#nodes.set(nodeId, ComponentNodeData.empty(schema, nodeId, null));
     this.#rootNodeId = nodeId;
 
     this.#changeListeners.notify({ nodeIds: [nodeId] });
   }
 
-  #createNode(
-    { nodeType, nodeId: childId }: CreateNodePatch,
+  #createComponentNode(
+    { nodeType, nodeId: childId }: CreateComponentNodePatch,
     { nodeId: parentId, slotName }: Omit<NodeParent, "index">,
   ): void {
     const { schema } = this.definitions.getNode(nodeType);
@@ -242,7 +245,11 @@ export class SceneDocument {
       childId,
       slotName,
     );
-    const newChild = NodeData.empty(schema, childId, movedChildren[childId]);
+    const newChild = ComponentNodeData.empty(
+      schema,
+      childId,
+      movedChildren[childId],
+    );
     this.#nodes.set(parentId, parentNode);
     for (const [childId, nodeParent] of Object.entries(movedChildren)) {
       this.#nodes.set(
@@ -254,7 +261,7 @@ export class SceneDocument {
     this.#changeListeners.notify({ nodeIds: [parentId, childId] });
   }
 
-  #deleteRootNode(): void {
+  #deleteRootComponentNode(): void {
     const nodeIds = [...this.#nodes.keys()];
     this.#rootNodeId = null;
     this.#nodes.clear();
@@ -262,7 +269,7 @@ export class SceneDocument {
     this.#changeListeners.notify({ nodeIds });
   }
 
-  #deleteNode({ nodeId }: DeleteNodePatch): void {
+  #deleteComponentNode({ nodeId }: DeleteNodePatch): void {
     const node = this.getNode(nodeId);
     const [parentNode, movedChildren] = this.#nodes
       .get(node.parent!.nodeId)!
@@ -287,7 +294,7 @@ export class SceneDocument {
     this.#changeListeners.notify({ nodeIds: changedIds });
   }
 
-  #renameNode({ nodeId: oldId, newId }: RenameNodePatch): void {
+  #renameComponentNode({ nodeId: oldId, newId }: RenameNodePatch): void {
     if (this.#nodes.has(newId)) {
       throw new Error(`A node with id '${newId}' already exists.`);
     }
@@ -362,12 +369,12 @@ export class SceneDocument {
     });
   }
 
-  #setNodeInput({
+  #setComponentNodeInput({
     nodeId,
     expression,
     inputName,
     index,
-  }: SetNodeInputPatch): void {
+  }: SetComponentNodeInputPatch): void {
     const oldNode = this.getNode(nodeId);
     const newNode = oldNode.setInput(
       expression &&
@@ -385,7 +392,7 @@ export class SceneDocument {
   }
 
   #createValidateExpressionContext(
-    node: Pick<NodeData, "parent">,
+    node: Pick<ComponentNodeData, "parent">,
     // newNodes?: ReadonlyMap<string, NodeData>
   ): ValidateExpressionContext {
     return {

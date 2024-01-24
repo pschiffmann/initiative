@@ -1,7 +1,5 @@
 import * as $Map from "@pschiffmann/std/map";
 
-export { NameResolver as default };
-
 export class NameResolver {
   #namesCounter = new Map<string, number>();
 

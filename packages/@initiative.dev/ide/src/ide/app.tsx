@@ -8,8 +8,8 @@ import { SceneDocument, SceneDocumentProvider } from "#shared";
 import { Definitions } from "@initiative.dev/schema";
 import { useRef, useState } from "react";
 import { DefinitionsContext, LocaleContext } from "./context.js";
+import { ComponentNodeConfigurator } from "./tools/component-node-configurator.js";
 import { LicenseStatus } from "./tools/license-status/index.js";
-import { NodeInputs } from "./tools/node-inputs/index.js";
 import { NodeTree } from "./tools/node-tree/index.js";
 import { SceneInputs } from "./tools/scene-inputs/index.js";
 import { StageView } from "./tools/stage-view.js";
@@ -60,14 +60,14 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
                   document={document}
                 />
                 {selectedNode ? (
-                  <NodeInputs
-                    className={cls.element("node-inputs")}
+                  <ComponentNodeConfigurator
+                    className={cls.element("node-configurator")}
                     document={document}
                     selectedNode={selectedNode}
                   />
                 ) : (
                   <SceneInputs
-                    className={cls.element("node-inputs")}
+                    className={cls.element("node-configurator")}
                     document={document}
                   />
                 )}
@@ -76,7 +76,7 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
               <>
                 <EmptyTool position="node-tree" />
                 <EmptyTool position="stage-view" />
-                <EmptyTool position="node-inputs" />
+                <EmptyTool position="node-configurator" />
               </>
             )}
             <div className={cls.element("actions")}>

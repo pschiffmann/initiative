@@ -3,10 +3,10 @@ export * from "./listeners.js";
 export * from "./node-data.js";
 export {
   SceneDocument,
-  type CreateNodePatch,
+  type CreateComponentNodePatch as CreateNodePatch,
   type DeleteNodePatch,
   type RenameNodePatch,
   type SceneDocumentPatch,
-  type SetNodeInputPatch,
+  type SetComponentNodeInputPatch as SetNodeInputPatch,
 } from "./scene-document.js";
 export * from "./serialization.js";
