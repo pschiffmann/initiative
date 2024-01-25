@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.1.7 - 2024-01-25
+
+- Add basic support for regular scene slots.
+  These can't be configured in the IDE, but if created manually in a scene.json file, code-gen will work.
+
 ## 0.1.6 - 2024-01-20
 
 - Add support for `StyleProps` from `@initiative.dev/schema`.
