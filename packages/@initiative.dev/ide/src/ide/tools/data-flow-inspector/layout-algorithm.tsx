@@ -6,8 +6,8 @@ import {
 } from "#shared";
 import { NodeSchema } from "@initiative.dev/schema";
 
-export function useLayout(document: SceneDocument) {
-  return calculateLayout(document);
+export function useLayout(document: SceneDocument, filter: string | null) {
+  return calculateLayout(document, filter);
 }
 
 export interface Layout {
@@ -55,7 +55,8 @@ export interface NodeBoxPosition {
 
 interface box {
   readonly id: string;
-  readonly column: number;
+  // todo return to readonly
+  column: number;
   readonly parent: string;
   readonly size: number;
   readonly innerD: Pick<
@@ -64,10 +65,14 @@ interface box {
   >;
   readonly chain: [length: number, size: number];
   position: [xCoordinate: number, yCoordinate: number];
-  readonly inputs: Array<string>;
+  // todo return to readonly
+  inputs: Array<string>;
 }
 
-function calculateLayout(document: SceneDocument): Layout {
+function calculateLayout(
+  document: SceneDocument,
+  filter: string | null,
+): Layout {
   const nodesseperation: number = 16;
   const tunnelspacing: number = 8;
   const maxangle: number = 60;
@@ -76,11 +81,77 @@ function calculateLayout(document: SceneDocument): Layout {
   let minimumtunnelseperation: number = Number.NEGATIVE_INFINITY;
   const minimumtunnelseperation2d: Map<number, number> = new Map();
 
-  const allNodes: Map<string, box> = new Map();
+  // todo return to constant
+  let allNodes: Map<string, box> = new Map();
 
   if (document.getRootNodeId() === null)
     return { canvasWidth: 0, canvasHeight: 0, nodeBoxPositions: {} };
   unzip(document.getRootNodeId()!, "", 0);
+
+  if (!!filter) {
+    //first just remove all nodes below the node
+    allNodes = new Map([...removeNodes(filter, true)]);
+    cleanUpNodes();
+  }
+
+  function removeNodes(filterNodeId: string, deep: boolean): Map<string, box> {
+    let node = allNodes.get(filterNodeId)!;
+    let solution = new Map();
+    solution.set(filterNodeId, allNodes.get(filterNodeId));
+    if (deep) {
+      node.inputs.forEach((id) => {
+        solution = new Map([...solution, ...removeNodes(id, false)]);
+      });
+      allNodes.forEach((node) => {
+        if (node.parent === filterNodeId) {
+          solution = new Map([...solution, ...removeNodes(node.id, false)]);
+        }
+      });
+    }
+    if (node.parent !== "") {
+      solution = new Map([...solution, ...removeNodes(node.parent, false)]);
+    }
+    if (deep) {
+      solution = new Map([...solution, ...connectionsAdder(filterNodeId)]);
+    }
+    return solution;
+  }
+
+  function connectionsAdder(searchTargetId: string): Map<string, box> {
+    let solution: Map<string, box> = new Map();
+    for (let node of allNodes.values()) {
+      for (let input of node.inputs.values()) {
+        if (input === searchTargetId) {
+          solution.set(node.id, node);
+          solution = new Map([...solution, ...removeNodes(node.id, false)]);
+        }
+      }
+    }
+    return solution;
+  }
+
+  function cleanUpNodes() {
+    allNodes.forEach((node) => {
+      let inputs = new Array();
+      if (node.inputs) {
+        for (let id of node.inputs.values()) {
+          if (allNodes.has(id)) inputs.push(id);
+        }
+        node.inputs = inputs;
+      }
+    });
+    let maxColumns: Set<number> = new Set();
+    allNodes.forEach((node) => {
+      maxColumns.add(node.column);
+    });
+    let newColumnOrder: Array<number> = [...maxColumns];
+    newColumnOrder.sort();
+    allNodes.forEach((node) => {
+      node.column = newColumnOrder.findIndex((value) => {
+        return value == node.column;
+      });
+    });
+  }
 
   /**
    * Will unpack all nodes from the Scenedocument into allNodes Map.
@@ -140,6 +211,7 @@ function calculateLayout(document: SceneDocument): Layout {
     if (!allColumns.has(node.column)) allColumns.set(node.column, new Set());
     allColumns.get(node.column)!.add(node.id);
   }
+  console.log(allColumns);
 
   const allConnectionsFrom: Map<string, Set<string>> = new Map();
   const allConnectionsTo: Map<string, Set<string>> = new Map();
@@ -666,6 +738,7 @@ function calculateLayout(document: SceneDocument): Layout {
       ...node.innerD,
     };
   }
+  console.log(output);
   return {
     canvasWidth: maxwidth + nodeBoxSizes.canvasOffset,
     canvasHeight: maxheight + nodeBoxSizes.canvasOffset,

@@ -26,9 +26,15 @@ export interface NodeBoxProps {
   data: ComponentNodeData;
   focus: string | null;
   positioning: NodeBoxPosition;
+  onSelectedNodeChange(nodeId: string | null): void;
 }
 
-export function NodeBox({ data, focus, positioning }: NodeBoxProps) {
+export function NodeBox({
+  data,
+  focus,
+  positioning,
+  onSelectedNodeChange,
+}: NodeBoxProps) {
   const schema = data.schema;
 
   const colorScheme = useContext(ColorSchemeContext);
@@ -55,9 +61,30 @@ export function NodeBox({ data, focus, positioning }: NodeBoxProps) {
         ...style,
       }}
     >
-      <Typography className={cls.element("id")} variant="title-medium" noWrap>
-        {data.id}
-      </Typography>
+      {data.id != focus ? (
+        <>
+          <Typography
+            className={cls.element("id")}
+            variant="title-medium"
+            noWrap
+          >
+            <IconButton
+              className={cls.element("id")}
+              label={cls.element("id")}
+              icon="adjust"
+              disabled={false}
+              onPress={() => {
+                onSelectedNodeChange(data.id);
+              }}
+            />
+            {data.id}
+          </Typography>
+        </>
+      ) : (
+        <Typography className={cls.element("id")} variant="title-medium" noWrap>
+          {data.id}
+        </Typography>
+      )}
       <Typography className={cls.element("type")} variant="label-medium" noWrap>
         {data.type}
       </Typography>

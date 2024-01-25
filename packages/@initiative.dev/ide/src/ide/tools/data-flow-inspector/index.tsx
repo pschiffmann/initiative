@@ -10,12 +10,14 @@ export interface DataFlowInspectorProps {
   controller: CommandController<DialogCommand>;
   document: SceneDocument;
   selectedNode: string | null;
+  onSelectedNodeChange(nodeId: string | null): void;
 }
 
 export function DataFlowInspector({
   controller,
   document,
   selectedNode,
+  onSelectedNodeChange,
 }: DataFlowInspectorProps) {
   const [zoom, setZoom] = useState(100);
 
@@ -25,6 +27,7 @@ export function DataFlowInspector({
         className={cls.element("canvas")}
         document={document}
         selectedNode={selectedNode}
+        onSelectedNodeChange={onSelectedNodeChange}
         zoom={zoom / 100}
       />
 

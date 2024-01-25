@@ -11,6 +11,7 @@ export interface CanvasProps {
   selectedNode: string | null;
   zoom: number;
   className?: string;
+  onSelectedNodeChange(nodeId: string | null): void;
 }
 
 export function Canvas({
@@ -18,8 +19,10 @@ export function Canvas({
   selectedNode,
   zoom,
   className,
+  onSelectedNodeChange,
 }: CanvasProps) {
-  const canvas: Layout = useLayout(document);
+  const canvas: Layout = useLayout(document, selectedNode ? selectedNode : "");
+
   return (
     <div className={cls.block(className)}>
       <div className={cls.element("container")} style={{ zoom }}>
@@ -29,6 +32,7 @@ export function Canvas({
             if (!parent) return null;
             const parentPosition = canvas.nodeBoxPositions[parent.nodeId];
             const childPosition = canvas.nodeBoxPositions[childNodeId];
+            if (!parentPosition || !childPosition) return null;
             return (
               <Line
                 key={childNodeId}
@@ -54,6 +58,7 @@ export function Canvas({
                       canvas.nodeBoxPositions[ancestorNodeId];
                     const descendantPosition =
                       canvas.nodeBoxPositions[descendantNodeId];
+                    if (!ancestorPosition || !descendantPosition) return null;
                     const inputKey =
                       index === undefined
                         ? inputName
@@ -87,6 +92,7 @@ export function Canvas({
             data={document.getComponentNode(key)}
             focus={selectedNode}
             positioning={canvas.nodeBoxPositions[key]}
+            onSelectedNodeChange={onSelectedNodeChange}
           />
         ))}
       </div>
