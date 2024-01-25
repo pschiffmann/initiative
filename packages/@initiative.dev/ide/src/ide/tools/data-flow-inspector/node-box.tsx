@@ -54,37 +54,19 @@ export function NodeBox({
 
   return (
     <div
-      className={cls.block()}
+      className={cls.block(null, data.id === focus && "focus")}
       style={{
         top: positioning.offsetTop,
         left: positioning.offsetLeft,
         ...style,
       }}
+      onClick={() => {
+        onSelectedNodeChange(data.id === focus ? null : data.id);
+      }}
     >
-      {data.id != focus ? (
-        <>
-          <Typography
-            className={cls.element("id")}
-            variant="title-medium"
-            noWrap
-          >
-            <IconButton
-              className={cls.element("id")}
-              label={cls.element("id")}
-              icon="adjust"
-              disabled={false}
-              onPress={() => {
-                onSelectedNodeChange(data.id);
-              }}
-            />
-            {data.id}
-          </Typography>
-        </>
-      ) : (
-        <Typography className={cls.element("id")} variant="title-medium" noWrap>
-          {data.id}
-        </Typography>
-      )}
+      <Typography className={cls.element("id")} variant="title-medium" noWrap>
+        {data.id}
+      </Typography>
       <Typography className={cls.element("type")} variant="label-medium" noWrap>
         {data.type}
       </Typography>
