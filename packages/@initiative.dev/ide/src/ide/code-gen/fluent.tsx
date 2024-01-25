@@ -1,4 +1,5 @@
 import {
+  ComponentNodeData,
   Expression,
   FluentMessageExpression,
   MemberAccessExpression,
@@ -180,15 +181,20 @@ export function generateFtl(document: SceneDocument, locale: string): string {
       }
     }
 
-    document
-      .getNode(nodeId)
-      .forEachInput((expression, attributes, inputName, index) => {
-        if (expression)
-          visit(
-            expression,
-            index === undefined ? inputName : `${inputName}-${index + 1}`,
-          );
+    const node = document.getNode(nodeId);
+    if (node instanceof ComponentNodeData) {
+      node.forEachInput((expression, attributes, inputName, index) => {
+        const key =
+          index === undefined ? inputName : `${inputName}-${index + 1}`;
+        if (expression) visit(expression, key);
       });
+    } else {
+      for (const outputName of node.outputNames) {
+        const type = node.outputTypes[outputName];
+        const expression = node.outputValues[outputName];
+        if (expression) visit(expression, outputName);
+      }
+    }
   }
 
   return messages.join("\n") + "\n";

@@ -1,8 +1,12 @@
 import { dedent } from "@pschiffmann/std/dedent";
 import { capitalize } from "@pschiffmann/std/string";
 
-import { SceneDocument } from "#shared";
-import { generateContextProviderJsx } from "./context.js";
+import { SceneDocument, SlotNodeData } from "#shared";
+import {
+  generateOutputContextProviderJsx,
+  generateSceneSlotContextProviderJsx,
+  getSceneInputContextName,
+} from "./context.js";
 import { NameResolver } from "./name-resolver.js";
 import { generateType } from "./types.js";
 
@@ -28,7 +32,7 @@ export function generateEmptyScene(
     `;
 }
 
-export function generateSceneWithSceneInputs(
+export function generateScene(
   document: SceneDocument,
   nameResolver: NameResolver,
 ): string {
@@ -47,6 +51,17 @@ export function generateSceneWithSceneInputs(
       exportName: "createContext",
     });
 
+  const sceneSlots = document
+    .keys()
+    .map((nodeId) => document.getNode(nodeId))
+    .filter((node): node is SlotNodeData => node instanceof SlotNodeData);
+  const ComponentType =
+    sceneSlots.length !== 0 &&
+    nameResolver.importType({
+      moduleName: "react",
+      exportName: "ComponentType",
+    });
+
   const enableFtl = !!document.projectConfig.locales;
   const FluentBundleProvider =
     enableFtl && nameResolver.declareName("FluentBundleProvider");
@@ -61,7 +76,7 @@ export function generateSceneWithSceneInputs(
 
     ${[...document.sceneInputs]
       .map(([name, data]) => {
-        const Context = nameResolver.declareName(`Scene$${name}Context`);
+        const Context = getSceneInputContextName(nameResolver, name);
         const type = generateType(data.type, nameResolver);
         return `const ${Context} = ${createContext}<${type}>(null!);`;
       })
@@ -78,25 +93,38 @@ export function generateSceneWithSceneInputs(
             `,
         )
         .join("\n\n")}
+      ${sceneSlots.length === 0 ? "" : `slots: {`}
+        ${sceneSlots
+          .map(({ id }) => {
+            const SceneSlotProps = nameResolver.declareName(`${id}SlotProps`);
+            return `readonly ${id}: ${ComponentType}<${SceneSlotProps}>;`;
+          })
+          .join("\n")}
+      ${sceneSlots.length === 0 ? "" : `};`}
     }
 
     function ${Scene}({
       className,
       style,
       ${[...document.sceneInputs.keys()].map((name) => `${name},`).join("\n")}
+      ${sceneSlots.length !== 0 ? "slots," : ""}
     }: ${SceneProps}) {
       return (
         ${enableFtl ? `<${FluentBundleProvider}>` : ""}
-        ${generateContextProviderJsx(
+        ${generateOutputContextProviderJsx(
           nameResolver,
           "Scene",
           [...document.sceneInputs.keys()],
-          dedent`
-            <${document.getRootNodeId()!}_Adapter
-              className={className}
-              style={style}
-            />
-            `,
+          generateSceneSlotContextProviderJsx(
+            nameResolver,
+            sceneSlots,
+            dedent`
+              <${document.getRootNodeId()!}_Adapter
+                className={className}
+                style={style}
+              />
+              `,
+          ),
         )}
         ${enableFtl ? `</${FluentBundleProvider}>` : ""}
       );

@@ -4,7 +4,11 @@ import {
   bemClasses,
   useColorTheme,
 } from "#design-system";
-import { SceneDocument, SceneDocumentProvider } from "#shared";
+import {
+  ComponentNodeData,
+  SceneDocument,
+  SceneDocumentProvider,
+} from "#shared";
 import { Definitions } from "@initiative.dev/schema";
 import { useRef, useState } from "react";
 import { DefinitionsContext, LocaleContext } from "./context.js";
@@ -59,7 +63,8 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
                   className={cls.element("stage-view")}
                   document={document}
                 />
-                {selectedNode ? (
+                {selectedNode &&
+                document.getNode(selectedNode) instanceof ComponentNodeData ? (
                   <ComponentNodeConfigurator
                     className={cls.element("node-configurator")}
                     document={document}

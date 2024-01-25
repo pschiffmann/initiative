@@ -50,6 +50,31 @@ export function useNode(document: SceneDocument, nodeId: string) {
   return useSyncExternalStore(onChange, getNode);
 }
 
+export function useComponentNode(document: SceneDocument, nodeId: string) {
+  const onChange = useCallback(
+    (onStoreChange: () => void) => document.listen("change", onStoreChange),
+    [document],
+  );
+  const getNode = useCallback(
+    () =>
+      document.hasNode(nodeId) ? document.getComponentNode(nodeId) : null!,
+    [document, nodeId],
+  );
+  return useSyncExternalStore(onChange, getNode);
+}
+
+export function useSlotNode(document: SceneDocument, nodeId: string) {
+  const onChange = useCallback(
+    (onStoreChange: () => void) => document.listen("change", onStoreChange),
+    [document],
+  );
+  const getNode = useCallback(
+    () => (document.hasNode(nodeId) ? document.getSlotNode(nodeId) : null!),
+    [document, nodeId],
+  );
+  return useSyncExternalStore(onChange, getNode);
+}
+
 export function useRootNodeId(document: SceneDocument) {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),

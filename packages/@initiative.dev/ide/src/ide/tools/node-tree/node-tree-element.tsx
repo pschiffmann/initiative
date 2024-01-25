@@ -5,7 +5,12 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { ComponentNodeData, SceneDocument, useNode } from "#shared";
+import {
+  ComponentNodeData,
+  SceneDocument,
+  SlotNodeData,
+  useNode,
+} from "#shared";
 import { CommandController } from "@initiative.dev/react-command";
 import {
   TonalPalette,
@@ -37,8 +42,9 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
   onSelectedNodeChange,
   nodeId,
 }: NodeTreeElementProps) {
-  const nodeData: ComponentNodeData = useNode(document, nodeId);
-  const nodeEditor = nodeData.schema.editor;
+  const nodeData = useNode(document, nodeId);
+  const nodeEditor =
+    nodeData instanceof ComponentNodeData ? nodeData.schema.editor : undefined;
   const colorScheme = useContext(ColorSchemeContext);
   const style = useMemo(() => {
     if (!nodeEditor?.color) return undefined;
@@ -81,7 +87,11 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
         style={style}
       >
         <MaterialIcon
-          icon={nodeEditor?.icon ?? "help_center"}
+          icon={
+            nodeData instanceof SlotNodeData
+              ? "picture_in_picture_alt"
+              : nodeEditor?.icon ?? "help_center"
+          }
           className={cls.element("icon")}
         />
         <Typography
@@ -92,45 +102,47 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
           {nodeId}
         </Typography>
       </div>
-      <ul className={cls.element("slots")}>
-        {nodeData.schema.forEachSlot((slotName, { isCollectionSlot }) => {
-          const isCollapsed = collapsed.has(slotName);
-          return (
-            <li key={slotName} className={cls.element("slot")}>
-              <div className={cls.element("slot-name")}>
-                <IconButton
-                  className={cls.element("expand-button")}
-                  label={isCollapsed ? "Expand" : "Collapse"}
-                  icon={isCollapsed ? "arrow_right" : "arrow_drop_down"}
-                  onPress={() => toggleCollapsed(slotName)}
-                />
-                {slotName}
-                {(isCollectionSlot || !nodeData.slots[slotName]) && (
+      {nodeData instanceof ComponentNodeData && (
+        <ul className={cls.element("slots")}>
+          {nodeData.schema.forEachSlot((slotName, { isCollectionSlot }) => {
+            const isCollapsed = collapsed.has(slotName);
+            return (
+              <li key={slotName} className={cls.element("slot")}>
+                <div className={cls.element("slot-name")}>
                   <IconButton
-                    className={cls.element("add-button")}
-                    label="Add"
-                    icon="add"
-                    onPress={() => createNodeDialogController.send(slotName)}
+                    className={cls.element("expand-button")}
+                    label={isCollapsed ? "Expand" : "Collapse"}
+                    icon={isCollapsed ? "arrow_right" : "arrow_drop_down"}
+                    onPress={() => toggleCollapsed(slotName)}
                   />
-                )}
-              </div>
-              {!isCollapsed && (
-                <ul className={cls.element("children")}>
-                  {nodeData.forEachChildInSlot(slotName, (childId) => (
-                    <NodeTreeElement
-                      key={childId}
-                      document={document}
-                      selectedNode={selectedNode}
-                      onSelectedNodeChange={onSelectedNodeChange}
-                      nodeId={childId}
+                  {slotName}
+                  {(isCollectionSlot || !nodeData.slots[slotName]) && (
+                    <IconButton
+                      className={cls.element("add-button")}
+                      label="Add"
+                      icon="add"
+                      onPress={() => createNodeDialogController.send(slotName)}
                     />
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                  )}
+                </div>
+                {!isCollapsed && (
+                  <ul className={cls.element("children")}>
+                    {nodeData.forEachChildInSlot(slotName, (childId) => (
+                      <NodeTreeElement
+                        key={childId}
+                        document={document}
+                        selectedNode={selectedNode}
+                        onSelectedNodeChange={onSelectedNodeChange}
+                        nodeId={childId}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <CreateNodeDialog
         commandStream={createNodeDialogController}

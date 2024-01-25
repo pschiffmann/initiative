@@ -91,7 +91,8 @@ function calculateLayout(document: SceneDocument): Layout {
    * @returns chain length value needed to sort nodes
    */
   function unzip(nodeID: string, nodeparent: string, column: number): number {
-    const data: ComponentNodeData = document.getNode(nodeID)!;
+    const data = document.getNode(nodeID)!;
+    if (!(data instanceof ComponentNodeData)) return 1;
     const schema: NodeSchema = data.schema;
     const childIDs = Object.values(data!.slots);
     const chainraw: [number, number] = [0, childIDs.length];

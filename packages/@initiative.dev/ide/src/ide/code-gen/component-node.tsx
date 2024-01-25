@@ -1,19 +1,12 @@
-import {
-  ComponentNodeData,
-  EnumValueExpression,
-  Expression,
-  FluentMessageExpression,
-  JsonLiteralExpression,
-  MemberAccessExpression,
-  SceneDocument,
-} from "#shared";
 import { NodeDefinition } from "@initiative.dev/schema";
 import { dedent } from "@pschiffmann/std/dedent";
+
+import { ComponentNodeData, SceneDocument } from "#shared";
 import {
-  generateContextProviderJsx,
+  generateOutputContextProviderJsx,
   getNodeOutputContextName,
-  getSceneInputContextName,
 } from "./context.js";
+import { generateExpression } from "./expression.js";
 import { NameResolver } from "./name-resolver.js";
 
 export function generateComponentNodeRuntime(
@@ -21,7 +14,7 @@ export function generateComponentNodeRuntime(
   nameResolver: NameResolver,
   nodeId: string,
 ): string {
-  const nodeData = document.getNode(nodeId);
+  const nodeData = document.getComponentNode(nodeId);
   const definition = document.definitions.getNode(nodeData.type);
 
   const result = [
@@ -206,7 +199,7 @@ function generateOutputsProvider(
       children,
     }: ${OutputsProviderProps}<${NodeSchema}>) {
       return (
-        ${generateContextProviderJsx(
+        ${generateOutputContextProviderJsx(
           nameResolver,
           nodeData.id,
           outputNames,
@@ -281,7 +274,7 @@ function generateSlotComponent(
       ${outputNames.map((n) => `${n},`).join("\n")}
     }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">) {
       return (
-        ${generateContextProviderJsx(
+        ${generateOutputContextProviderJsx(
           nameResolver,
           nodeData.id,
           outputNames,
@@ -324,7 +317,7 @@ function generateCollectionSlotComponent(
             return dedent`
               case ${index}:
                 return (
-                  ${generateContextProviderJsx(
+                  ${generateOutputContextProviderJsx(
                     nameResolver,
                     nodeData.id,
                     outputNames,
@@ -338,104 +331,4 @@ function generateCollectionSlotComponent(
       }
     }
     `;
-}
-
-function generateExpression(
-  nodeId: string,
-  fluentExpressionKey: string,
-  expression: Expression,
-  nameResolver: NameResolver,
-): string {
-  if (
-    expression instanceof JsonLiteralExpression ||
-    expression instanceof EnumValueExpression
-  ) {
-    return JSON.stringify(expression.value);
-  }
-  if (expression instanceof FluentMessageExpression) {
-    const useContext = nameResolver.importBinding({
-      moduleName: "react",
-      exportName: "useContext",
-    });
-    const translateMessage = nameResolver.declareName("translateMessage");
-    const FluentBundleContext = nameResolver.declareName("FluentBundleContext");
-    return dedent`
-      ${translateMessage}(
-        ${useContext}(${FluentBundleContext}),
-        "${nodeId}",
-        "${fluentExpressionKey}",
-        {
-          ${Object.entries(expression.args)
-            .map(([argName, expr]) => {
-              const value = generateExpression(
-                nodeId,
-                `${fluentExpressionKey}-${argName}`,
-                expr!,
-                nameResolver,
-              );
-              return `"${argName}": ${value},`;
-            })
-            .join("\n")}
-        }
-      )
-      `;
-  }
-  if (expression instanceof MemberAccessExpression) {
-    const useContext = nameResolver.importBinding({
-      moduleName: "react",
-      exportName: "useContext",
-    });
-    let head: string;
-    switch (expression.head.type) {
-      case "scene-input": {
-        const contextName = getSceneInputContextName(expression.head.inputName);
-        head = `${useContext}(${contextName})`;
-        break;
-      }
-      case "node-output": {
-        const contextName = getNodeOutputContextName(
-          nameResolver,
-          expression.head.nodeId,
-          expression.head.outputName,
-        );
-        head = `${useContext}(${contextName})`;
-        break;
-      }
-      case "debug-value":
-        throw new Error("Unreachable");
-    }
-
-    let i = 0;
-    return expression.selectors.reduce((target, selector) => {
-      if (selector.type === "property") {
-        return `${target}.${selector.propertyName}`;
-      }
-
-      const args = expression.args
-        .slice(i, (i += selector.memberType.parameters.length))
-        .map((arg) =>
-          arg
-            ? generateExpression(
-                nodeId,
-                `${fluentExpressionKey}-${expression.parameterPrefix}${i + 1}`,
-                arg,
-                nameResolver,
-              )
-            : "undefined",
-        );
-      switch (selector.type) {
-        case "method":
-          return `${target}.${selector.methodName}(${args})`;
-        case "call":
-          return `${target}(${args})`;
-        case "extension-method": {
-          const extensionMethod = nameResolver.importBinding(
-            selector.definition,
-          );
-          return `${extensionMethod}(${target}, ${args})`;
-        }
-      }
-    }, head);
-  }
-  throw new Error("Unreachable");
 }

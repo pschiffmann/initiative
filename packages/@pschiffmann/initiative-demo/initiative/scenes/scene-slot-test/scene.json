@@ -1,0 +1,57 @@
+{
+  "inputs": {},
+  "rootNode": "Root",
+  "nodes": {
+    "Root": {
+      "type": "@pschiffmann/initiative-demo::MuiDialog",
+      "inputs": {
+        "title": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "scene-slot-test Dialog"
+        }
+      },
+      "slots": {
+        "trigger": "Trigger",
+        "content": "DialogContent"
+      }
+    },
+    "Trigger": {
+      "type": "SceneSlot",
+      "debugPreview": {
+        "width": 64,
+        "height": 32,
+        "label": "Open Dialog"
+      },
+      "outputs": {
+        "openDialog": {
+          "type": {
+            "type": "function",
+            "requiredParameters": [],
+            "optionalParameters": [],
+            "returnType": {
+              "type": "void"
+            }
+          },
+          "value": {
+            "type": "node-output",
+            "nodeId": "Root",
+            "outputName": "open",
+            "selectors": []
+          }
+        }
+      }
+    },
+    "DialogContent": {
+      "type": "@pschiffmann/initiative-demo::MuiTypography",
+      "inputs": {
+        "text": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "Hello world!"
+        }
+      },
+      "slots": {}
+    }
+  }
+}

@@ -29,7 +29,7 @@ export function SelectedNodeAncestorsProvider({
       document.getAncestors(selectedNode).map(({ nodeId, slotName }) => ({
         nodeId,
         slotName,
-        schema: document.getNode(nodeId).schema,
+        schema: document.getComponentNode(nodeId).schema,
       })),
     [document, selectedNode],
   );

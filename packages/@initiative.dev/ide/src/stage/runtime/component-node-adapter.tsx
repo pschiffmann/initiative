@@ -3,8 +3,7 @@ import * as $Object from "@pschiffmann/std/object";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, FunctionComponent, useContext } from "react";
 
-import { ComponentNodeData } from "#shared";
-import { useNode } from "../../shared/use-scene-document.js";
+import { ComponentNodeData, useComponentNode } from "#shared";
 import { NodeOutputsProvider, useAncestorOutputs } from "./ancestor-outputs.js";
 import { LocaleContext } from "./context.js";
 import { ErrorComponent } from "./error-component.js";
@@ -22,7 +21,7 @@ export function createComponentNodeAdapterComponent(
   nodeId: string,
 ) {
   const document = runtime.document;
-  const nodeData = document.getNode(nodeId);
+  const nodeData = document.getComponentNode(nodeId);
   const OutputsProvider = nodeData.schema.hasRegularOutputs()
     ? createOutputsProviderComponent(nodeData.schema, nodeId)
     : undefined;
@@ -32,7 +31,7 @@ export function createComponentNodeAdapterComponent(
   const NodeImpl = document.definitions.getNode(nodeData.type).component;
 
   const result: FunctionComponent<StyleProps> = ({ className, style }) => {
-    const nodeData = useNode(document, nodeId);
+    const nodeData = useComponentNode(document, nodeId);
     const inputs = useInputs(document.definitions, nodeData);
     const slots = slotComponents && useSlotsPropValue(slotComponents, nodeData);
     return nodeData.errors ? (

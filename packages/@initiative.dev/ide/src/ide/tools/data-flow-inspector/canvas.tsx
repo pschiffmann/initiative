@@ -1,5 +1,5 @@
 import { bemClasses } from "#design-system";
-import { SceneDocument } from "#shared";
+import { ComponentNodeData, SceneDocument } from "#shared";
 import { Layout, expressionEvaluation, useLayout } from "./layout-algorithm.js";
 import { Line } from "./line.js";
 import { NodeBox } from "./node-box.js";
@@ -42,8 +42,10 @@ export function Canvas({
             );
           })}
 
-          {document.keys().map((descendantNodeId) =>
-            document.getNode(descendantNodeId).forEachInput(
+          {document.keys().map((descendantNodeId) => {
+            const node = document.getNode(descendantNodeId);
+            if (!(node instanceof ComponentNodeData)) return null;
+            return node.forEachInput(
               (expression, type, inputName, index) =>
                 expression &&
                 expressionEvaluation(expression).map(
@@ -75,14 +77,14 @@ export function Canvas({
                     );
                   },
                 ),
-            ),
-          )}
+            );
+          })}
         </svg>
 
         {Object.keys(canvas.nodeBoxPositions).map((key) => (
           <NodeBox
             key={key}
-            data={document.getNode(key)}
+            data={document.getComponentNode(key)}
             focus={selectedNode}
             positioning={canvas.nodeBoxPositions[key]}
           />

@@ -1,16 +1,22 @@
 import { Definitions, t } from "@initiative.dev/schema";
+import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ProjectConfig } from "../project-config.js";
+import {
+  ComponentNodeData,
+  ComponentNodeJson,
+  NodeParent,
+} from "./component-node.js";
 import { ExpressionJson, ExpressionSelectorJson } from "./expression.js";
-import { ComponentNodeJson, NodeParent } from "./node-data.js";
 import { SceneDocument } from "./scene-document.js";
+import { SlotNodeJson } from "./slot-node.js";
 
 /**
  * Scene serialization format.
  */
 export interface SceneJson {
   readonly rootNode: string | null;
-  readonly inputs: { readonly [inputName: string]: SceneInputJson };
-  readonly nodes: { readonly [nodeId: string]: ComponentNodeJson };
+  readonly inputs: ObjectMap<SceneInputJson>;
+  readonly nodes: ObjectMap<ComponentNodeJson | SlotNodeJson>;
 }
 
 export interface SceneInputJson {
@@ -56,8 +62,19 @@ export function sceneDocumentFromJson(
     nodeId: string,
     parent?: Omit<NodeParent, "index">,
   ): boolean {
+    return sceneJson.nodes[nodeId]?.type !== "SceneSlot"
+      ? discoverComponentNode(nodeId, parent)
+      : discoverSlotNode(nodeId, parent);
+  }
+
+  function discoverComponentNode(
+    nodeId: string,
+    parent?: Omit<NodeParent, "index">,
+  ): boolean {
     const nodeJson = sceneJson.nodes[nodeId];
-    if (!isObject(nodeJson, nodeJsonSchema, `Node '${nodeId}'`, errors)) {
+    if (
+      !isObject(nodeJson, componentNodeJsonSchema, `Node '${nodeId}'`, errors)
+    ) {
       return false;
     }
     try {
@@ -77,8 +94,38 @@ export function sceneDocumentFromJson(
     }
   }
 
+  function discoverSlotNode(
+    nodeId: string,
+    parent?: Omit<NodeParent, "index">,
+  ) {
+    const nodeJson = sceneJson.nodes[nodeId];
+    if (!isObject(nodeJson, slotNodeJsonSchema, `Node '${nodeId}'`, errors)) {
+      return false;
+    }
+    try {
+      document.applyPatch({
+        type: "create-slot-node",
+        parent,
+        nodeId,
+      });
+      queue.push(nodeId);
+      return true;
+    } catch (e) {
+      errors.push(
+        `Can't create node '${nodeId}': ${e instanceof Error ? e.message : e}`,
+      );
+      return false;
+    }
+  }
+
   function processNode(nodeId: string): void {
-    const { inputs, slots } = sceneJson.nodes[nodeId];
+    sceneJson.nodes[nodeId]?.type !== "SceneSlot"
+      ? processComponentNode(nodeId)
+      : processSlotNode(nodeId);
+  }
+
+  function processComponentNode(nodeId: string) {
+    const { inputs, slots } = sceneJson.nodes[nodeId] as ComponentNodeJson;
     for (const [slotKey, childId] of Object.entries(slots)) {
       const { slotName } = parseSlotKey(nodeId, slotKey, errors);
       if (!slotName || !discoverNode(childId, { nodeId, slotName })) return;
@@ -105,6 +152,48 @@ export function sceneDocumentFromJson(
     }
   }
 
+  function processSlotNode(nodeId: string) {
+    const { debugPreview, outputs } = sceneJson.nodes[nodeId] as SlotNodeJson;
+    if (
+      isObject(
+        debugPreview,
+        slotNodeDebugPreviewSchema,
+        `At node '${nodeId}': property 'debugPreview'`,
+        errors,
+      )
+    ) {
+      try {
+        document.applyPatch({
+          type: "set-slot-node-debug-preview",
+          nodeId,
+          debugPreview,
+        });
+      } catch (e) {
+        errors.push(
+          `Can't set property 'debugPreview' of node '${nodeId}': ` +
+            `${e instanceof Error ? e.message : e}`,
+        );
+      }
+    }
+
+    for (const [outputName, outputJson] of Object.entries(outputs)) {
+      try {
+        document.applyPatch({
+          type: "create-slot-node-output",
+          nodeId,
+          outputName,
+          outputType: outputJson.type,
+          expression: outputJson.value,
+        });
+      } catch (e) {
+        errors.push(
+          `Can't create output '${outputName}' of node '${nodeId}': ` +
+            (e instanceof Error ? e.message : e),
+        );
+      }
+    }
+  }
+
   discoverNode(sceneJson.rootNode);
   for (const nodeId of queue) {
     processNode(nodeId);
@@ -125,11 +214,12 @@ export function sceneDocumentToJson(document: SceneDocument): SceneJson {
 
   const rootNode = document.getRootNodeId();
 
-  const nodes: { [nodeId: string]: ComponentNodeJson } = {};
+  const nodes: { [nodeId: string]: ComponentNodeJson | SlotNodeJson } = {};
   const queue = rootNode ? [rootNode] : [];
   for (const nodeId of queue) {
     const node = document.getNode(nodeId);
     nodes[nodeId] = node.toJson();
+    if (!(node instanceof ComponentNodeData)) continue;
     node.forEachSlot((childId) => {
       if (childId) queue.push(childId);
     });
@@ -154,10 +244,22 @@ const sceneJsonSchema = {
   nodes: "object",
 } satisfies ObjectSchema;
 
-const nodeJsonSchema = {
+const componentNodeJsonSchema = {
   type: "string",
   inputs: "object",
   slots: "object",
+} satisfies ObjectSchema;
+
+const slotNodeJsonSchema = {
+  type: "string",
+  debugPreview: "object",
+  outputs: "object",
+} satisfies ObjectSchema;
+
+const slotNodeDebugPreviewSchema = {
+  width: "number",
+  height: "number",
+  label: "string",
 } satisfies ObjectSchema;
 
 const expressionJsonSchemas = {

@@ -1,5 +1,5 @@
 import { bemClasses } from "#design-system";
-import { ExpressionJson, SceneDocument, useNode } from "#shared";
+import { ExpressionJson, SceneDocument, useComponentNode } from "#shared";
 import { Fragment } from "react";
 import {
   ExpressionControl,
@@ -37,7 +37,7 @@ interface NodeInputsListProps {
 }
 
 function NodeInputsList({ document, selectedNode }: NodeInputsListProps) {
-  const nodeData = useNode(document, selectedNode);
+  const nodeData = useComponentNode(document, selectedNode);
 
   function setNodeInput(
     expression: ExpressionJson | null,

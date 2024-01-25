@@ -1,4 +1,4 @@
-import { useNode } from "#shared";
+import { useComponentNode } from "#shared";
 import { NodeSchema, StyleProps } from "@initiative.dev/schema";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ComponentType, FunctionComponent } from "react";
@@ -21,7 +21,7 @@ export function createSlotComponents(
   runtime: SceneRuntime,
   nodeId: string,
 ): SlotComponents {
-  const { schema } = runtime.document.getNode(nodeId);
+  const { schema } = runtime.document.getComponentNode(nodeId);
   return Object.fromEntries(
     schema.forEachSlot((slotName, { isCollectionSlot }) => {
       const component = isCollectionSlot
@@ -44,7 +44,7 @@ function createCollectionSlotComponent(
     index,
     ...outputs
   }) => {
-    const nodeData = useNode(runtime.document, nodeId);
+    const nodeData = useComponentNode(runtime.document, nodeId);
     const childId = nodeData.slots[`${slotName}::${index}`];
     if (!childId) {
       throw new Error(
@@ -79,7 +79,7 @@ function createSlotComponent(
     style,
     ...outputs
   }) => {
-    const nodeData = useNode(runtime.document, nodeId);
+    const nodeData = useComponentNode(runtime.document, nodeId);
     const ChildAdapter = runtime.getAdapterComponent(nodeData.slots[slotName]);
     return (
       <NodeOutputsProvider

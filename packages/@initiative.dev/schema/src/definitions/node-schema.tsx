@@ -1,10 +1,10 @@
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import * as t from "../type-system/index.js";
 import {
-  validateNodeInputName,
-  validateNodeOutputName,
+  validateNodeSchemaInputName,
   validateNodeSchemaName,
-  validateNodeSlotName,
+  validateNodeSchemaOutputName,
+  validateNodeSchemaSlotName,
 } from "../validate-names.js";
 
 //
@@ -70,7 +70,7 @@ export class NodeSchema<
 
     const inputAttributes: Record<string, InputAttributes> = {};
     for (const [inputName, attributes] of Object.entries(init.inputs ?? {})) {
-      validateNodeInputName(name, inputName);
+      validateNodeSchemaInputName(name, inputName);
       inputAttributes[inputName] = {
         ...attributes,
         type: attributes.type.canonicalize(),
@@ -79,7 +79,7 @@ export class NodeSchema<
 
     const outputAttributes: Record<string, OutputAttributes> = {};
     for (const [outputName, attributes] of Object.entries(init.outputs ?? {})) {
-      validateNodeOutputName(name, outputName);
+      validateNodeSchemaOutputName(name, outputName);
       outputAttributes[outputName] = {
         ...attributes,
         type: attributes.type.canonicalize(),
@@ -89,7 +89,7 @@ export class NodeSchema<
     const slotAttributes: Record<string, SlotAttributes> = {};
     for (const [slotName, slotInit] of Object.entries(init.slots ?? {})) {
       const { inputs = {}, outputs = {} } = slotInit;
-      validateNodeSlotName(name, slotName);
+      validateNodeSchemaSlotName(name, slotName);
       slotAttributes[slotName] = {
         isCollectionSlot: !!slotInit.inputs,
         inputNames: Object.keys(inputs),
@@ -97,7 +97,7 @@ export class NodeSchema<
       };
 
       for (const [inputName, attributes] of Object.entries(inputs)) {
-        validateNodeInputName(name, inputName);
+        validateNodeSchemaInputName(name, inputName);
         if (inputAttributes[inputName]) {
           throw new Error(
             `NodeSchema '${name}' must not contain multiple declarations of ` +
@@ -112,7 +112,7 @@ export class NodeSchema<
       }
 
       for (const [outputName, attributes] of Object.entries(outputs)) {
-        validateNodeOutputName(name, outputName);
+        validateNodeSchemaOutputName(name, outputName);
         if (outputAttributes[outputName]) {
           throw new Error(
             `NodeSchema '${name}' must not contain multiple declarations of ` +

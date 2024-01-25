@@ -1,8 +1,9 @@
-import { SceneDocument } from "#shared";
+import { ComponentNodeData, SceneDocument } from "#shared";
 import { StyleProps } from "@initiative.dev/schema";
 import * as $Map from "@pschiffmann/std/map";
 import { ComponentType } from "react";
 import { createComponentNodeAdapterComponent } from "./component-node-adapter.js";
+import { createSlotNodeAdapterComponent } from "./slot-node-adapter.js";
 
 export class SceneRuntime {
   constructor(readonly document: SceneDocument) {
@@ -17,7 +18,9 @@ export class SceneRuntime {
 
   getAdapterComponent(nodeId: string): ComponentType<StyleProps> {
     return $Map.putIfAbsent(this.#adapterComponents, nodeId, () =>
-      createComponentNodeAdapterComponent(this, nodeId),
+      this.document.getNode(nodeId) instanceof ComponentNodeData
+        ? createComponentNodeAdapterComponent(this, nodeId)
+        : createSlotNodeAdapterComponent(this, nodeId),
     );
   }
 }

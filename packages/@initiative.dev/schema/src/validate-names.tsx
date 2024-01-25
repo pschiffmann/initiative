@@ -1,8 +1,24 @@
 import validate from "validate-npm-package-name";
 
 export function validateSceneName(name: string): void {
-  if (!name.match(sceneNamePattern)) {
+  if (!name.match(sceneNamePattern) || name.toLowerCase().endsWith("slot")) {
     throw new Error(`Invalid scene name '${name}'.`);
+  }
+}
+
+export function validateSceneInputName(inputName: string): void {
+  if (!inputName.match(nodeIoPattern)) {
+    throw new Error(
+      `Invalid scene input name '${inputName}': ` +
+        `must start with a lowercase letter, and contain only alphanumeric ` +
+        `characters, and may contain a single '$' group separator.`,
+    );
+  }
+  if (reservedNames.nodeIo.has(inputName)) {
+    throw new Error(
+      `Invalid scene input name '${inputName}': ` +
+        `This name is reserved for internal use.`,
+    );
   }
 }
 
@@ -35,35 +51,68 @@ export function validateNodeId(nodeId: string): void {
         `contain only alphanumeric characters.`,
     );
   }
-}
-
-export function validateNodeInputName(
-  schemaName: string,
-  inputName: string,
-): void {
-  if (!inputName.match(memberPattern)) {
+  if (reservedNames.nodeId.has(nodeId)) {
     throw new Error(
-      `Invalid input name '${inputName}' in NodeSchema '${schemaName}': ` +
-        `must start with a lowercase letter, and contain only alphanumeric ` +
-        `characters.`,
+      `Invalid node id '${nodeId}': This name is reserved for internal use.`,
     );
   }
 }
 
-export function validateNodeOutputName(
+export function validateSlotNodeOutputName(outputName: string) {
+  if (!outputName.match(nodeIoPattern)) {
+    throw new Error(
+      `Invalid output name '${outputName}': ` +
+        `must start with a lowercase letter, and contain only alphanumeric ` +
+        `characters, and may contain a single '$' group separator.`,
+    );
+  }
+  if (reservedNames.nodeIo.has(outputName)) {
+    throw new Error(
+      `Invalid output name '${outputName}': ` +
+        `This name is reserved for internal use.`,
+    );
+  }
+}
+
+export function validateNodeSchemaInputName(
+  schemaName: string,
+  inputName: string,
+): void {
+  if (!inputName.match(nodeIoPattern)) {
+    throw new Error(
+      `Invalid input name '${inputName}' in NodeSchema '${schemaName}': ` +
+        `must start with a lowercase letter, and contain only alphanumeric ` +
+        `characters, and may contain a single '$' group separator.`,
+    );
+  }
+  if (reservedNames.nodeIo.has(inputName)) {
+    throw new Error(
+      `Invalid input name '${inputName}' in NodeSchema '${schemaName}': ` +
+        `This name is reserved for internal use.`,
+    );
+  }
+}
+
+export function validateNodeSchemaOutputName(
   schemaName: string,
   outputName: string,
 ): void {
-  if (!outputName.match(outputPattern)) {
+  if (!outputName.match(nodeIoPattern)) {
     throw new Error(
       `Invalid output name '${outputName}' in NodeSchema '${schemaName}': ` +
         `must start with a lowercase letter, and contain only alphanumeric ` +
         `characters, and may contain a single '$' group separator.`,
     );
   }
+  if (reservedNames.nodeIo.has(outputName)) {
+    throw new Error(
+      `Invalid output name '${outputName}' in NodeSchema '${schemaName}': ` +
+        `This name is reserved for internal use.`,
+    );
+  }
 }
 
-export function validateNodeSlotName(
+export function validateNodeSchemaSlotName(
   schemaName: string,
   slotName: string,
 ): void {
@@ -160,4 +209,9 @@ export function validateExtensionMethodName(name: string): void {
 const sceneNamePattern = /^[A-Za-z][\w-]*$/;
 const namespacePattern = /^[A-Z][A-Za-z0-9]*$/;
 const memberPattern = /^[a-z][A-Za-z0-9]*$/;
-const outputPattern = /^[a-z][A-Za-z0-9]*(?:\$[a-z][A-Za-z0-9]*)?$/;
+const nodeIoPattern = /^[a-z][A-Za-z0-9]*(?:\$[a-z][A-Za-z0-9]*)?$/;
+
+const reservedNames = {
+  nodeId: new Set(["Scene"]),
+  nodeIo: new Set(["className", "style", "slots"]),
+} as const;
