@@ -64,4 +64,7 @@
     grid-column: output-socket;
     --initiative-icon-button-density: -1;
   }
+  &--focus {
+    box-shadow: 0px 0px 0px 3px #{color.role("on-surface")} inset;
+  }
 }

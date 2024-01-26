@@ -77,6 +77,7 @@ export function NodeTree({
             controller={dataFlowInspectorController}
             document={document}
             selectedNode={selectedNode}
+            onSelectedNodeChange={onSelectedNodeChange}
           />
         </>
       }

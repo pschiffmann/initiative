@@ -26,9 +26,15 @@ export interface NodeBoxProps {
   data: ComponentNodeData;
   focus: string | null;
   positioning: NodeBoxPosition;
+  onSelectedNodeChange(nodeId: string | null): void;
 }
 
-export function NodeBox({ data, focus, positioning }: NodeBoxProps) {
+export function NodeBox({
+  data,
+  focus,
+  positioning,
+  onSelectedNodeChange,
+}: NodeBoxProps) {
   const schema = data.schema;
 
   const colorScheme = useContext(ColorSchemeContext);
@@ -48,11 +54,14 @@ export function NodeBox({ data, focus, positioning }: NodeBoxProps) {
 
   return (
     <div
-      className={cls.block()}
+      className={cls.block(null, data.id === focus && "focus")}
       style={{
         top: positioning.offsetTop,
         left: positioning.offsetLeft,
         ...style,
+      }}
+      onClick={() => {
+        onSelectedNodeChange(data.id === focus ? null : data.id);
       }}
     >
       <Typography className={cls.element("id")} variant="title-medium" noWrap>
