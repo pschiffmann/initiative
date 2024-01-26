@@ -211,7 +211,6 @@ function calculateLayout(
     if (!allColumns.has(node.column)) allColumns.set(node.column, new Set());
     allColumns.get(node.column)!.add(node.id);
   }
-  console.log(allColumns);
 
   const allConnectionsFrom: Map<string, Set<string>> = new Map();
   const allConnectionsTo: Map<string, Set<string>> = new Map();
@@ -738,7 +737,6 @@ function calculateLayout(
       ...node.innerD,
     };
   }
-  console.log(output);
   return {
     canvasWidth: maxwidth + nodeBoxSizes.canvasOffset,
     canvasHeight: maxheight + nodeBoxSizes.canvasOffset,
