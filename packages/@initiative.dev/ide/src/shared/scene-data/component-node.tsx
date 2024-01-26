@@ -319,7 +319,7 @@ export class ComponentNodeData {
 
     const inputs = { ...this.inputs };
     const slots = { ...this.slots };
-    for (let i = index; i < childCount; i++) {
+    for (let i = index; i < childCount - 1; i++) {
       slots[`${slotName}::${i}`] = slots[`${slotName}::${i + 1}`];
       for (const inputName of this.schema.getSlotAttributes(slotName)
         .inputNames) {
@@ -331,10 +331,10 @@ export class ComponentNodeData {
         }
       }
     }
-    delete slots[`${slotName}::${childCount}`];
+    delete slots[`${slotName}::${childCount - 1}`];
     for (const inputName of this.schema.getSlotAttributes(slotName)
       .inputNames) {
-      delete inputs[`${inputName}::${childCount}`];
+      delete inputs[`${inputName}::${childCount - 1}`];
     }
 
     return new ComponentNodeData(

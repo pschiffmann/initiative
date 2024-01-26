@@ -9,7 +9,7 @@
     This repository uses [npm workspaces](https://docs.npmjs.com/cli/v9/using-npm/workspaces) to manage the dependencies of contained npm packages.
 4.  Open a new terminal and run the Sass compiler in the `@initiativejs/ide` package.
     ```bash
-    cd packages/@initiativejs/ide
+    cd packages/@initiative.dev/ide
     npm run sass
     ```
     If you're making changes to the scss files in `@initiativejs/design-system` or `@initiativejs/ide`, keep this process running.
