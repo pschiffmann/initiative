@@ -74,10 +74,8 @@ export function CreateNodeDialog({
     const x = navigator.clipboard.readText().then(function (data) {
       const errors: string[] = [];
 
-      //console.log(data);
       const bin: Record<string, ComponentNodeJson | SlotNodeJson> =
         JSON.parse(data);
-      console.log(bin);
 
       const pasteTreeParent: Map<string, string> = new Map();
       const pasteTreeSlot: Map<string, string> = new Map();
@@ -129,7 +127,24 @@ export function CreateNodeDialog({
       }
       //inputs
       for (const [id, node] of Object.entries(bin)) {
-        if (node.type === "SceneSlot") continue;
+        if (node.type === "SceneSlot") {
+          for (const [output, data] of Object.entries(
+            (node as SlotNodeJson).outputs,
+          )) {
+            try {
+              document.applyPatch({
+                type: "create-slot-node-output",
+                nodeId: pasteTrueSelf.get(id) ?? id,
+                outputName: output,
+                outputType: data.type,
+                expression: data.value,
+              });
+            } catch (e) {
+              errors.push(`- ${e}`);
+            }
+          }
+          continue;
+        }
         for (const [input, connection] of Object.entries(
           (node as ComponentNodeJson).inputs,
         )) {
