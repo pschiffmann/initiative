@@ -1,5 +1,11 @@
 import { Button, DialogCommand, IconButton, bemClasses } from "#design-system";
-import { SceneDocument, useRootNodeId } from "#shared";
+import {
+  ComponentNodeJson,
+  SceneDocument,
+  SlotNodeData,
+  SlotNodeJson,
+  useRootNodeId,
+} from "#shared";
 import { CommandController } from "@initiative.dev/react-command";
 import { useCallback, useState } from "react";
 import { DataFlowInspector } from "../data-flow-inspector/index.js";
@@ -27,6 +33,29 @@ export function NodeTree({
   );
 
   const rootNodeId = useRootNodeId(document);
+
+  const testCopy = useCallback(() => {
+    if (!selectedNode) return;
+    const target = document.getNode(selectedNode).id;
+
+    function recursiveCollect(
+      target: string,
+    ): Record<string, ComponentNodeJson | SlotNodeJson> {
+      let result: Record<string, ComponentNodeJson | SlotNodeJson> = {};
+      const node = document.getNode(target);
+      result[node.id] = node.toJson();
+      if (node instanceof SlotNodeData) return result;
+      if (Object.keys(node.slots).length === 0) return result;
+      for (const [slot, id] of Object.entries(node.slots)) {
+        result = { ...result, ...recursiveCollect(id) };
+      }
+      return result;
+    }
+
+    navigator.clipboard.writeText(
+      JSON.stringify(recursiveCollect(target), null, 2),
+    );
+  }, [selectedNode]);
 
   const renameSelectedNode = useCallback(() => {
     const newId = prompt("Enter new node id");
@@ -56,6 +85,12 @@ export function NodeTree({
       title="Nodes"
       actions={
         <>
+          <IconButton
+            label="Copy node"
+            icon="content_copy"
+            disabled={!selectedNode}
+            onPress={testCopy}
+          />
           <IconButton
             label="Rename node"
             icon="edit"

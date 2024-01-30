@@ -6,15 +6,21 @@ import {
   SelectControl,
   TextFieldControl,
   bemClasses,
+  IconButton,
 } from "#design-system";
-import { SceneDocument } from "#shared";
+import {
+  ComponentNodeJson,
+  ExpressionJson,
+  SceneDocument,
+  SlotNodeJson,
+} from "#shared";
 import {
   CommandController,
   CommandStream,
   useAcceptCommands,
 } from "@initiative.dev/react-command";
 import { NodeSchema, validateNodeId } from "@initiative.dev/schema";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 const cls = bemClasses("initiative-create-node-dialog");
 
@@ -65,12 +71,106 @@ export function CreateNodeDialog({
     controller.send("close");
   }
 
+  const testPaste = useCallback(() => {
+    //TODO:
+    // support mutiple base node strings
+    // support incorrectly formated strings
+    // support incorrect strings?
+    const x = navigator.clipboard.readText().then(function (data) {
+      //console.log(data);
+      const bin: Record<string, ComponentNodeJson | SlotNodeJson> =
+        JSON.parse(data);
+      console.log(bin);
+
+      const pasteTreeParent: Map<string, string> = new Map();
+      const pasteTreeSlot: Map<string, string> = new Map();
+      const pasteTrueSelf: Map<string, string> = new Map();
+      //nodes
+      for (const id of Object.keys(bin)) {
+        const finalId: string = document.hasNode(id)
+          ? document.generateNodeId(id)
+          : id;
+        pasteTrueSelf.set(id, finalId);
+
+        if (bin[id].type === "SceneSlot") {
+          document.applyPatch({
+            type: "create-slot-node",
+            debugPreview: (bin[id] as SlotNodeJson).debugPreview,
+            parent: pasteTreeParent.has(id)
+              ? {
+                  nodeId: pasteTreeParent.get(id)!,
+                  slotName: pasteTreeSlot.get(id)!,
+                }
+              : parentId
+              ? { nodeId: parentId, slotName }
+              : undefined,
+            nodeId: finalId,
+          });
+          continue;
+        }
+
+        for (const [childSlot, childId] of Object.entries(
+          (bin[id] as ComponentNodeJson).slots,
+        )) {
+          pasteTreeParent.set(childId, finalId);
+          pasteTreeSlot.set(childId, childSlot.split("::")[0]);
+        }
+
+        document.applyPatch({
+          type: "create-component-node",
+          nodeType: bin[id].type,
+          parent: pasteTreeParent.has(id)
+            ? {
+                nodeId: pasteTreeParent.get(id)!,
+                slotName: pasteTreeSlot.get(id)!,
+              }
+            : parentId
+            ? { nodeId: parentId, slotName }
+            : undefined,
+          nodeId: finalId,
+        });
+      }
+      //inputs
+      for (const [id, node] of Object.entries(bin)) {
+        if (node.type === "SceneSlot") continue;
+        for (const [input, connection] of Object.entries(
+          (node as ComponentNodeJson).inputs,
+        )) {
+          document.applyPatch({
+            type: "set-component-node-input",
+            nodeId: pasteTrueSelf.get(id)!,
+            expression:
+              connection.type === "node-output"
+                ? {
+                    type: connection.type,
+                    nodeId:
+                      pasteTrueSelf.get(connection.nodeId) ?? connection.nodeId,
+                    outputName: connection.outputName,
+                    selectors: connection.selectors,
+                  }
+                : connection,
+            inputName: input.split("::")[0],
+            index: Number(input.split("::")[1]),
+          });
+        }
+      }
+    });
+
+    controller.send("close");
+  }, [slotName]);
+
   return (
     <Dialog className={cls.block()} commandStream={controller}>
       <AlertDialogContent
         title="New node"
         actions={
           <>
+            <IconButton
+              label="Paste node"
+              icon="content_paste"
+              disabled={false}
+              onPress={testPaste}
+            />
             <Button label="Cancel" onPress={() => controller.send("close")} />
             <Button
               className={cls.element("create-button")}

@@ -189,7 +189,7 @@ export class SceneDocument {
   /**
    * Returns a node id that doesn't exist in this repository.
    */
-  #generateNodeId(prefix: string): string {
+  generateNodeId(prefix: string): string {
     for (let i = 1; ; i++) {
       const nodeId = `${prefix}${i !== 1 ? i : ""}`;
       if (!this.#nodes.has(nodeId)) return nodeId;
@@ -300,7 +300,7 @@ export class SceneDocument {
       throw new Error("SceneDocument is not empty.");
     }
     const { schema } = this.definitions.getNode(nodeType);
-    nodeId ??= this.#generateNodeId(schema.name.split("::")[1]);
+    nodeId ??= this.generateNodeId(schema.name.split("::")[1]);
 
     this.#nodes.set(nodeId, ComponentNodeData.empty(schema, nodeId, null));
     this.#rootNodeId = nodeId;
@@ -313,7 +313,7 @@ export class SceneDocument {
     { nodeId: parentId, slotName }: Omit<NodeParent, "index">,
   ): void {
     const { schema } = this.definitions.getNode(nodeType);
-    childId ??= this.#generateNodeId(schema.name.split("::")[1]);
+    childId ??= this.generateNodeId(schema.name.split("::")[1]);
     if (this.#nodes.has(childId)) {
       throw new Error(`A node with id '${childId}' already exists.`);
     }
@@ -341,7 +341,7 @@ export class SceneDocument {
     if (this.#rootNodeId !== null) {
       throw new Error("SceneDocument is not empty.");
     }
-    nodeId ??= this.#generateNodeId("Child");
+    nodeId ??= this.generateNodeId("Child");
 
     this.#nodes.set(
       nodeId,
@@ -356,7 +356,7 @@ export class SceneDocument {
     { nodeId: childId, debugPreview }: CreateSlotNodePatch,
     { nodeId: parentId, slotName }: Omit<NodeParent, "index">,
   ): void {
-    childId ??= this.#generateNodeId(capitalize(slotName) + "Slot");
+    childId ??= this.generateNodeId(capitalize(slotName) + "Slot");
     if (this.#nodes.has(childId)) {
       throw new Error(`A node with id '${childId}' already exists.`);
     }
