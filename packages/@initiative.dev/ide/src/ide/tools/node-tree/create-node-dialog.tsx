@@ -3,17 +3,12 @@ import {
   Button,
   Dialog,
   DialogCommand,
+  IconButton,
   SelectControl,
   TextFieldControl,
   bemClasses,
-  IconButton,
 } from "#design-system";
-import {
-  ComponentNodeJson,
-  ExpressionJson,
-  SceneDocument,
-  SlotNodeJson,
-} from "#shared";
+import { ComponentNodeJson, SceneDocument, SlotNodeJson } from "#shared";
 import {
   CommandController,
   CommandStream,
@@ -77,6 +72,8 @@ export function CreateNodeDialog({
     // support incorrectly formated strings
     // support incorrect strings?
     const x = navigator.clipboard.readText().then(function (data) {
+      const errors: string[] = [];
+
       //console.log(data);
       const bin: Record<string, ComponentNodeJson | SlotNodeJson> =
         JSON.parse(data);
@@ -136,23 +133,32 @@ export function CreateNodeDialog({
         for (const [input, connection] of Object.entries(
           (node as ComponentNodeJson).inputs,
         )) {
-          document.applyPatch({
-            type: "set-component-node-input",
-            nodeId: pasteTrueSelf.get(id)!,
-            expression:
-              connection.type === "node-output"
-                ? {
-                    type: connection.type,
-                    nodeId:
-                      pasteTrueSelf.get(connection.nodeId) ?? connection.nodeId,
-                    outputName: connection.outputName,
-                    selectors: connection.selectors,
-                  }
-                : connection,
-            inputName: input.split("::")[0],
-            index: Number(input.split("::")[1]),
-          });
+          try {
+            document.applyPatch({
+              type: "set-component-node-input",
+              nodeId: pasteTrueSelf.get(id)!,
+              expression:
+                connection.type === "node-output"
+                  ? {
+                      type: connection.type,
+                      nodeId:
+                        pasteTrueSelf.get(connection.nodeId) ??
+                        connection.nodeId,
+                      outputName: connection.outputName,
+                      selectors: connection.selectors,
+                    }
+                  : connection,
+              inputName: input.split("::")[0],
+              index: Number(input.split("::")[1]),
+            });
+          } catch (e) {
+            errors.push(`- ${e}`);
+          }
         }
+      }
+
+      if (errors.length !== 0) {
+        window.alert("Encountered errors during import\n" + errors.join("\n"));
       }
     });
 
