@@ -176,12 +176,19 @@ export function CreateNodeDialog({
         data: ExpressionJson,
         table: Map<string, string>,
       ): ExpressionJson {
+        if (data.type === "fluent-message") {
+          const resultFluent: Record<string, ExpressionJson> = {};
+          Object.entries(data.args).forEach(([key, value]) => {
+            resultFluent[key] = replaceNodeIds(value, table);
+          });
+          return { ...data, args: resultFluent };
+        }
         if (
           data.type === "node-output" ??
           data.type === "scene-input" ??
           data.type === "debug-value"
         ) {
-          let result = {
+          const result = {
             ...(data as
               | SceneInputExpressionJson
               | DebugValueExpressionJson
