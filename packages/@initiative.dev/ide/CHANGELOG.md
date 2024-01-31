@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.8 - 2024-01-31
+
+- Fix bug that generated wrong Fluent keys.
+
 ## 0.1.7 - 2024-01-25
 
 - Add basic support for regular scene slots.
