@@ -8,7 +8,13 @@ import {
   TextFieldControl,
   bemClasses,
 } from "#design-system";
-import { ComponentNodeJson, SceneDocument, SlotNodeJson } from "#shared";
+import {
+  ComponentNodeJson,
+  ExpressionJson,
+  ExpressionSelectorJson,
+  SceneDocument,
+  SlotNodeJson,
+} from "#shared";
 import {
   CommandController,
   CommandStream,
@@ -152,17 +158,7 @@ export function CreateNodeDialog({
             document.applyPatch({
               type: "set-component-node-input",
               nodeId: pasteTrueSelf.get(id)!,
-              expression:
-                connection.type === "node-output"
-                  ? {
-                      type: connection.type,
-                      nodeId:
-                        pasteTrueSelf.get(connection.nodeId) ??
-                        connection.nodeId,
-                      outputName: connection.outputName,
-                      selectors: connection.selectors,
-                    }
-                  : connection,
+              expression: replaceNodeIds(connection, pasteTrueSelf),
               inputName: input.split("::")[0],
               index: Number(input.split("::")[1]),
             });
@@ -171,7 +167,27 @@ export function CreateNodeDialog({
           }
         }
       }
-
+      function replaceNodeIds(
+        data: ExpressionJson,
+        table: Map<string, string>,
+      ): ExpressionJson {
+        if (data.type !== "node-output") return data;
+        return {
+          ...data,
+          nodeId: table.get(data.nodeId) ?? data.nodeId,
+          selectors: data.selectors.map((value) => {
+            if (value.type === "property") return value;
+            return {
+              ...value,
+              args: value.args.map((nextLayerData) => {
+                return nextLayerData
+                  ? replaceNodeIds(nextLayerData, table)
+                  : null;
+              }),
+            };
+          }),
+        };
+      }
       if (errors.length !== 0) {
         window.alert("Encountered errors during import\n" + errors.join("\n"));
       }
