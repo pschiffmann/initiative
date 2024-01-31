@@ -12,7 +12,10 @@ import {
   ComponentNodeJson,
   ExpressionJson,
   ExpressionSelectorJson,
+  NodeOutputExpressionJson,
   SceneDocument,
+  SceneInputExpressionJson,
+  SceneInputJson,
   SlotNodeJson,
 } from "#shared";
 import {
@@ -171,22 +174,31 @@ export function CreateNodeDialog({
         data: ExpressionJson,
         table: Map<string, string>,
       ): ExpressionJson {
-        if (data.type !== "node-output") return data;
-        return {
-          ...data,
-          nodeId: table.get(data.nodeId) ?? data.nodeId,
-          selectors: data.selectors.map((value) => {
-            if (value.type === "property") return value;
-            return {
-              ...value,
-              args: value.args.map((nextLayerData) => {
-                return nextLayerData
-                  ? replaceNodeIds(nextLayerData, table)
-                  : null;
-              }),
-            };
-          }),
-        };
+        if (data.type === "node-output" ?? data.type === "scene-input") {
+          let result = {
+            ...(data as SceneInputExpressionJson | NodeOutputExpressionJson),
+            selectors: (
+              data as SceneInputExpressionJson | NodeOutputExpressionJson
+            ).selectors.map((value) => {
+              if (value.type === "property") return value;
+              return {
+                ...value,
+                args: value.args.map((nextLayerData) => {
+                  return nextLayerData
+                    ? replaceNodeIds(nextLayerData, table)
+                    : null;
+                }),
+              };
+            }),
+          };
+          return data.type === "node-output"
+            ? {
+                ...(result as NodeOutputExpressionJson),
+                nodeId: table.get(data.nodeId) ?? data.nodeId,
+              }
+            : result;
+        }
+        return data;
       }
       if (errors.length !== 0) {
         window.alert("Encountered errors during import\n" + errors.join("\n"));
