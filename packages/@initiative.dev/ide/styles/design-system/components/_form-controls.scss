@@ -87,7 +87,7 @@
     border-radius: 4px;
     background-color: color.role("surface");
     color: color.role("on-surface");
-    @include typography.role("body-large");
+    @include typography.role("code-large");
 
     &:hover,
     &:focus-visible,
@@ -142,7 +142,7 @@
     padding: 2px 0;
     outline: none;
     background-color: transparent;
-    @include typography.role("body-large");
+    @include typography.role("code-large");
     white-space: pre;
     resize: vertical;
   }
