@@ -10,6 +10,7 @@ import {
 } from "#design-system";
 import {
   ComponentNodeJson,
+  DebugValueExpressionJson,
   ExpressionJson,
   ExpressionSelectorJson,
   NodeOutputExpressionJson,
@@ -25,6 +26,7 @@ import {
 } from "@initiative.dev/react-command";
 import { NodeSchema, validateNodeId } from "@initiative.dev/schema";
 import { useCallback, useMemo, useState } from "react";
+import { convertToObject } from "typescript";
 
 const cls = bemClasses("initiative-create-node-dialog");
 
@@ -174,11 +176,21 @@ export function CreateNodeDialog({
         data: ExpressionJson,
         table: Map<string, string>,
       ): ExpressionJson {
-        if (data.type === "node-output" ?? data.type === "scene-input") {
+        if (
+          data.type === "node-output" ??
+          data.type === "scene-input" ??
+          data.type === "debug-value"
+        ) {
           let result = {
-            ...(data as SceneInputExpressionJson | NodeOutputExpressionJson),
+            ...(data as
+              | SceneInputExpressionJson
+              | DebugValueExpressionJson
+              | NodeOutputExpressionJson),
             selectors: (
-              data as SceneInputExpressionJson | NodeOutputExpressionJson
+              data as
+                | SceneInputExpressionJson
+                | DebugValueExpressionJson
+                | NodeOutputExpressionJson
             ).selectors.map((value) => {
               if (value.type === "property") return value;
               return {
