@@ -88,17 +88,19 @@ export function generateExpression(
       }
 
       const args = expression.args
-        .slice(i, (i += selector.memberType.parameters.length))
-        .map((arg) =>
+        .slice(i, i + selector.memberType.parameters.length)
+        .map((arg, j) =>
           arg
             ? generateExpression(
                 nodeId,
-                `${fluentExpressionKey}-${expression.parameterPrefix}${i + 1}`,
+                fluentExpressionKey +
+                  `-${expression.parameterPrefix}${i + j + 1}`,
                 arg,
                 nameResolver,
               )
             : "undefined",
         );
+      i += args.length;
       switch (selector.type) {
         case "method":
           return `${target}.${selector.methodName}(${args})`;
