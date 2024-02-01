@@ -82,13 +82,16 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
           "node-id-container",
           null,
           selected && "selected",
+          nodeData.errors && "error",
         )}
         onClick={toggleSelected}
         style={style}
       >
         <MaterialIcon
           icon={
-            nodeData instanceof SlotNodeData
+            nodeData.errors
+              ? "error"
+              : nodeData instanceof SlotNodeData
               ? "picture_in_picture_alt"
               : nodeEditor?.icon ?? "help_center"
           }

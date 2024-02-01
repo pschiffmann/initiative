@@ -48,6 +48,11 @@
       //box-shadow: 0px 0px 0px 3px var(--initiative-node-tree-element-stroke-color) inset;
     }
 
+    &--error {
+      --initiative-node-tree-element-fill-color: #{color.role("error")};
+      --initiative-node-tree-element-stroke-color: #{color.role("on-error")};
+    }
+
     &::before {
       position: absolute;
       top: 13.5px;
