@@ -10,13 +10,9 @@ import {
 } from "#design-system";
 import {
   ComponentNodeJson,
-  DebugValueExpressionJson,
   ExpressionJson,
-  ExpressionSelectorJson,
   NodeOutputExpressionJson,
   SceneDocument,
-  SceneInputExpressionJson,
-  SceneInputJson,
   SlotNodeJson,
 } from "#shared";
 import {
@@ -26,7 +22,6 @@ import {
 } from "@initiative.dev/react-command";
 import { NodeSchema, validateNodeId } from "@initiative.dev/schema";
 import { useCallback, useMemo, useState } from "react";
-import { convertToObject } from "typescript";
 
 const cls = bemClasses("initiative-create-node-dialog");
 
@@ -145,13 +140,15 @@ export function CreateNodeDialog({
             try {
               document.applyPatch({
                 type: "create-slot-node-output",
-                nodeId: pasteTrueSelf.get(id) ?? id,
+                nodeId: pasteTrueSelf.get(id)!,
                 outputName: output,
                 outputType: data.type,
-                expression: data.value,
+                expression: data.value
+                  ? replaceNodeIds(data.value, pasteTrueSelf)
+                  : null,
               });
             } catch (e) {
-              errors.push(`- ${e}`);
+              errors.push(`- In node ${pasteTrueSelf.get(id)}: ${e}`);
             }
           }
           continue;
@@ -168,56 +165,9 @@ export function CreateNodeDialog({
               index: Number(input.split("::")[1]),
             });
           } catch (e) {
-            errors.push(`- ${e}`);
+            errors.push(`- In node ${pasteTrueSelf.get(id)}: ${e}`);
           }
         }
-      }
-      function replaceNodeIds(
-        data: ExpressionJson,
-        table: Map<string, string>,
-      ): ExpressionJson {
-        if (data.type === "fluent-message") {
-          const resultFluent: Record<string, ExpressionJson> = {};
-          Object.entries(data.args).forEach(([key, value]) => {
-            resultFluent[key] = replaceNodeIds(value, table);
-          });
-          return { ...data, args: resultFluent };
-        }
-        if (
-          data.type === "node-output" ??
-          data.type === "scene-input" ??
-          data.type === "debug-value"
-        ) {
-          const result = {
-            ...(data as
-              | SceneInputExpressionJson
-              | DebugValueExpressionJson
-              | NodeOutputExpressionJson),
-            selectors: (
-              data as
-                | SceneInputExpressionJson
-                | DebugValueExpressionJson
-                | NodeOutputExpressionJson
-            ).selectors.map((value) => {
-              if (value.type === "property") return value;
-              return {
-                ...value,
-                args: value.args.map((nextLayerData) => {
-                  return nextLayerData
-                    ? replaceNodeIds(nextLayerData, table)
-                    : null;
-                }),
-              };
-            }),
-          };
-          return data.type === "node-output"
-            ? {
-                ...(result as NodeOutputExpressionJson),
-                nodeId: table.get(data.nodeId) ?? data.nodeId,
-              }
-            : result;
-        }
-        return data;
       }
       if (errors.length !== 0) {
         window.alert("Encountered errors during import\n" + errors.join("\n"));
@@ -268,4 +218,42 @@ export function CreateNodeDialog({
       </AlertDialogContent>
     </Dialog>
   );
+}
+
+function replaceNodeIds(
+  data: ExpressionJson,
+  table: Map<string, string>,
+): ExpressionJson {
+  if (data.type === "fluent-message") {
+    const resultFluent: Record<string, ExpressionJson> = {};
+    Object.entries(data.args).forEach(([key, value]) => {
+      resultFluent[key] = replaceNodeIds(value, table);
+    });
+    return { ...data, args: resultFluent };
+  }
+  if (
+    data.type === "node-output" ||
+    data.type === "scene-input" ||
+    data.type === "debug-value"
+  ) {
+    const result = {
+      ...data,
+      selectors: data.selectors.map((value) => {
+        if (value.type === "property") return value;
+        return {
+          ...value,
+          args: value.args.map((nextLayerData) => {
+            return nextLayerData ? replaceNodeIds(nextLayerData, table) : null;
+          }),
+        };
+      }),
+    };
+    return data.type === "node-output"
+      ? {
+          ...(result as NodeOutputExpressionJson),
+          nodeId: table.get(data.nodeId) ?? data.nodeId,
+        }
+      : result;
+  }
+  return data;
 }
