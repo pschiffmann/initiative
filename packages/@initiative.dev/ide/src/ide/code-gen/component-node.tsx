@@ -300,6 +300,10 @@ function generateCollectionSlotComponent(
     moduleName: "@initiative.dev/schema/code-gen-helpers",
     exportName: "SlotComponentProps",
   });
+  const ReactElement = nameResolver.importType({
+    moduleName: "react",
+    exportName: "ReactElement",
+  });
 
   const outputNames = nodeData.schema.slotAttributes[slotName].outputNames;
 
@@ -309,7 +313,7 @@ function generateCollectionSlotComponent(
       style,
       index,
       ${outputNames.map((n) => `${n},`).join("\n")}
-    }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">) {
+    }: ${SlotComponentProps}<${NodeSchema}, "${slotName}">): ${ReactElement} {
       switch(index) {
         ${nodeData
           .forEachChildInSlot(slotName, (childId, index) => {
