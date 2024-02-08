@@ -1,4 +1,4 @@
-import { Definitions, t } from "@initiative.dev/schema";
+import { Definitions, ExtensionMethodSchema, t } from "@initiative.dev/schema";
 import { ObjectMap } from "@pschiffmann/std/object-map";
 import { ProjectConfig } from "../project-config.js";
 import {
@@ -6,9 +6,35 @@ import {
   ComponentNodeJson,
   NodeParent,
 } from "./component-node.js";
-import { ExpressionJson, ExpressionSelectorJson } from "./expression.js";
+import {
+  EnumValueExpression,
+  ExpressionJson,
+  ExpressionSelectorJson,
+  FluentMessageExpression,
+  JsonLiteralExpression,
+} from "./expression.js";
 import { SceneDocument } from "./scene-document.js";
 import { SlotNodeJson } from "./slot-node.js";
+import {
+  Output,
+  array,
+  literal,
+  nullable,
+  number,
+  object,
+  parse,
+  record,
+  recursive,
+  string,
+  union,
+  variant,
+  BaseSchema,
+  optional,
+  unknown,
+  safeParse,
+  flatten,
+  ValiError,
+} from "valibot";
 
 /**
  * Scene serialization format.
@@ -18,6 +44,170 @@ export interface SceneJson {
   readonly inputs: ObjectMap<SceneInputJson>;
   readonly nodes: ObjectMap<ComponentNodeJson | SlotNodeJson>;
 }
+//###
+
+type TypeJsonType = {};
+
+const TypeJsonSchema: BaseSchema<TypeJsonType> = recursive(() =>
+  variant("type", [
+    AnyJsonSchema,
+    ArrayJsonSchema,
+    BooleanJsonSchema,
+    EntityJsonSchema,
+    FunctionJsonSchema,
+    NullJsonSchema,
+    NumberJsonSchema,
+    StringJsonSchema,
+    TupleJsonSchema,
+    UndefinedJsonSchema,
+    UnionJsonSchema,
+    VoidJsonSchema,
+  ]),
+);
+
+const AnyJsonSchema = object({ type: literal("any") });
+const ArrayJsonSchema = object({
+  type: literal("array"),
+  element: TypeJsonSchema,
+});
+const BooleanJsonSchema = object({ type: literal("boolean") });
+const EntityJsonSchema = object({ type: literal("entity"), name: string() });
+const FunctionJsonSchema = object({
+  type: literal("function"),
+  requiredParameters: array(TypeJsonSchema),
+  optionalParameters: array(TypeJsonSchema),
+  returnType: TypeJsonSchema,
+});
+const NullJsonSchema = object({ type: literal("null") });
+const NumberJsonSchema = object({
+  type: literal("number"),
+  value: optional(number()),
+});
+const StringJsonSchema = object({
+  type: literal("string"),
+  value: optional(string()),
+});
+const TupleJsonSchema = object({
+  type: literal("tuple"),
+  elements: array(TypeJsonSchema),
+});
+const UndefinedJsonSchema = object({ type: literal("undefined") });
+const UnionJsonSchema = object({
+  type: literal("union"),
+  elements: array(TypeJsonSchema),
+});
+const VoidJsonSchema = object({ type: literal("void") });
+
+type ExpressionJsonType = {};
+
+const ExpressionJsonSchema: BaseSchema<ExpressionJsonType> = recursive(() =>
+  variant("type", [
+    JsonLiteralExpressionJsonSchema,
+    EnumValueExpressionJsonSchema,
+    FluentMessageExpressionJsonSchema,
+    SceneInputExpressionJsonSchema,
+    NodeOutputExpressionJsonSchema,
+    DebugValueExpressionJsonSchema,
+  ]),
+);
+
+const JsonLiteralExpressionJsonSchema = object({
+  type: literal("json-literal"),
+  schemaName: string(),
+  value: unknown(),
+});
+
+const EnumValueExpressionJsonSchema = object({
+  type: literal("enum-value"),
+  value: union([string(), number()]),
+});
+
+const FluentMessageExpressionJsonSchema = object({
+  type: literal("fluent-message"),
+  messages: record(string()),
+  args: record(string(), ExpressionJsonSchema),
+});
+
+const PropertySelectorJsonSchema = object({
+  type: literal("property"),
+  propertyName: string(),
+});
+
+const MethodSelectorJsonSchema = object({
+  type: literal("method"),
+  methodName: string(),
+  args: array(nullable(ExpressionJsonSchema)),
+});
+
+const CallSelectorJsonSchema = object({
+  type: literal("call"),
+  args: array(nullable(ExpressionJsonSchema)),
+});
+
+const ExtensionMethodSelectorJsonSchema = object({
+  type: literal("extension-method"),
+  extensionMethodName: string(),
+  args: array(nullable(ExpressionJsonSchema)),
+});
+
+const ExpressionSelectorJsonSchema = variant("type", [
+  PropertySelectorJsonSchema,
+  MethodSelectorJsonSchema,
+  CallSelectorJsonSchema,
+  ExtensionMethodSelectorJsonSchema,
+]);
+
+const SceneInputExpressionJsonSchema = object({
+  type: literal("scene-input"),
+  inputName: string(),
+  selectors: array(ExpressionSelectorJsonSchema),
+});
+
+const NodeOutputExpressionJsonSchema = object({
+  type: literal("node-output"),
+  nodeId: string(),
+  outputName: string(),
+  selectors: array(ExpressionSelectorJsonSchema),
+});
+
+const DebugValueExpressionJsonSchema = object({
+  type: literal("debug-value"),
+  debugValueName: string(),
+  selectors: array(ExpressionSelectorJsonSchema),
+});
+
+const SceneInputJsonSchema = object({
+  type: TypeJsonSchema,
+  doc: string(),
+  debugValue: nullable(ExpressionJsonSchema),
+});
+
+const ComponentNodeJsonSchema = object({
+  type: string(),
+  inputs: record(ExpressionJsonSchema),
+  slots: record(string()),
+});
+
+const SlotNodeOutputJsonSchema = object({
+  type: TypeJsonSchema,
+  value: nullable(ExpressionJsonSchema),
+});
+
+const SlotNodeJsonSchema = object({
+  type: literal("SceneSlot"),
+  debugPreview: object({ width: number(), height: number(), lable: string() }),
+  outputs: record(SlotNodeOutputJsonSchema),
+});
+
+const SceneJsonSchema = object({
+  inputs: record(string(), SceneInputJsonSchema),
+  rootNode: nullable(string()),
+  nodes: record(string(), union([ComponentNodeJsonSchema, SlotNodeJsonSchema])),
+});
+
+export type SceneJson2 = Output<typeof SceneJsonSchema>;
+
+//###
 
 export interface SceneInputJson {
   readonly type: t.TypeJson;
@@ -33,11 +223,22 @@ export function sceneDocumentFromJson(
 ): { errors?: string[]; document?: SceneDocument } {
   const errors: string[] = [];
   const document = new SceneDocument(name, definitions, projectConfig);
+
+  console.log(sceneJson);
+  let parsed;
+  try {
+    parsed = parse(SceneJsonSchema, sceneJson);
+  } catch (error) {
+    console.log(flatten<typeof SceneJsonSchema>(error as ValiError));
+  }
+  console.log(parsed);
+
   if (!sceneJson.rootNode) return { document };
 
   if (!isObject(sceneJson, sceneJsonSchema, `'scene.json'`, errors)) {
     return { errors };
   }
+
   if (!sceneJson.nodes[sceneJson.rootNode]) {
     errors.push(`Root node '${sceneJson.rootNode}' doesn't exist in 'nodes'.`);
     return { errors };
