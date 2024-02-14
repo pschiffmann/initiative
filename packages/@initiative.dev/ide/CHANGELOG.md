@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.1.9 - 2024-02-14
+
+- Add node copy&paste.
+- Add error indicator in the node tree view.
+- Fix code gen for empty collection slots.
+
 ## 0.1.8 - 2024-01-31
 
 - Fix bug that generated wrong Fluent keys.

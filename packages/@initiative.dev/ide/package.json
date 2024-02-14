@@ -1,6 +1,6 @@
 {
   "name": "@initiative.dev/ide",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
@@ -29,7 +29,7 @@
   "sideEffects": false,
   "dependencies": {
     "@initiative.dev/react-command": "^0.1.0",
-    "@initiative.dev/schema": "^0.1.6",
+    "@initiative.dev/schema": "^0.1.7",
     "@material/material-color-utilities": "^0.2.6",
     "@pschiffmann/std": "^0.3.7",
     "idb-keyval": "^6.2.0",
