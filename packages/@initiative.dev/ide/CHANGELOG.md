@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.10 - 2024-02-14
+
+- IDE style fix.
+
 ## 0.1.9 - 2024-02-14
 
 - Add node copy&paste.
