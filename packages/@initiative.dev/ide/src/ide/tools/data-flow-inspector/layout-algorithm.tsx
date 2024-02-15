@@ -145,7 +145,9 @@ function calculateLayout(
       maxColumns.add(node.column);
     });
     let newColumnOrder: Array<number> = [...maxColumns];
-    newColumnOrder.sort();
+    newColumnOrder.sort((a, b) => {
+      return a - b;
+    });
     allNodes.forEach((node) => {
       node.column = newColumnOrder.findIndex((value) => {
         return value == node.column;
