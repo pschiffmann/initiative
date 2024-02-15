@@ -7,6 +7,7 @@ export interface LineProps {
   endX: number;
   endY: number;
   className: string;
+  onSelectedNodeChange(): void;
 }
 
 export function Line({
@@ -16,6 +17,7 @@ export function Line({
   endX,
   endY,
   className,
+  onSelectedNodeChange,
 }: LineProps) {
   const d =
     tunnel !== undefined
@@ -31,5 +33,5 @@ export function Line({
          C ${startX + (endX - startX) / 2} ${startY}
            ${startX + (endX - startX) / 2} ${endY}
            ${endX} ${endY}`;
-  return <path className={className} d={d} />;
+  return <path className={className} d={d} onClick={onSelectedNodeChange} />;
 }

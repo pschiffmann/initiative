@@ -42,6 +42,9 @@ export function Canvas({
                 tunnel={undefined}
                 endX={childPosition.offsetLeft}
                 endY={childPosition.offsetTop + 32}
+                onSelectedNodeChange={() => {
+                  onSelectedNodeChange(childNodeId);
+                }}
               />
             );
           })}
@@ -65,7 +68,7 @@ export function Canvas({
                         : `${inputName}::${index}`;
                     return (
                       <Line
-                        key={`${descendantNodeId}.${inputKey}`}
+                        key={`${ancestorNodeId}.${outputName}.${descendantNodeId}.${inputKey}`}
                         className={cls.element("line", null, "io")}
                         startX={ancestorPosition.offsetLeft + 320}
                         startY={
@@ -78,6 +81,9 @@ export function Canvas({
                           descendantPosition.offsetTop +
                           descendantPosition.inputOffsets[inputKey]
                         }
+                        onSelectedNodeChange={() => {
+                          onSelectedNodeChange(descendantNodeId);
+                        }}
                       />
                     );
                   },
