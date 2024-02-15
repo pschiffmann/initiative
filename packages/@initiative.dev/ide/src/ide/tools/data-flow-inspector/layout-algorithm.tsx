@@ -75,7 +75,8 @@ function calculateLayout(
 ): Layout {
   const nodesseperation: number = 16;
   const tunnelspacing: number = 8;
-  const maxangle: number = 60;
+  const maxangleLowerBound: number = 45;
+  const maxangleUpperBound: number = 85; //do not exeed 90
 
   // todo change into a 2d model
   let minimumtunnelseperation: number = Number.NEGATIVE_INFINITY;
@@ -655,12 +656,18 @@ function calculateLayout(
               metro.get(outputnode.id)!.get(inputnode.id)! +
                 Math.abs(minheight),
               0,
+              maxangleLowerBound,
             ),
           );
         } else {
           highestSeperation = Math.max(
             highestSeperation,
-            blackmagic(inputnode, outputnode.position[1], outputnode.size),
+            blackmagic(
+              inputnode,
+              outputnode.position[1],
+              outputnode.size,
+              maxangleLowerBound,
+            ),
           );
         }
       }
@@ -682,26 +689,28 @@ function calculateLayout(
    * @param inputnode
    * @param outputposition in px
    * @param outputsize 0 if tunnel
+   * @param alpha maxangle
    * @returns b
    */
   function blackmagic(
     inputnode: box,
     outputposition: number,
     outputsize: number,
+    alpha: number,
   ): number {
-    return Math.sqrt(
-      Math.abs(
-        Math.pow(Math.sin(maxangle * (Math.PI / 180)), 2) -
-          Math.pow(
-            Math.abs(
-              inputnode.position[1] +
-                inputnode.size / 2 -
-                (outputposition + outputsize / 2),
-            ),
-            2,
-          ),
-      ),
+    const a = Math.abs(
+      inputnode.position[1] +
+        inputnode.size / 2 -
+        (outputposition + outputsize / 2),
     );
+    const result = Math.sqrt(
+      Math.pow(a / Math.sin(alpha * (Math.PI / 180)), 2) - Math.pow(a, 2),
+    );
+    return result < 800
+      ? result
+      : alpha >= maxangleUpperBound
+      ? result
+      : blackmagic(inputnode, outputposition, outputsize, alpha + 5);
   }
 
   // find maxwidth
