@@ -11,7 +11,7 @@ export const BooleanLiteralSchema = new JsonLiteralSchema<boolean>({
   type: t.boolean(),
   doc: `A static boolean.`,
   initialValue() {
-    return false;
+    return true;
   },
   validate(value) {
     if (typeof value === "boolean") return null;
