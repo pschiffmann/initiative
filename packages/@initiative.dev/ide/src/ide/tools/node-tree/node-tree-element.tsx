@@ -85,7 +85,7 @@ export const NodeTreeElement = memo(function NodeTreeElement_({
           nodeData.errors && "error",
         )}
         onClick={toggleSelected}
-        style={style}
+        style={nodeData.errors ? undefined : style}
       >
         <MaterialIcon
           icon={
