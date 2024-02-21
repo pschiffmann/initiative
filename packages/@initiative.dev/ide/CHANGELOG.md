@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.11 - 2024-02-21
+
+- Add move up/move down buttons for collection slot children.
+
 ## 0.1.10 - 2024-02-14
 
 - IDE style fix.

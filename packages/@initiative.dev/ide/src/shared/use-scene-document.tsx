@@ -5,7 +5,11 @@ import {
   useContext,
   useSyncExternalStore,
 } from "react";
-import { SceneDocument } from "./scene-data/index.js";
+import {
+  ComponentNodeData,
+  SceneDocument,
+  SlotNodeData,
+} from "./scene-data/index.js";
 
 const SceneDocumentContext = createContext<SceneDocument>(null!);
 
@@ -38,40 +42,81 @@ export function useSceneInputs(document: SceneDocument) {
   return useSyncExternalStore(onChange, getSceneInputs);
 }
 
-export function useNode(document: SceneDocument, nodeId: string) {
+export function useNode(
+  document: SceneDocument,
+  nodeId: string,
+  assertExists?: true,
+): ComponentNodeData | SlotNodeData;
+export function useNode(
+  document: SceneDocument,
+  nodeId: string | null,
+  assertExists: false,
+): ComponentNodeData | SlotNodeData | null;
+export function useNode(
+  document: SceneDocument,
+  nodeId: string | null,
+  assertExists = false,
+): ComponentNodeData | SlotNodeData | null {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
     [document],
   );
-  const getNode = useCallback(
-    () => (document.hasNode(nodeId) ? document.getNode(nodeId) : null!),
-    [document, nodeId],
-  );
+  const getNode = useCallback(() => {
+    if (!assertExists && (!nodeId || !document.hasNode(nodeId))) return null;
+    return document.getNode(nodeId!);
+  }, [document, nodeId, assertExists]);
   return useSyncExternalStore(onChange, getNode);
 }
 
-export function useComponentNode(document: SceneDocument, nodeId: string) {
+export function useComponentNode(
+  document: SceneDocument,
+  nodeId: string,
+  assertExists?: true,
+): ComponentNodeData;
+export function useComponentNode(
+  document: SceneDocument,
+  nodeId: string | null,
+  assertExists: false,
+): ComponentNodeData | null;
+export function useComponentNode(
+  document: SceneDocument,
+  nodeId: string | null,
+  assertExists = false,
+): ComponentNodeData | null {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
     [document],
   );
-  const getNode = useCallback(
-    () =>
-      document.hasNode(nodeId) ? document.getComponentNode(nodeId) : null!,
-    [document, nodeId],
-  );
+  const getNode = useCallback(() => {
+    if (!assertExists && (!nodeId || !document.hasNode(nodeId))) return null;
+    return document.getComponentNode(nodeId!);
+  }, [document, nodeId, assertExists]);
   return useSyncExternalStore(onChange, getNode);
 }
 
-export function useSlotNode(document: SceneDocument, nodeId: string) {
+export function useSlotNode(
+  document: SceneDocument,
+  nodeId: string,
+  assertExists?: true,
+): SlotNodeData;
+export function useSlotNode(
+  document: SceneDocument,
+  nodeId: string | null,
+  assertExists: true,
+): SlotNodeData | null;
+export function useSlotNode(
+  document: SceneDocument,
+  nodeId: string | null,
+  assertExists = false,
+): SlotNodeData | null {
   const onChange = useCallback(
     (onStoreChange: () => void) => document.listen("change", onStoreChange),
     [document],
   );
-  const getNode = useCallback(
-    () => (document.hasNode(nodeId) ? document.getSlotNode(nodeId) : null!),
-    [document, nodeId],
-  );
+  const getNode = useCallback(() => {
+    if (!assertExists && (!nodeId || !document.hasNode(nodeId))) return null;
+    return document.getSlotNode(nodeId!);
+  }, [document, nodeId, assertExists]);
   return useSyncExternalStore(onChange, getNode);
 }
 

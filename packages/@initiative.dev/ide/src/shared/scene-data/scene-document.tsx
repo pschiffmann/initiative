@@ -17,6 +17,7 @@ export type SceneDocumentPatch =
   | CreateComponentNodePatch
   | CreateSlotNodePatch
   | DeleteNodePatch
+  | MoveNodePatch
   | RenameNodePatch
   | SetComponentNodeInputPatch
   | SetSlotNodeDebugPreviewPatch
@@ -47,6 +48,12 @@ export interface CreateSlotNodePatch {
 export interface DeleteNodePatch {
   readonly type: "delete-node";
   readonly nodeId: string;
+}
+
+export interface MoveNodePatch {
+  readonly type: "move-node";
+  readonly nodeId: string;
+  readonly parent: NodeParent;
 }
 
 export interface RenameNodePatch {
@@ -217,6 +224,9 @@ export class SceneDocument {
           : this.#nodes.get(patch.nodeId) instanceof ComponentNodeData
           ? this.#deleteComponentNode(patch)
           : this.#deleteSlotNode(patch);
+        break;
+      case "move-node":
+        return this.#moveNode(patch);
         break;
       case "rename-node":
         this.#nodes.get(patch.nodeId) instanceof ComponentNodeData
@@ -424,6 +434,33 @@ export class SceneDocument {
     const changedIds = [parentNode.id, nodeId];
     this.#nodes.set(parentNode.id, parentNode);
     this.#nodes.delete(nodeId);
+    for (const [childId, nodeParent] of Object.entries(movedChildren)) {
+      changedIds.push(childId);
+      this.#nodes.set(childId, this.#nodes.get(childId)!.move(nodeParent));
+    }
+
+    this.#changeListeners.notify({ nodeIds: changedIds });
+  }
+
+  #moveNode({ nodeId, parent }: MoveNodePatch): void {
+    const node = this.getNode(nodeId);
+    if (
+      !node.parent ||
+      node.parent.nodeId !== parent.nodeId ||
+      node.parent.slotName !== parent.slotName
+    ) {
+      throw new Error("Unimplemented");
+    }
+
+    const oldParentNode = this.getComponentNode(node.parent.nodeId);
+    const [newParentNode, movedChildren] = oldParentNode.moveCollectionChild(
+      node.parent.slotName,
+      node.parent.index!,
+      parent.index!,
+    );
+
+    const changedIds = [oldParentNode.id];
+    this.#nodes.set(oldParentNode.id, newParentNode);
     for (const [childId, nodeParent] of Object.entries(movedChildren)) {
       changedIds.push(childId);
       this.#nodes.set(childId, this.#nodes.get(childId)!.move(nodeParent));

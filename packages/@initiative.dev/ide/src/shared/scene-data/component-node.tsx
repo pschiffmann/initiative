@@ -366,6 +366,91 @@ export class ComponentNodeData {
     );
   }
 
+  moveCollectionChild(
+    slotName: string,
+    oldIndex: number,
+    newIndex: number,
+  ): [self: ComponentNodeData, movedChildren: Record<string, NodeParent>] {
+    const { isCollectionSlot, inputNames } =
+      this.schema.getSlotAttributes(slotName);
+    if (!isCollectionSlot) {
+      throw new Error(`Slot '${slotName}' is not a collection slot.`);
+    }
+    if (!this.slots[`${slotName}::${oldIndex}`]) {
+      throw new Error(`Invalid index '${oldIndex}' for slot '${slotName}'.`);
+    }
+    if (!this.slots[`${slotName}::${newIndex}`]) {
+      throw new Error(`Invalid index '${newIndex}' for slot '${slotName}'.`);
+    }
+    if (oldIndex === newIndex) {
+      throw new Error(`'oldIndex' is equal to 'newIndex'.`);
+    }
+
+    const slots = { ...this.slots };
+    const inputs = { ...this.inputs };
+
+    // Shift siblings
+    if (oldIndex < newIndex) {
+      for (let i = oldIndex; i < newIndex; i++) {
+        slots[`${slotName}::${i}`] = this.slots[`${slotName}::${i + 1}`];
+        for (const inputName of inputNames) {
+          const expr = this.inputs[`${inputName}::${i + 1}`];
+          if (expr) {
+            inputs[`${inputName}::${i}`] = expr;
+          } else {
+            delete inputs[`${inputName}::${i}`];
+          }
+        }
+      }
+    } else {
+      for (let i = newIndex; i < oldIndex; i++) {
+        slots[`${slotName}::${i + 1}`] = this.slots[`${slotName}::${i}`];
+        for (const inputName of inputNames) {
+          const expr = this.inputs[`${inputName}::${i}`];
+          if (expr) {
+            inputs[`${inputName}::${i + 1}`] = expr;
+          } else {
+            delete inputs[`${inputName}::${i + 1}`];
+          }
+        }
+      }
+    }
+
+    // Move child from `oldIndex` to `newIndex`
+    slots[`${slotName}::${newIndex}`] = this.slots[`${slotName}::${oldIndex}`];
+    for (const inputName of inputNames) {
+      const expr = this.inputs[`${inputName}::${oldIndex}`];
+      if (expr) {
+        inputs[`${inputName}::${newIndex}`] = expr;
+      } else {
+        delete inputs[`${inputName}::${newIndex}`];
+      }
+    }
+
+    // Resolve `movedChildren`
+    const movedChildren: Record<string, NodeParent> = {};
+    for (
+      let i = Math.min(oldIndex, newIndex);
+      i <= Math.max(oldIndex, newIndex);
+      i++
+    ) {
+      const childId = slots[`${slotName}::${i}`];
+      movedChildren[childId] = { nodeId: this.id, slotName, index: i };
+    }
+
+    return [
+      new ComponentNodeData(
+        this.schema,
+        this.id,
+        inputs,
+        slots,
+        this.collectionSlotSizes,
+        this.parent,
+      ),
+      movedChildren,
+    ];
+  }
+
   // inferTypeVariables(context: {}): {
   //   readonly [typeVariable: string]: t.Type;
   // } {

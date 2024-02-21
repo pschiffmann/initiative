@@ -56,7 +56,7 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
                 <NodeTree
                   className={cls.element("node-tree")}
                   document={document}
-                  selectedNode={selectedNode}
+                  selectedNodeId={selectedNode}
                   onSelectedNodeChange={setSelectedNode}
                 />
                 <StageView

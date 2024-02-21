@@ -4,6 +4,8 @@ import {
   SceneDocument,
   SlotNodeData,
   SlotNodeJson,
+  useComponentNode,
+  useNode,
   useRootNodeId,
 } from "#shared";
 import { CommandController } from "@initiative.dev/react-command";
@@ -17,14 +19,14 @@ const cls = bemClasses("initiative-node-tree");
 
 export interface NodeTreeProps {
   document: SceneDocument;
-  selectedNode: string | null;
+  selectedNodeId: string | null;
   onSelectedNodeChange(nodeId: string | null): void;
   className?: string;
 }
 
 export function NodeTree({
   document,
-  selectedNode,
+  selectedNodeId,
   onSelectedNodeChange,
   className,
 }: NodeTreeProps) {
@@ -33,10 +35,16 @@ export function NodeTree({
   );
 
   const rootNodeId = useRootNodeId(document);
+  const selectedNode = useNode(document, selectedNodeId, false);
+  const parentNode = useComponentNode(
+    document,
+    selectedNode?.parent?.nodeId ?? null,
+    false,
+  );
 
   const testCopy = useCallback(() => {
-    if (!selectedNode) return;
-    const target = document.getNode(selectedNode).id;
+    if (!selectedNodeId) return;
+    const target = document.getNode(selectedNodeId).id;
 
     function recursiveCollect(
       target: string,
@@ -55,7 +63,29 @@ export function NodeTree({
     navigator.clipboard.writeText(
       JSON.stringify(recursiveCollect(target), null, 2),
     );
-  }, [selectedNode]);
+  }, [selectedNodeId]);
+
+  const moveSelectedNodeUp = useCallback(() => {
+    document.applyPatch({
+      type: "move-node",
+      nodeId: selectedNode!.id,
+      parent: {
+        ...selectedNode!.parent!,
+        index: selectedNode!.parent!.index! - 1,
+      },
+    });
+  }, [document, selectedNode]);
+
+  const moveSelectedNodeDown = useCallback(() => {
+    document.applyPatch({
+      type: "move-node",
+      nodeId: selectedNode!.id,
+      parent: {
+        ...selectedNode!.parent!,
+        index: selectedNode!.parent!.index! + 1,
+      },
+    });
+  }, [document, selectedNode]);
 
   const renameSelectedNode = useCallback(() => {
     const newId = prompt("Enter new node id");
@@ -63,21 +93,21 @@ export function NodeTree({
     try {
       document.applyPatch({
         type: "rename-node",
-        nodeId: selectedNode!,
+        nodeId: selectedNodeId!,
         newId,
       });
       onSelectedNodeChange(newId);
     } catch (e) {
       alert(`${e}`);
     }
-  }, [document, selectedNode]);
+  }, [document, selectedNodeId]);
 
   const deleteSelectedNode = useCallback(() => {
-    if (confirm(`Delete node ${selectedNode}?`)) {
+    if (confirm(`Delete node ${selectedNodeId}?`)) {
       onSelectedNodeChange(null);
-      document.applyPatch({ type: "delete-node", nodeId: selectedNode! });
+      document.applyPatch({ type: "delete-node", nodeId: selectedNodeId! });
     }
-  }, [document, selectedNode]);
+  }, [document, selectedNodeId]);
 
   return (
     <ToolFrame
@@ -86,21 +116,43 @@ export function NodeTree({
       actions={
         <>
           <IconButton
-            label="Copy node"
+            label="Move up"
+            icon="keyboard_arrow_up"
+            disabled={
+              !selectedNode ||
+              selectedNode.parent?.index === undefined ||
+              selectedNode.parent.index === 0
+            }
+            onPress={moveSelectedNodeUp}
+          />
+          <IconButton
+            label="Move down"
+            icon="keyboard_arrow_down"
+            disabled={
+              !selectedNode ||
+              selectedNode.parent?.index === undefined ||
+              selectedNode.parent.index ===
+                parentNode!.collectionSlotSizes[selectedNode.parent.slotName] -
+                  1
+            }
+            onPress={moveSelectedNodeDown}
+          />
+          <IconButton
+            label="Copy to clipboard"
             icon="content_copy"
-            disabled={!selectedNode}
+            disabled={!selectedNodeId}
             onPress={testCopy}
           />
           <IconButton
             label="Rename node"
             icon="edit"
-            disabled={!selectedNode}
+            disabled={!selectedNodeId}
             onPress={renameSelectedNode}
           />
           <IconButton
             label="Delete node"
             icon="delete"
-            disabled={!selectedNode}
+            disabled={!selectedNodeId}
             onPress={deleteSelectedNode}
           />
           <IconButton
@@ -111,7 +163,7 @@ export function NodeTree({
           <DataFlowInspector
             controller={dataFlowInspectorController}
             document={document}
-            selectedNode={selectedNode}
+            selectedNode={selectedNodeId}
             onSelectedNodeChange={onSelectedNodeChange}
           />
         </>
@@ -121,7 +173,7 @@ export function NodeTree({
         <div className={cls.element("nodes")}>
           <NodeTreeElement
             document={document}
-            selectedNode={selectedNode}
+            selectedNode={selectedNodeId}
             onSelectedNodeChange={onSelectedNodeChange}
             nodeId={rootNodeId}
           />
