@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.1.11
+## 0.1.11 - 2024-02-21
 
 - Change default value of boolean literals to `true`.
 
