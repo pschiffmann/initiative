@@ -4,11 +4,16 @@ import {
   MemberAccessExpression,
   SceneDocument,
   SlotNodeData,
+  useSceneDocumentVersion,
 } from "#shared";
 import { NodeSchema } from "@initiative.dev/schema";
+import { useMemo } from "react";
 
 export function useLayout(document: SceneDocument, filter: string | null) {
-  return calculateLayout(document, filter);
+  const version = useSceneDocumentVersion(document);
+  return useMemo(() => {
+    return calculateLayout(document, filter);
+  }, [document, version, filter]);
 }
 
 export interface Layout {
