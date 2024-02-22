@@ -95,7 +95,7 @@ export function Canvas({
         {Object.keys(canvas.nodeBoxPositions).map((key) => (
           <NodeBox
             key={key}
-            data={document.getComponentNode(key)}
+            data={document.getNode(key)}
             focus={selectedNode}
             positioning={canvas.nodeBoxPositions[key]}
             onSelectedNodeChange={onSelectedNodeChange}

@@ -4,7 +4,7 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { ComponentNodeData } from "#shared";
+import { ComponentNodeData, SlotNodeData } from "#shared";
 import {
   TonalPalette,
   argbFromHex,
@@ -23,7 +23,7 @@ declare module "csstype" {
 const cls = bemClasses("initiative-data-flow-inspector-node-box");
 
 export interface NodeBoxProps {
-  data: ComponentNodeData;
+  data: ComponentNodeData | SlotNodeData;
   focus: string | null;
   positioning: NodeBoxPosition;
   onSelectedNodeChange(nodeId: string | null): void;
@@ -35,11 +35,11 @@ export function NodeBox({
   positioning,
   onSelectedNodeChange,
 }: NodeBoxProps) {
-  const schema = data.schema;
+  const schema = data instanceof ComponentNodeData ? data.schema : null;
 
   const colorScheme = useContext(ColorSchemeContext);
   const style = useMemo(() => {
-    const color = data.schema.editor?.color;
+    const color = schema?.editor?.color;
     if (!color) return undefined;
     const customPalette = TonalPalette.fromInt(argbFromHex(color));
     return {
@@ -68,16 +68,22 @@ export function NodeBox({
         {data.id}
       </Typography>
       <Typography className={cls.element("type")} variant="label-medium" noWrap>
-        {data.type}
+        {data instanceof ComponentNodeData ? data.type : "SlotNode"}
       </Typography>
-      {data.forEachInput((expression, type, inputName, index) => {
-        const inputKey =
-          index === undefined ? inputName : `${inputName}::${index}`;
-        return <Input key={inputKey} name={inputKey} />;
-      })}
-      {schema.forEachOutput((outputName) => (
-        <Output key={outputName} name={outputName} />
-      ))}
+      {data instanceof ComponentNodeData
+        ? data.forEachInput((expression, type, inputName, index) => {
+            const inputKey =
+              index === undefined ? inputName : `${inputName}::${index}`;
+            return <Input key={inputKey} name={inputKey} />;
+          })
+        : data.outputNames.map((name) => {
+            return <Input key="name" name="name" />;
+          })}
+      {schema
+        ? schema.forEachOutput((outputName) => (
+            <Output key={outputName} name={outputName} />
+          ))
+        : null}
     </div>
   );
 }

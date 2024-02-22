@@ -3,6 +3,7 @@ import {
   Expression,
   MemberAccessExpression,
   SceneDocument,
+  SlotNodeData,
 } from "#shared";
 import { NodeSchema } from "@initiative.dev/schema";
 
@@ -166,23 +167,34 @@ function calculateLayout(
    */
   function unzip(nodeID: string, nodeparent: string, column: number): number {
     const data = document.getNode(nodeID)!;
-    if (!(data instanceof ComponentNodeData)) return 1;
-    const schema: NodeSchema = data.schema;
-    const childIDs = Object.values(data!.slots);
-    const chainraw: [number, number] = [0, childIDs.length];
-    if (chainraw[1] > 0) {
-      for (const child of childIDs) {
-        chainraw[0] += unzip(child, nodeID, column + 1);
+    const chainraw: [number, number] = [0, 0];
+    if (data instanceof ComponentNodeData) {
+      const schema: NodeSchema = data.schema;
+      const childIDs = Object.values(data!.slots);
+      chainraw[0] = 0;
+      chainraw[1] = childIDs.length;
+      if (chainraw[1] > 0) {
+        for (const child of childIDs) {
+          chainraw[0] += unzip(child, nodeID, column + 1);
+        }
       }
     }
     const dimensions = calculateInnerDimensions(data);
     const inputs: Array<string> = new Array();
     let inputsraw = new Array();
-    data.forEachInput((expression) =>
-      expression !== null
-        ? inputsraw.push(...expressionEvaluation(expression))
-        : null,
-    );
+    if (data instanceof ComponentNodeData) {
+      data.forEachInput((expression) =>
+        expression !== null
+          ? inputsraw.push(...expressionEvaluation(expression))
+          : null,
+      );
+    } else {
+      Object.entries(data.outputValues).forEach(([key, expression]) => {
+        expression !== null
+          ? inputsraw.push(...expressionEvaluation(expression))
+          : null;
+      });
+    }
     inputsraw.forEach((value) => inputs.push(value[0]));
     const node: box = {
       id: nodeID,
@@ -756,7 +768,7 @@ function calculateLayout(
 }
 
 function calculateInnerDimensions(
-  data: ComponentNodeData,
+  data: ComponentNodeData | SlotNodeData,
 ): Pick<NodeBoxPosition, "height" | "inputOffsets" | "outputOffsets"> {
   const inputOffsets: Record<string, number> = {};
   const outputOffsets: Record<string, number> = {};
@@ -765,19 +777,29 @@ function calculateInnerDimensions(
     nodeBoxSizes.padding + // Top padding
     nodeBoxSizes.header; // Header
 
-  data.forEachInput((expression, attributes, inputName, index) => {
-    const inputKey = index === undefined ? inputName : `${inputName}::${index}`;
-    inputOffsets[inputKey] =
-      boxHeight +
-      Object.keys(inputOffsets).length * nodeBoxSizes.ioRow +
-      nodeBoxSizes.connectorOffsetY;
-  });
-  data.schema.forEachOutput((outputName) => {
-    outputOffsets[outputName] =
-      boxHeight +
-      Object.keys(outputOffsets).length * nodeBoxSizes.ioRow +
-      nodeBoxSizes.connectorOffsetY;
-  });
+  if (data instanceof ComponentNodeData) {
+    data.forEachInput((expression, attributes, inputName, index) => {
+      const inputKey =
+        index === undefined ? inputName : `${inputName}::${index}`;
+      inputOffsets[inputKey] =
+        boxHeight +
+        Object.keys(inputOffsets).length * nodeBoxSizes.ioRow +
+        nodeBoxSizes.connectorOffsetY;
+    });
+    data.schema.forEachOutput((outputName) => {
+      outputOffsets[outputName] =
+        boxHeight +
+        Object.keys(outputOffsets).length * nodeBoxSizes.ioRow +
+        nodeBoxSizes.connectorOffsetY;
+    });
+  } else {
+    data.outputNames.forEach((name) => {
+      inputOffsets[name] =
+        boxHeight +
+        Object.keys(inputOffsets).length * nodeBoxSizes.ioRow +
+        nodeBoxSizes.connectorOffsetY;
+    });
+  }
 
   return {
     height:
