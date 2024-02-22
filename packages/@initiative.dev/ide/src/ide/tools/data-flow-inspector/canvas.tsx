@@ -1,5 +1,10 @@
 import { bemClasses } from "#design-system";
-import { ComponentNodeData, SceneDocument } from "#shared";
+import {
+  ComponentNodeData,
+  SceneDocument,
+  useSceneDocumentVersion,
+} from "#shared";
+import { useMemo } from "react";
 import { Layout, expressionEvaluation, useLayout } from "./layout-algorithm.js";
 import { Line } from "./line.js";
 import { NodeBox } from "./node-box.js";
@@ -21,11 +26,11 @@ export function Canvas({
   className,
   onSelectedNodeChange,
 }: CanvasProps) {
+  const version = useSceneDocumentVersion(document);
   const canvas: Layout = useLayout(document, selectedNode ? selectedNode : "");
-
-  return (
-    <div className={cls.block(className)}>
-      <div className={cls.element("container")} style={{ zoom }}>
+  const picture = useMemo(() => {
+    return (
+      <>
         <svg width={canvas.canvasWidth} height={canvas.canvasHeight}>
           {document.keys().map((childNodeId) => {
             const { parent } = document.getNode(childNodeId);
@@ -101,6 +106,14 @@ export function Canvas({
             onSelectedNodeChange={onSelectedNodeChange}
           />
         ))}
+      </>
+    );
+  }, [document, version, selectedNode]);
+
+  return (
+    <div className={cls.block(className)}>
+      <div className={cls.element("container")} style={{ zoom }}>
+        {picture}
       </div>
     </div>
   );
