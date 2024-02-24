@@ -22,6 +22,10 @@
   &__node-tree {
     grid-area: node-tree;
   }
+  &__data-flow-inspector {
+    grid-area: stage-view;
+    place-self: stretch;
+  }
   &__stage-view {
     grid-area: stage-view;
   }
@@ -48,6 +52,9 @@
 
     &--node-tree {
       grid-area: node-tree;
+    }
+    &--data-flow-inspector {
+      grid-area: stage-view;
     }
     &--stage-view {
       grid-area: stage-view;

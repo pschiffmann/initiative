@@ -1,5 +1,6 @@
 import {
   ColorSchemeContext,
+  DialogCommand,
   IconButton,
   bemClasses,
   useColorTheme,
@@ -18,6 +19,9 @@ import { NodeTree } from "./tools/node-tree/index.js";
 import { SceneInputs } from "./tools/scene-inputs/index.js";
 import { StageView } from "./tools/stage-view.js";
 import { WorkspaceManager } from "./tools/workspace-manager/index.js";
+import { Canvas } from "./tools/data-flow-inspector/canvas.js";
+import { DataFlowInspector } from "./tools/data-flow-inspector/index.js";
+import { CommandController } from "@initiative.dev/react-command";
 
 const cls = bemClasses("initiative-editor");
 
@@ -31,6 +35,11 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
   const [locale, setLocale] = useState("");
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [hidden, setDFI_SV] = useState<boolean>(false);
+
+  function toggleHidden() {
+    setDFI_SV(!hidden);
+  }
 
   const { rootRef, toggleColorScheme, colorScheme } = useApplyColorTheme();
 
@@ -58,10 +67,19 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
                   document={document}
                   selectedNodeId={selectedNode}
                   onSelectedNodeChange={setSelectedNode}
+                  toggleHidden={toggleHidden}
+                />
+                <DataFlowInspector
+                  className={cls.element("data-flow-inspector")}
+                  document={document}
+                  selectedNode={selectedNode}
+                  onSelectedNodeChange={setSelectedNode}
+                  hidden={!hidden}
                 />
                 <StageView
                   className={cls.element("stage-view")}
                   document={document}
+                  hidden={hidden}
                 />
                 {selectedNode &&
                 document.getNode(selectedNode) instanceof ComponentNodeData ? (
@@ -80,6 +98,7 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
             ) : (
               <>
                 <EmptyTool position="node-tree" />
+                <EmptyTool position="data-flow-inspector" />
                 <EmptyTool position="stage-view" />
                 <EmptyTool position="node-configurator" />
               </>
