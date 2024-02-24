@@ -11,6 +11,8 @@ export interface SlotNodeJson {
     readonly height: number;
     readonly label: string;
   };
+
+  // TODO: rename to `relays`
   readonly outputs: ObjectMap<SlotNodeOutputJson>;
 }
 
