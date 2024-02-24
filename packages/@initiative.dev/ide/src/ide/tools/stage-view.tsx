@@ -23,12 +23,11 @@ export function StageView({ document, className, hidden }: StageViewProps) {
   useStageConnection(document, selectedLocale.value);
 
   return (
-    <div className={cls.block(className)} hidden={hidden}>
-      <iframe
-        className={cls.element("iframe")}
-        src="./stage.html"
-        hidden={hidden}
-      />
+    <div
+      className={cls.block(className)}
+      style={{ visibility: hidden ? "hidden" : "visible" }}
+    >
+      <iframe className={cls.element("iframe")} src="./stage.html" />
       {locales && (
         <SelectControl
           className={cls.element("locale-select")}

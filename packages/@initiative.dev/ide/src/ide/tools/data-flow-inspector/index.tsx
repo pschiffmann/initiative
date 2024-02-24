@@ -24,7 +24,10 @@ export function DataFlowInspector({
   const [zoom, setZoom] = useState(100);
 
   return (
-    <div className={cls.block(className)} hidden={hidden}>
+    <div
+      className={cls.block(className)}
+      style={{ visibility: hidden ? "hidden" : "visible" }}
+    >
       <Canvas
         className={cls.element("canvas")}
         document={document}
@@ -47,20 +50,3 @@ export function DataFlowInspector({
     </div>
   );
 }
-/*
-      <label className={cls.element("controls")}>
-        Zoom:
-        <input
-          className={cls.element("input")}
-          type="range"
-          min={1}
-          max={100}
-          step={1}
-          value={zoom}
-          onChange={(e) => setZoom(Number.parseInt(e.target.value))}
-        />
-      </label>
-    </>
-  );
-}
-*/
