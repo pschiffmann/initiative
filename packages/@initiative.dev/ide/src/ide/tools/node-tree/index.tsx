@@ -1,4 +1,4 @@
-import { Button, DialogCommand, IconButton, bemClasses } from "#design-system";
+import { Button, IconButton, bemClasses } from "#design-system";
 import {
   ComponentNodeJson,
   SceneDocument,
@@ -9,8 +9,7 @@ import {
   useRootNodeId,
 } from "#shared";
 import { CommandController } from "@initiative.dev/react-command";
-import { SetStateAction, useCallback, useState } from "react";
-import { DataFlowInspector } from "../data-flow-inspector/index.js";
+import { useCallback, useState } from "react";
 import { ToolFrame } from "../tool-frame.js";
 import { CreateNodeDialog } from "./create-node-dialog.js";
 import { NodeTreeElement } from "./node-tree-element.js";

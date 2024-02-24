@@ -1,6 +1,5 @@
-import { Dialog, DialogCommand, bemClasses } from "#design-system";
+import { bemClasses } from "#design-system";
 import { SceneDocument } from "#shared";
-import { CommandController } from "@initiative.dev/react-command";
 import { useState } from "react";
 import { Canvas } from "./canvas.js";
 
@@ -11,7 +10,7 @@ export interface DataFlowInspectorProps {
   selectedNode: string | null;
   onSelectedNodeChange(nodeId: string | null): void;
   className?: string;
-  hidden?: boolean;
+  focus: string;
 }
 
 export function DataFlowInspector({
@@ -19,14 +18,14 @@ export function DataFlowInspector({
   document,
   selectedNode,
   onSelectedNodeChange,
-  hidden,
+  focus,
 }: DataFlowInspectorProps) {
   const [zoom, setZoom] = useState(100);
 
   return (
     <div
       className={cls.block(className)}
-      style={{ visibility: hidden ? "hidden" : "visible" }}
+      style={{ visibility: focus === "data-flow" ? "visible" : "hidden" }}
     >
       <Canvas
         className={cls.element("canvas")}
