@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.12
+
+- Add sass exports for design system styles to package.json.
+
 ## 0.1.11 - 2024-02-21
 
 - Add move up/move down buttons for collection slot children.

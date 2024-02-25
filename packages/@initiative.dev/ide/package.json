@@ -18,7 +18,10 @@
   "exports": {
     ".": "./dist/index.js",
     "./design-system": "./dist/ide/design-system/index.js",
-    "./styles.css": "./dist/ide/styles.css"
+    "./styles.css": "./dist/ide/styles.css",
+    "./*": {
+      "sass": "./styles/design-system/*.scss"
+    }
   },
   "imports": {
     "#code-gen": "./dist/ide/code-gen/index.js",
@@ -41,6 +44,6 @@
     "@types/react": "^18.2.7",
     "@types/react-dom": "^18.2.4",
     "@types/wicg-file-system-access": "^2020.9.6",
-    "sass": "^1.62.1"
+    "sass": "^1.71.1"
   }
 }
