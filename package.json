@@ -2,6 +2,7 @@
   "name": "initiative-monorepo",
   "private": true,
   "workspaces": [
+    "packages/create-initiative",
     "packages/@initiative.dev/*",
     "packages/@pschiffmann/*"
   ],

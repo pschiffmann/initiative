@@ -1,0 +1,16 @@
+{
+  "name": "create-initiative",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": "./dist/main.js",
+  "scripts": {
+    "tsc": "tsc -b -w"
+  },
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "dependencies": {
+    "@types/validate-npm-package-name": "^4.0.2",
+    "validate-npm-package-name": "^5.0.0"
+  }
+}
