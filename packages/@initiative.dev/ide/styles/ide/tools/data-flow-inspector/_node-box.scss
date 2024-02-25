@@ -7,6 +7,12 @@
   --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
       "on-surface"
     )};
+  --initiative-data-flow-inspector-node-box-fill-color-error: #{color.role(
+      "error"
+    )};
+  --initiative-data-flow-inspector-node-box-stroke-color-error: #{color.role(
+      "on-error"
+    )};
 
   position: absolute;
   width: 320px;
@@ -36,15 +42,10 @@
     grid-area: id;
     margin-inline: 4px;
     &--error {
-      --initiative-data-flow-inspector-node-box-fill-color: #{color.role(
-          "error"
-        )};
-      --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
-          "on-error"
-        )};
       background-color: var(
-        --initiative-data-flow-inspector-node-box-fill-color
+        --initiative-data-flow-inspector-node-box-fill-color-error
       );
+      color: var(--initiative-data-flow-inspector-node-box-stroke-color-error);
     }
   }
   &__type {
@@ -57,44 +58,29 @@
     grid-column: input-socket;
     --initiative-icon-button-density: -1;
     &--error {
-      --initiative-data-flow-inspector-node-box-fill-color: #{color.role(
-          "error"
-        )};
-      --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
-          "on-error"
-        )};
       background-color: var(
-        --initiative-data-flow-inspector-node-box-fill-color
+        --initiative-data-flow-inspector-node-box-fill-color-error
       );
+      color: var(--initiative-data-flow-inspector-node-box-stroke-color-error);
     }
   }
   &__input-name {
     grid-column: input-name;
     &--error {
-      --initiative-data-flow-inspector-node-box-fill-color: #{color.role(
-          "error"
-        )};
-      --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
-          "on-error"
-        )};
       background-color: var(
-        --initiative-data-flow-inspector-node-box-fill-color
+        --initiative-data-flow-inspector-node-box-fill-color-error
       );
+      color: var(--initiative-data-flow-inspector-node-box-stroke-color-error);
     }
   }
   &__input-button {
     grid-column: input-button;
     --initiative-icon-button-density: -1;
     &--error {
-      --initiative-data-flow-inspector-node-box-fill-color: #{color.role(
-          "error"
-        )};
-      --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
-          "on-error"
-        )};
       background-color: var(
-        --initiative-data-flow-inspector-node-box-fill-color
+        --initiative-data-flow-inspector-node-box-fill-color-error
       );
+      color: var(--initiative-data-flow-inspector-node-box-stroke-color-error);
     }
   }
   &__output-button {
@@ -110,11 +96,5 @@
   }
   &--focus {
     box-shadow: 0px 0px 0px 3px #{color.role("on-surface")} inset;
-  }
-  &--error {
-    --initiative-data-flow-inspector-node-box-fill-color: #{color.role("error")};
-    --initiative-data-flow-inspector-node-box-stroke-color: #{color.role(
-        "on-error"
-      )};
   }
 }
