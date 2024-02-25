@@ -4,7 +4,12 @@ import {
   Typography,
   bemClasses,
 } from "#design-system";
-import { ComponentNodeData, SlotNodeData } from "#shared";
+import {
+  ComponentNodeData,
+  ComponentNodeErrors,
+  SlotNodeData,
+  SlotNodeErrors,
+} from "#shared";
 import {
   TonalPalette,
   argbFromHex,
@@ -58,13 +63,18 @@ export function NodeBox({
       style={{
         top: positioning.offsetTop,
         left: positioning.offsetLeft,
+
         ...style,
       }}
       onClick={() => {
         onSelectedNodeChange(data.id === focus ? null : data.id);
       }}
     >
-      <Typography className={cls.element("id")} variant="title-medium" noWrap>
+      <Typography
+        className={cls.element("id", null, data.errors ? "error" : null)}
+        variant="title-medium"
+        noWrap
+      >
         {data.id}
       </Typography>
       <Typography className={cls.element("type")} variant="label-medium" noWrap>
@@ -74,7 +84,9 @@ export function NodeBox({
         ? data.forEachInput((expression, type, inputName, index) => {
             const inputKey =
               index === undefined ? inputName : `${inputName}::${index}`;
-            return <Input key={inputKey} name={inputKey} />;
+            return (
+              <Input key={inputKey} name={inputKey} errors={data.errors} />
+            );
           })
         : data.outputNames.map((name) => {
             return <Input key="name" name="name" />;
@@ -90,25 +102,39 @@ export function NodeBox({
 
 interface InputOutputProps {
   name: string;
+  errors?: ComponentNodeErrors | SlotNodeErrors | null;
 }
 
-function Input({ name }: InputOutputProps) {
+function Input({ name, errors }: InputOutputProps) {
   return (
     <>
       <IconButton
-        className={cls.element("input-socket")}
+        className={cls.element(
+          "input-socket",
+          null,
+          errors?.invalidInputs.has(name) ? "error" : null,
+        )}
         label="Connect input"
         icon="login"
+        disabled
       />
       <Typography
         variant="body-medium"
         noWrap
-        className={cls.element("input-name")}
+        className={cls.element(
+          "input-name",
+          null,
+          errors?.invalidInputs.has(name) ? "error" : null,
+        )}
       >
         {name}
       </Typography>
       <IconButton
-        className={cls.element("input-button")}
+        className={cls.element(
+          "input-button",
+          null,
+          errors?.invalidInputs.has(name) ? "error" : null,
+        )}
         label="Edit input"
         icon="edit"
         disabled

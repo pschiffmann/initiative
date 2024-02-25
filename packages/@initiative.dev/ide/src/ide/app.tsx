@@ -13,6 +13,7 @@ import { Definitions } from "@initiative.dev/schema";
 import { useRef, useState } from "react";
 import { DefinitionsContext, LocaleContext } from "./context.js";
 import { ComponentNodeConfigurator } from "./tools/component-node-configurator.js";
+import { DataFlowInspector } from "./tools/data-flow-inspector/index.js";
 import { LicenseStatus } from "./tools/license-status/index.js";
 import { NodeTree } from "./tools/node-tree/index.js";
 import { SceneInputs } from "./tools/scene-inputs/index.js";
@@ -31,6 +32,13 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
   const [locale, setLocale] = useState("");
   const [document, setDocument] = useState<SceneDocument | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [mainAreaTool, setMainAreaTool] = useState<"preview" | "data-flow">(
+    "preview",
+  );
+
+  function focusDataFlowInspector() {
+    setMainAreaTool(mainAreaTool === "data-flow" ? "preview" : "data-flow");
+  }
 
   const { rootRef, toggleColorScheme, colorScheme } = useApplyColorTheme();
 
@@ -58,10 +66,19 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
                   document={document}
                   selectedNodeId={selectedNode}
                   onSelectedNodeChange={setSelectedNode}
+                  toggleHidden={focusDataFlowInspector}
+                />
+                <DataFlowInspector
+                  className={cls.element("data-flow-inspector")}
+                  document={document}
+                  selectedNode={selectedNode}
+                  onSelectedNodeChange={setSelectedNode}
+                  focus={mainAreaTool}
                 />
                 <StageView
                   className={cls.element("stage-view")}
                   document={document}
+                  focus={mainAreaTool}
                 />
                 {selectedNode &&
                 document.getNode(selectedNode) instanceof ComponentNodeData ? (
@@ -80,6 +97,7 @@ export function App({ projectId, definitions, formatJsFile }: AppProps) {
             ) : (
               <>
                 <EmptyTool position="node-tree" />
+                <EmptyTool position="data-flow-inspector" />
                 <EmptyTool position="stage-view" />
                 <EmptyTool position="node-configurator" />
               </>

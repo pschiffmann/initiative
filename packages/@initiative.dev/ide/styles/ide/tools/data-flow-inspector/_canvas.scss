@@ -7,6 +7,7 @@
   background-color: color.role("surface");
   box-shadow: 0 0 8px rgb(0 0 0 / 54%) inset;
   overflow: auto;
+  max-height: -webkit-fill-available;
 
   &__container {
     position: relative;

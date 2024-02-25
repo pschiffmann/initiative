@@ -13,16 +13,20 @@ const cls = bemClasses("initiative-stage-view");
 export interface StageViewProps {
   document: SceneDocument;
   className?: string;
+  focus: string;
 }
 
-export function StageView({ document, className }: StageViewProps) {
+export function StageView({ document, className, focus }: StageViewProps) {
   const { locales } = document.projectConfig;
   const selectedLocale = useContext(LocaleContext);
 
   useStageConnection(document, selectedLocale.value);
 
   return (
-    <div className={cls.block(className)}>
+    <div
+      className={cls.block(className)}
+      style={{ visibility: focus === "preview" ? "visible" : "hidden" }}
+    >
       <iframe className={cls.element("iframe")} src="./stage.html" />
       {locales && (
         <SelectControl

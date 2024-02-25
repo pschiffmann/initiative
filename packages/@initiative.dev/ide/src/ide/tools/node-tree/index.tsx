@@ -1,4 +1,4 @@
-import { Button, DialogCommand, IconButton, bemClasses } from "#design-system";
+import { Button, IconButton, bemClasses } from "#design-system";
 import {
   ComponentNodeJson,
   SceneDocument,
@@ -10,7 +10,6 @@ import {
 } from "#shared";
 import { CommandController } from "@initiative.dev/react-command";
 import { useCallback, useState } from "react";
-import { DataFlowInspector } from "../data-flow-inspector/index.js";
 import { ToolFrame } from "../tool-frame.js";
 import { CreateNodeDialog } from "./create-node-dialog.js";
 import { NodeTreeElement } from "./node-tree-element.js";
@@ -22,6 +21,7 @@ export interface NodeTreeProps {
   selectedNodeId: string | null;
   onSelectedNodeChange(nodeId: string | null): void;
   className?: string;
+  toggleHidden(): void;
 }
 
 export function NodeTree({
@@ -29,11 +29,8 @@ export function NodeTree({
   selectedNodeId,
   onSelectedNodeChange,
   className,
+  toggleHidden,
 }: NodeTreeProps) {
-  const [dataFlowInspectorController] = useState(
-    () => new CommandController<DialogCommand>(),
-  );
-
   const rootNodeId = useRootNodeId(document);
   const selectedNode = useNode(document, selectedNodeId, false);
   const parentNode = useComponentNode(
@@ -158,13 +155,7 @@ export function NodeTree({
           <IconButton
             label="Inspect data flow"
             icon="polyline"
-            onPress={() => dataFlowInspectorController.send("open")}
-          />
-          <DataFlowInspector
-            controller={dataFlowInspectorController}
-            document={document}
-            selectedNode={selectedNodeId}
-            onSelectedNodeChange={onSelectedNodeChange}
+            onPress={toggleHidden}
           />
         </>
       }

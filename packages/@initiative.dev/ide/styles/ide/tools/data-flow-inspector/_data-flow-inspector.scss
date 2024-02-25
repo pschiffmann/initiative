@@ -19,6 +19,7 @@
 
   &__canvas {
     grid-area: canvas;
+    min-height: -webkit-fill-available;
   }
 
   &__control {
