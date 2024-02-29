@@ -83,6 +83,10 @@
       color: var(--initiative-data-flow-inspector-node-box-stroke-color-error);
     }
   }
+  &__input-field {
+    grid-column-start: input-socket;
+    grid-column-end: input-button;
+  }
   &__output-button {
     grid-column: output-button;
     --initiative-icon-button-density: -1;

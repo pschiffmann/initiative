@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useId, useRef } from "react";
 import { bemClasses } from "../util/bem-classes.js";
 import { IconButton } from "./icon-button.js";
 import { MaterialIcon } from "./material-icon.js";
+import { Any } from "../../../../../schema/src/type-system/any.js";
 
 const cls = bemClasses("initiative-form-control");
 
@@ -78,15 +79,12 @@ function FormControlLayout({
   );
 }
 
-export interface TextFieldControlProps extends BaseFormControlProps {
-  value: string;
-  onChange?(value: string): void;
-}
+export interface TextFieldControlProps
+  extends BaseFormControlProps,
+    Omit<TextFieldProps, "id"> {}
 
 export function TextFieldControl({
   adornmentIcon,
-  value,
-  onChange,
   ...props
 }: TextFieldControlProps) {
   const id = useId();
@@ -96,22 +94,35 @@ export function TextFieldControl({
       id={id}
       {...props}
     >
-      <input
-        type="text"
-        className={cls.element("input", null, "text-field")}
-        id={id}
-        readOnly={!onChange}
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-      />
+      <TextField id={id} {...props} />
     </FormControlLayout>
+  );
+}
+
+/**
+ * @id used when accessed by Control
+ */
+export interface TextFieldProps {
+  value: string;
+  onChange?(value: string): void;
+  id?: string;
+}
+
+export function TextField({ value, onChange, id }: TextFieldProps) {
+  return (
+    <input
+      type="text"
+      className={cls.element("input", null, "text-field")}
+      id={id}
+      readOnly={!onChange}
+      value={value}
+      onChange={(e) => onChange?.(e.target.value)}
+    />
   );
 }
 
 export function TextAreaControl({
   adornmentIcon,
-  value,
-  onChange,
   ...props
 }: TextFieldControlProps) {
   const id = useId();
@@ -121,36 +132,34 @@ export function TextAreaControl({
       id={id}
       {...props}
     >
-      <div className={cls.element("input", null, "text-area")}>
-        <textarea
-          className={cls.element("textarea")}
-          id={id}
-          readOnly={!onChange}
-          rows={value.split("\n").length}
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-        />
-      </div>
+      <TextArea id={id} {...props} />
     </FormControlLayout>
   );
 }
 
-export interface NumberFieldControlProps extends BaseFormControlProps {
-  value: number;
-  onChange(value: number): void;
+export function TextArea({ value, onChange, id }: TextFieldProps) {
+  return (
+    <div className={cls.element("input", null, "text-area")}>
+      <textarea
+        className={cls.element("textarea")}
+        id={id}
+        readOnly={!onChange}
+        rows={value.split("\n").length}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+      />
+    </div>
+  );
 }
+
+export interface NumberFieldControlProps
+  extends BaseFormControlProps,
+    Omit<NumberFieldProps, "id"> {}
 
 export function NumberFieldControl({
   adornmentIcon,
-  value,
-  onChange,
   ...props
 }: NumberFieldControlProps) {
-  const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    ref.current!.value = `${value}`;
-  }, [value]);
-
   const id = useId();
 
   return (
@@ -159,32 +168,50 @@ export function NumberFieldControl({
       id={id}
       {...props}
     >
-      <input
-        ref={ref}
-        type="number"
-        className={cls.element("input", null, "number-field")}
-        id={id}
-        defaultValue={value}
-        onChange={(e) => {
-          const value = e.target.value;
-          if (value.match(floatPattern)) onChange?.(Number.parseFloat(value));
-        }}
-      />
+      <NumberField id={id} {...props} />
     </FormControlLayout>
+  );
+}
+
+/**
+ * @id used when accessed by Control
+ */
+export interface NumberFieldProps {
+  value: number;
+  onChange(value: number): void;
+  id?: string;
+}
+
+export function NumberField({ value, onChange, id }: NumberFieldProps) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    ref.current!.value = `${value}`;
+  }, [value]);
+
+  return (
+    <input
+      ref={ref}
+      type="number"
+      className={cls.element("input", null, "number-field")}
+      id={id}
+      defaultValue={value}
+      onChange={(e) => {
+        const value = e.target.value;
+        if (value.match(floatPattern)) onChange?.(Number.parseFloat(value));
+      }}
+    />
   );
 }
 
 const floatPattern = /\d+(?:\.\d+)?/;
 
-export interface CheckboxControlProps extends BaseFormControlProps {
-  value: boolean;
-  onChange(value: boolean): void;
-}
+export interface CheckboxControlProps
+  extends BaseFormControlProps,
+    Omit<CheckboxProps, "id"> {}
 
 export function CheckboxControl({
   adornmentIcon,
   value,
-  onChange,
   ...props
 }: CheckboxControlProps) {
   const id = useId();
@@ -196,14 +223,29 @@ export function CheckboxControl({
       id={id}
       {...props}
     >
-      <button
-        className={cls.element("input", null, "checkbox")}
-        id={id}
-        onClick={() => onChange(!value)}
-      >
-        {value.toString()}
-      </button>
+      <Checkbox value={value} id={id} {...props} />
     </FormControlLayout>
+  );
+}
+
+/**
+ * @id used when accessed by Control
+ */
+export interface CheckboxProps {
+  value: boolean;
+  onChange(value: boolean): void;
+  id?: string;
+}
+
+export function Checkbox({ value, onChange, id }: CheckboxProps) {
+  return (
+    <button
+      className={cls.element("input", null, "checkbox")}
+      id={id}
+      onClick={() => onChange(!value)}
+    >
+      {value.toString()}
+    </button>
   );
 }
 
@@ -263,28 +305,39 @@ export function SelectControl<T>({
   );
 }
 
-export interface ButtonControlProps extends BaseFormControlProps {
+export interface ButtonControlProps
+  extends BaseFormControlProps,
+    Omit<ButtonProps, "id"> {
   adornmentIcon: string;
-  value: string;
-  onPress?(): void;
 }
 
-export function ButtonControl({
-  value,
-  onPress,
-  ...props
-}: ButtonControlProps) {
+export function ButtonControl({ ...props }: ButtonControlProps) {
   const id = useId();
   return (
     <FormControlLayout id={id} {...props}>
-      <button
-        className={cls.element("input", null, "button")}
-        id={id}
-        title={value}
-        onClick={onPress}
-      >
-        {value}
-      </button>
+      <Button id={id} {...props} />
     </FormControlLayout>
+  );
+}
+
+/**
+ * @id used when accessed by Control
+ */
+export interface ButtonProps {
+  value: string;
+  onPress?(): void;
+  id?: string;
+}
+
+export function Button({ value, onPress, id }: ButtonProps) {
+  return (
+    <button
+      className={cls.element("input", null, "button")}
+      id={id}
+      title={value}
+      onClick={onPress}
+    >
+      {value}
+    </button>
   );
 }

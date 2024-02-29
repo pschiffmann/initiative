@@ -17,6 +17,7 @@ import {
 } from "@material/material-color-utilities";
 import { useContext, useMemo } from "react";
 import { NodeBoxPosition } from "./layout-algorithm.js";
+import { ExpressionControl } from "../../expression-controls/index.js";
 
 declare module "csstype" {
   interface Properties {
@@ -81,13 +82,27 @@ export function NodeBox({
         {data instanceof ComponentNodeData ? data.type : "SlotNode"}
       </Typography>
       {data instanceof ComponentNodeData
-        ? data.forEachInput((expression, type, inputName, index) => {
-            const inputKey =
-              index === undefined ? inputName : `${inputName}::${index}`;
-            return (
-              <Input key={inputKey} name={inputKey} errors={data.errors} />
-            );
-          })
+        ? data.forEachInput(
+            (expression, { type, optional }, inputName, index) => {
+              const inputKey =
+                index === undefined ? inputName : `${inputName}::${index}`;
+              return false ? (
+                <Input key={inputKey} name={inputKey} errors={data.errors} />
+              ) : (
+                <div className={cls.element("input-field")}>
+                  <ExpressionControl
+                    key={inputName}
+                    parent="node"
+                    name={inputName}
+                    expectedType={type}
+                    optional={optional}
+                    expression={expression}
+                    onChange={() => {}}
+                  />
+                </div>
+              );
+            },
+          )
         : data.outputNames.map((name) => {
             return <Input key="name" name="name" />;
           })}
