@@ -26,7 +26,7 @@
     cd packages/@pschiffmann/initiative-demo
     npm run dev
     ```
-    Open [http://localhost:5173/initiative/editor.html]() to use the initiative editor, or [http://localhost:5173/]() to see a initiative code-gen scene.
+    Open [http://localhost:5173/initiative/ide.html]() to use the initiative editor, or [http://localhost:5173/]() to see a initiative code-gen scene.
 
 ## Publishing
 
