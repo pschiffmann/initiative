@@ -54,7 +54,8 @@
         "text": {
           "type": "fluent-message",
           "messages": {
-            "en": "You pressed the button { $counter ->\n  [one] 1 time.\n *[other] {$counter} times.\n}"
+            "en": "You pressed the button { $counter ->\n  [one] 1 time.\n *[other] {$counter} times.\n}",
+            "de": "{ $counter ->\n  [0] Drück den Button!\n *[other] Du hast den Button {$counter}x gedrückt.\n}"
           },
           "args": {
             "counter": {

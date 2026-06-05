@@ -25,9 +25,11 @@ import {
   useContext,
   useEffect,
   useState,
+  type ReactElement,
   type ReactNode,
 } from "react";
 import { useLocale } from "../../locale-context.js";
+import ftlUrlDe from "./locale/de.ftl";
 import ftlUrlEn from "./locale/en.ftl";
 
 export { Scene as App, type SceneProps as AppProps };
@@ -49,6 +51,7 @@ const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter({
   return (
     <Button
       className={className}
+      style={style}
       label={"Increase"}
       variant={"contained"}
       color={"primary"}
@@ -65,6 +68,7 @@ const CounterValue_Adapter = memo(function CounterValue_Adapter({
   return (
     <Typography
       className={className}
+      style={style}
       text={translateMessage(
         useContext(FluentBundleContext),
         "CounterValue",
@@ -84,6 +88,7 @@ const Title_Adapter = memo(function Title_Adapter({
   return (
     <Typography
       className={className}
+      style={style}
       text={"Counter App Demo"}
       variant={"h4"}
     />
@@ -97,6 +102,7 @@ const Layout_Adapter = memo(function Layout_Adapter({
   return (
     <FlexContainer
       className={className}
+      style={style}
       gap={1}
       padding={"16px"}
       alignSelf={[undefined, undefined, "start"]}
@@ -114,7 +120,7 @@ function Layout_child({
   className,
   style,
   index,
-}: SlotComponentProps<FlexContainerSchema, "child">) {
+}: SlotComponentProps<FlexContainerSchema, "child">): ReactElement {
   switch (index) {
     case 0:
       return <Title_Adapter className={className} style={style} />;
@@ -147,6 +153,7 @@ const CounterBloc_Adapter = memo(function CounterBloc_Adapter({
   return (
     <CounterBloc
       className={className}
+      style={style}
       OutputsProvider={CounterBloc_OutputsProvider}
       slots={CounterBloc$slots}
     />
@@ -197,6 +204,9 @@ function FluentBundleProvider({ children }: { children: ReactNode }) {
       switch (locale) {
         case "en":
           ftlPromise = fetch(ftlUrlEn).then((r) => r.text());
+          break;
+        case "de":
+          ftlPromise = fetch(ftlUrlDe).then((r) => r.text());
           break;
         default:
           throw new Error(`Unsupported locale: '${locale}'`);

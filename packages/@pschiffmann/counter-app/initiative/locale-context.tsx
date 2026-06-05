@@ -1,9 +1,9 @@
 import { ReactNode, createContext, useContext } from "react";
 
-const LocaleContext = createContext<"en">("en");
+const LocaleContext = createContext<"en" | "de">("en");
 
 export interface LocaleProviderProps {
-  locale: "en";
+  locale: "en" | "de";
   children: ReactNode;
 }
 
@@ -13,6 +13,6 @@ export function LocaleProvider({ locale, children }: LocaleProviderProps) {
   );
 }
 
-export function useLocale(): "en" {
+export function useLocale(): "en" | "de" {
   return useContext(LocaleContext);
 }
