@@ -1,6 +1,6 @@
+import { type TodoItem } from "#initiative/types/index.js";
 import { NodeComponentProps } from "@initiative.dev/schema";
 import { useCallback, useState } from "react";
-import { TodoItem } from "../libraries/todo.schema.js";
 import { TodoRepositoryBlocSchema } from "./todo-repository-bloc.schema.js";
 
 export function TodoRepositoryBloc({
@@ -42,6 +42,7 @@ export function TodoRepositoryBloc({
       visibleTodos={visibleTodos}
       completedIds={completedIds}
       totalCount={todos.length}
+      isEmpty={todos.length === 0}
       toggleCompleted={toggleCompleted}
       showCompleted={showCompleted}
       toggleShowCompleted={toggleShowCompleted}

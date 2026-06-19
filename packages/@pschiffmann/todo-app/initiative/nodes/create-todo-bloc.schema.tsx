@@ -1,5 +1,5 @@
+import { todoItem } from "#initiative/types/index.js";
 import { NodeSchema, t } from "@initiative.dev/schema";
-import { todoItem } from "../libraries/todo.schema.js";
 
 export const CreateTodoBlocSchema = new NodeSchema(
   "@pschiffmann/todo-app::CreateTodoBloc",

@@ -8,7 +8,7 @@ const root = createRoot(document.querySelector("#root")!);
 root.render(
   <StrictMode>
     <ThemeProvider>
-      <Stage definitions={definitions} />
+      <Stage definitions={definitions} debugValues={{}} />
     </ThemeProvider>
   </StrictMode>,
 );

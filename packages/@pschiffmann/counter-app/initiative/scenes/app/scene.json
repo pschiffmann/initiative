@@ -25,12 +25,17 @@
         "alignSelf::2": {
           "type": "enum-value",
           "value": "start"
+        },
+        "alignSelf::3": {
+          "type": "enum-value",
+          "value": "center"
         }
       },
       "slots": {
         "child::0": "Title",
         "child::1": "CounterValue",
-        "child::2": "IncreaseButton"
+        "child::2": "IncreaseButton",
+        "child::3": "Icon"
       }
     },
     "Title": {
@@ -95,6 +100,17 @@
           "nodeId": "CounterBloc",
           "outputName": "increaseCounter",
           "selectors": []
+        }
+      },
+      "slots": {}
+    },
+    "Icon": {
+      "type": "@initiative.dev/lib-mui-material::Icon",
+      "inputs": {
+        "icon": {
+          "type": "json-literal",
+          "schemaName": "@initiative.dev/std::string",
+          "value": "add"
         }
       },
       "slots": {}

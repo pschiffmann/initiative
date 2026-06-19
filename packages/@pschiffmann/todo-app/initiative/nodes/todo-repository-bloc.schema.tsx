@@ -1,5 +1,5 @@
+import { todoItem } from "#initiative/types/index.js";
 import { NodeSchema, t } from "@initiative.dev/schema";
-import { todoItem } from "../libraries/todo.schema.js";
 
 export const TodoRepositoryBlocSchema = new NodeSchema(
   "@pschiffmann/todo-app::TodoRepositoryBloc",
@@ -13,6 +13,9 @@ export const TodoRepositoryBlocSchema = new NodeSchema(
       },
       totalCount: {
         type: t.number(),
+      },
+      isEmpty: {
+        type: t.boolean(),
       },
       toggleCompleted: {
         type: t.function(t.string(), t.boolean())()(),

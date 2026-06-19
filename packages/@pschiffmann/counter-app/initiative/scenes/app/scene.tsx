@@ -10,6 +10,7 @@ import {
 import {
   Button,
   FlexContainer,
+  Icon,
   Typography,
   type FlexContainerSchema,
 } from "@initiative.dev/lib-mui-material/nodes";
@@ -43,6 +44,13 @@ function Scene({ className, style }: SceneProps) {
     </FluentBundleProvider>
   );
 }
+
+const Icon_Adapter = memo(function Icon_Adapter({
+  className,
+  style,
+}: StyleProps) {
+  return <Icon className={className} style={style} icon={"add"} />;
+});
 
 const IncreaseButton_Adapter = memo(function IncreaseButton_Adapter({
   className,
@@ -105,15 +113,15 @@ const Layout_Adapter = memo(function Layout_Adapter({
       style={style}
       gap={1}
       padding={"16px"}
-      alignSelf={[undefined, undefined, "start"]}
-      margin={[undefined, undefined, undefined]}
+      alignSelf={[undefined, undefined, "start", "center"]}
+      margin={[undefined, undefined, undefined, undefined]}
       slots={Layout$slots}
     />
   );
 });
 
 const Layout$slots = {
-  child: { size: 3, Component: Layout_child },
+  child: { size: 4, Component: Layout_child },
 };
 
 function Layout_child({
@@ -128,6 +136,8 @@ function Layout_child({
       return <CounterValue_Adapter className={className} style={style} />;
     case 2:
       return <IncreaseButton_Adapter className={className} style={style} />;
+    case 3:
+      return <Icon_Adapter className={className} style={style} />;
     default:
       throw new Error(`Invalid index '${index}'.`);
   }
